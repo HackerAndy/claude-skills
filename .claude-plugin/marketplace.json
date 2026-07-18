@@ -1,0 +1,14 @@
+{
+  "name": "bpmn-tools",
+  "owner": {
+    "name": "Buddy",
+    "email": "kaminski.andy@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "bpmn-mapper",
+      "source": "./plugins/bpmn-mapper",
+      "description": "Standards-compliant BPMN 2.0 process mapping with a mentoring intake. Renders swimlane diagrams as SVG/PNG from a plain-English process description."
+    }
+  ]
+}
