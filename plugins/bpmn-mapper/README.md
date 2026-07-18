@@ -24,10 +24,10 @@ gathering the process.
 └── README.md
 ```
 
-## Publish it publicly (make it discoverable to any Claude user)
+## Publish it publicly (standalone GitHub repo)
 
-The goal here is to get `bpmn-mapper` into Anthropic's public **`claude-community`**
-marketplace so anyone can find and install it. That takes four steps.
+The goal here is to host `bpmn-mapper` in your own public GitHub repo so users
+install directly from your marketplace source.
 
 ### 1. Push to a **public** git repo (GitHub or GitLab)
 
@@ -52,33 +52,15 @@ claude plugin validate ./plugins/bpmn-mapper
 
 Fix anything it flags before submitting.
 
-### 3. Submit for community review
-
-Use whichever form matches your account:
-
-- **Console** (individual authors, no org required): https://platform.claude.com/plugins/submit
-- **claude.ai** (Team/Enterprise orgs with directory access): https://claude.ai/admin-settings/directory/submissions/plugins/new
-
-Submissions go through automated safety screening plus review. Approved plugins
-are pinned to a specific commit SHA in the
-[`anthropics/claude-plugins-community`](https://github.com/anthropics/claude-plugins-community)
-catalog, and CI bumps the pin automatically as you push new commits. The public
-catalog syncs nightly, so allow a delay between approval and the plugin
-appearing.
-
-### 4. Once approved, anyone installs it with
+### 3. Add your repo as a marketplace source
 
 ```
-/plugin marketplace add anthropics/claude-plugins-community
-/plugin install bpmn-mapper@claude-community
+/plugin marketplace add <your-username>/bpmn-tools
+/plugin install bpmn-mapper
 ```
 
-You can verify it's live by searching for `bpmn-mapper` in the
-[community catalog](https://github.com/anthropics/claude-plugins-community/blob/main/.claude-plugin/marketplace.json).
-
-> **Before approval / for early testers:** people can already install straight
-> from your repo with `/plugin marketplace add <your-username>/bpmn-tools` then
-> `/plugin install bpmn-mapper`. Good for sharing while the review is pending.
+Anyone with access to the public repo can install this plugin immediately; no
+community review step is required for this distribution path.
 
 ## Updating & releasing (the source of truth is this repo)
 
@@ -102,10 +84,17 @@ change here, in the repo, never in the personally-installed copy.
    git add . && git commit -m "bpmn-mapper vX.Y.Z: <what changed>"
    git push
    ```
-4. The `claude-community` catalog auto-bumps its pinned commit as you push and
-   syncs nightly, so allow a short delay.
-5. Users pull the update with `/plugin marketplace update` (then
-   `/plugin install bpmn-mapper@claude-community` if not on auto-update).
+4. Tag the same version in Git using a **plugin-scoped tag** so multiple
+   plugins in one repo do not collide:
+   ```bash
+   # example when plugin.json version is 1.2.0
+   git tag bpmn-mapper-v1.2.0
+   git push origin bpmn-mapper-v1.2.0
+   ```
+   Keep the plugin portion and version aligned with
+   `plugins/bpmn-mapper/.claude-plugin/plugin.json` (for example,
+   `bpmn-mapper-v1.2.0` tag for `1.2.0` in JSON).
+5. Users pull updates with `/plugin marketplace update`.
 
 **Keep your own machine on the repo version.** Install the plugin from your
 marketplace and use that, rather than a separately-saved standalone copy, so
@@ -128,6 +117,66 @@ once so the git repo becomes your single source of truth:
    ```
    From now on your local copy updates via `/plugin marketplace update`, exactly
    like your users' copies — no more divergence.
+
+## Sync checklist (GitHub + plugin version)
+
+When syncing changes to GitHub, keep these in lockstep:
+
+1. Target plugin manifest version (for example,
+   `plugins/bpmn-mapper/.claude-plugin/plugin.json`)
+2. Plugin-scoped Git tag (`<plugin-id>-vX.Y.Z`)
+3. Release notes/title (if you publish GitHub Releases)
+
+If these drift, users may see unclear update history. A good quick check is:
+
+```bash
+jq -r '.version' plugins/bpmn-mapper/.claude-plugin/plugin.json
+git tag --list 'bpmn-mapper-v*' --sort=-v:refname | head -n 5
+```
+
+## Release command sequence
+
+Use this from the repo root to validate, compare against the latest published
+plugin tag, and only proceed if `plugin.json` is a new version:
+
+```bash
+PLUGIN="bpmn-mapper"
+MANIFEST="plugins/${PLUGIN}/.claude-plugin/plugin.json"
+
+claude plugin validate "./plugins/${PLUGIN}"
+VERSION=$(jq -r '.version' "${MANIFEST}")
+TAG="${PLUGIN}-v${VERSION}"
+LATEST_TAG=$(git tag --list "${PLUGIN}-v*" --sort=-v:refname | head -n 1)
+
+echo "plugin: ${PLUGIN}"
+echo "plugin.json version: ${VERSION}"
+echo "latest plugin tag: ${LATEST_TAG:-<none>}"
+
+if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+   echo "ERROR: tag ${TAG} already exists. Bump plugin.json version first."
+   exit 1
+fi
+
+if [ -n "${LATEST_TAG}" ]; then
+   LATEST_VERSION=${LATEST_TAG#${PLUGIN}-v}
+   if [ "$(printf '%s\n%s\n' "${LATEST_VERSION}" "${VERSION}" | sort -V | tail -n 1)" != "${VERSION}" ] || [ "${VERSION}" = "${LATEST_VERSION}" ]; then
+      echo "ERROR: plugin.json version ${VERSION} is not newer than latest plugin tag ${LATEST_TAG}."
+      exit 1
+   fi
+fi
+
+git add .
+git commit -m "bpmn-mapper v${VERSION}: <what changed>"
+git tag "${TAG}"
+git push origin main
+git push origin "${TAG}"
+```
+
+Optional quick verify after pushing:
+
+```bash
+git tag --list "${PLUGIN}-v*" --sort=-v:refname | head -n 5
+```
 
 ## Requirements
 

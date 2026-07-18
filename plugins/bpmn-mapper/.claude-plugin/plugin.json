@@ -1,13 +1,13 @@
 {
   "name": "bpmn-mapper",
   "description": "Turn any described business process into a standards-compliant BPMN 2.0 diagram (SVG/PNG) with pools, swimlanes, events, tasks, and gateways. Includes a mentoring intake that spots gaps, off-target answers, under-explained steps, and over-detail while gathering the process.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
-    "name": "Buddy",
+    "name": "Hacker Andy",
     "email": "kaminski.andy@gmail.com"
   },
   "keywords": ["bpmn", "process-mapping", "swimlane", "workflow", "diagram", "business-process"],
   "license": "MIT",
-  "homepage": "https://github.com/<your-username>/bpmn-tools",
-  "repository": "https://github.com/<your-username>/bpmn-tools"
+  "homepage": "https://github.com/HackerAndy/claude-skills/tree/main/plugins/bpmn-mapper",
+  "repository": "https://github.com/HackerAndy/bpmn-tools"
 }
