@@ -1,0 +1,11 @@
+openapi: 3.1.0
+info: { title: Users API, version: 0.1.0 }
+paths:
+  /health:
+    get: { summary: Liveness check, responses: { "200": { description: OK } } }
+  /api/users:
+    get:  { summary: List users, responses: { "200": { description: OK } } }
+    post: { summary: Create a user, responses: { "201": { description: Created } } }
+  /api/users/{id}:
+    get:  { summary: Get a user, responses: { "200": { description: OK } } }
+    patch: { summary: Update a user, responses: { "200": { description: OK } } }

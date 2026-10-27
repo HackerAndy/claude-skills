@@ -1,0 +1,7 @@
+{
+  "name": "backend-viz-live",
+  "version": "0.3.0",
+  "author": { "name": "Andy Kaminski" },
+  "description": "Live pane + status line in Claude Code showing contract coverage and layer drift (needs the backend-viz plugin)",
+  "types": "./types/index.d.ts"
+}

@@ -1,0 +1,9 @@
+#!/bin/sh
+# backend-viz CLI. Link it onto your PATH once:
+#   ln -s "$(pwd)/bin/backend-viz" ~/.local/bin/backend-viz
+# Then in any project:  backend-viz            (map + dashboard)
+#                       backend-viz --serve    (live dashboard on :8765)
+#                       backend-viz --traces 3 (what actually ran)
+#                       backend-viz --init fastapi | --init-tracing
+HERE="$(cd "$(dirname "$(readlink -f "$0" 2>/dev/null || python3 -c 'import os,sys;print(os.path.realpath(sys.argv[1]))' "$0")")" && pwd)"
+exec python3 "$HERE/../skills/backend-viz/scripts/backend_map.py" "$@"

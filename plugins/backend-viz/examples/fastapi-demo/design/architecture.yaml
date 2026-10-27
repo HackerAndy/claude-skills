@@ -1,0 +1,42 @@
+# backend-viz architecture rules (FastAPI)
+# Each file is assigned to the FIRST layer whose glob matches its path.
+# may_depend_on = which OTHER layers this layer is allowed to import. Same-layer imports are always fine.
+layers:
+  - name: routes
+    description: HTTP edge. Parse request, call a service, shape response. No DB access.
+    paths: ["app/main.py", "app/api/*", "app/routers/*", "app/routes/*"]
+    may_depend_on: [services, schemas, core, trace]
+  - name: services
+    description: Business logic. Framework-free; no FastAPI imports.
+    paths: ["app/services/*", "app/domain/*"]
+    may_depend_on: [repositories, schemas, core, trace]
+  - name: repositories
+    description: Data access only. The only layer that talks to the DB.
+    paths: ["app/repositories/*", "app/repos/*", "app/db/*", "app/crud/*"]
+    may_depend_on: [models, core, trace]
+  - name: models
+    description: ORM tables.
+    paths: ["app/models/*"]
+    may_depend_on: [core]
+  - name: schemas
+    description: Pydantic request/response models (mirror the contract).
+    paths: ["app/schemas/*"]
+    may_depend_on: []
+  - name: trace
+    description: backend-viz runtime tracing. Everyone may use it.
+    paths: ["app/trace/*"]
+    may_depend_on: []
+  - name: core
+    description: Config, logging, shared utilities.
+    paths: ["app/core/*", "app/config.py", "app/utils/*"]
+    may_depend_on: []
+
+tracing:
+  required_in: [services, repositories]   # every public function here must be @traced
+  decorator: traced
+
+enforce:
+  layer_violations: true        # Claude gets told and fixes it
+  undocumented_endpoints: true  # endpoint in code but not in design/openapi.yaml
+
+ignore: ["tests/*", "**/test_*.py", "migrations/*", "alembic/*"]

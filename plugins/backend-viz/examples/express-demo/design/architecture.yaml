@@ -1,0 +1,32 @@
+# backend-viz architecture rules (Node / Express / Fastify)
+# Each file is assigned to the FIRST layer whose glob matches its path.
+# may_depend_on = which OTHER layers this layer is allowed to import. Same-layer imports are always fine.
+layers:
+  - name: routes
+    description: HTTP edge. Validate input, call a service, shape response. No DB access.
+    paths: ["src/app.*", "src/server.*", "src/index.*", "src/routes/*", "src/controllers/*"]
+    may_depend_on: [services, schemas, core]
+  - name: services
+    description: Business logic. No req/res objects.
+    paths: ["src/services/*", "src/domain/*"]
+    may_depend_on: [repositories, schemas, core]
+  - name: repositories
+    description: Data access only. The only layer that talks to the DB.
+    paths: ["src/repositories/*", "src/repos/*", "src/db/*"]
+    may_depend_on: [models, core]
+  - name: models
+    paths: ["src/models/*"]
+    may_depend_on: [core]
+  - name: schemas
+    description: Request/response types and validators (zod etc.), mirror the contract.
+    paths: ["src/schemas/*", "src/types/*"]
+    may_depend_on: []
+  - name: core
+    paths: ["src/config/*", "src/lib/*", "src/utils/*"]
+    may_depend_on: []
+
+enforce:
+  layer_violations: true
+  undocumented_endpoints: true
+
+ignore: ["test/*", "tests/*", "**/*.test.*", "**/*.spec.*", "dist/*"]

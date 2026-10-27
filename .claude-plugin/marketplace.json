@@ -14,6 +14,16 @@
       "name": "session-files",
       "source": "./plugins/session-files",
       "description": "A Files pane beside the chat that highlights files Claude edited this session and files git shows as changed."
+    },
+    {
+      "name": "backend-viz",
+      "source": "./plugins/backend-viz",
+      "description": "Contract-first backend workflow for FastAPI and Node: API contract vs built routes, layer rules, drift feedback after every edit, runtime tracing and a visual dashboard"
+    },
+    {
+      "name": "backend-viz-live",
+      "source": "./plugins/backend-viz-live",
+      "description": "Live 'Backend map' pane and status line inside Claude Code (mod; needs backend-viz)"
     }
   ]
 }
