@@ -9,6 +9,11 @@
       "name": "bpmn-mapper",
       "source": "./plugins/bpmn-mapper",
       "description": "Standards-compliant BPMN 2.0 process mapping with a mentoring intake. Renders swimlane diagrams as SVG/PNG from a plain-English process description."
+    },
+    {
+      "name": "session-files",
+      "source": "./plugins/session-files",
+      "description": "A Files pane beside the chat that highlights files Claude edited this session and files git shows as changed."
     }
   ]
 }

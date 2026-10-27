@@ -1,0 +1,13 @@
+{
+  "name": "session-files",
+  "version": "0.1.1",
+  "description": "A file tree pane that highlights files Claude changed this session and files git shows as modified",
+  "author": {
+    "name": "Hacker Andy",
+    "email": "kaminski.andy@gmail.com"
+  },
+  "keywords": ["mod", "pane", "file-tree", "git-status"],
+  "license": "MIT",
+  "homepage": "https://github.com/HackerAndy/claude-skills/tree/main/plugins/session-files",
+  "types": "./types/index.d.ts"
+}
