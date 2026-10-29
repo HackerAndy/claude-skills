@@ -185,7 +185,7 @@ const layerColor = name => { const i = R.layers.findIndex(l => l.name === name);
 const layerOf = f => FL[f] || null;
 
 if (!R) { document.body.innerHTML = '<p class="empty">No report data. Run backend_map.py.</p>'; }
-else queueMicrotask(render);  // after every const below exists
+else queueMicrotask(() => { render(); restoreScroll(); });  // after every const below exists
 
 function render(){
   EP = {}; R.endpoints.forEach(e => EP[e.method+' '+normPath(e.path)] = e);
@@ -461,7 +461,16 @@ function drawFixes(){
   if (store.get('bv-fix')) $('fix').open = true;
 }
 
-// live: served -> poll fresh data; file -> reload
+// live: served -> poll fresh data; file -> reload. Neither may move the reader:
+// wait while they scroll, click or select text, and put every scroll position back afterwards.
+let lastTouch = 0, ownScroll = 0, lastSig = R ? JSON.stringify({...R, generated: 0}) : '';
+['scroll','wheel','mousedown','keydown','touchstart'].forEach(e => addEventListener(e, ev => { if (ev.type !== 'scroll' || Date.now() > ownScroll) lastTouch = Date.now(); }, {passive: true, capture: true}));
+const busy = () => Date.now() - lastTouch < 4000 || String(getSelection()).length > 0;
+const scrollState = () => ({y: scrollY, side: $('side').scrollTop, map: $('map').scrollLeft});
+function applyScroll(s){ if (!s) return; ownScroll = Date.now() + 300; $('side').scrollTop = s.side; $('map').scrollLeft = s.map; scrollTo(0, s.y); }
+function restoreScroll(){ try { applyScroll(JSON.parse(store.get('bv-scroll') || 'null')); } catch(e) {} store.set('bv-scroll', ''); }
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
 const live = $('live');
 const on = store.get('bv-live') !== '0';
 live.classList.toggle('on', on);
@@ -469,10 +478,15 @@ live.onclick = () => { const v = !live.classList.contains('on'); live.classList.
 const served = location.protocol.startsWith('http');
 live.title = served ? 'Updates every 2s as requests run and files change' : 'Reloads every 3s while Claude edits';
 function schedule(){
-  if (!served) { setTimeout(() => { if (live.classList.contains('on')) location.reload(); }, 3000); return; }
+  if (!served) { setTimeout(() => {
+    if (!live.classList.contains('on')) return;
+    if (busy() || document.hidden) return schedule();
+    store.set('bv-scroll', JSON.stringify(scrollState())); location.reload(); }, 3000); return; }
   setTimeout(async () => {
     if (!live.classList.contains('on')) return;
-    try { if (!document.hidden) { const r = await fetch('data.json', {cache:'no-store'}); if (r.ok) { R = await r.json(); render(); } } } catch(e) {}
+    try { if (!document.hidden && !busy()) { const r = await fetch('data.json', {cache:'no-store'}); if (r.ok) {
+      const next = await r.json(), sig = JSON.stringify({...next, generated: 0});
+      if (sig !== lastSig && !busy()) { lastSig = sig; R = next; const s = scrollState(); render(); applyScroll(s); } } } } catch(e) {}
     schedule();
   }, 2000);
 }
