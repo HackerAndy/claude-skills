@@ -6,422 +6,459 @@
 <title>Backend map</title>
 <style>
 :root{
-  --bg:#f6f5f1;--panel:#ffffff;--ink:#1d1d1b;--muted:#6b6a64;--faint:#9c9a92;--line:#e3e1d9;--line2:#cfccc1;
-  --ok:#2f7d4f;--ok-bg:#e6f2ea;--miss:#9a6a0b;--miss-bg:#fbf0d9;--undoc:#7b3fb0;--undoc-bg:#f1e8fa;
-  --bad:#c0392b;--bad-bg:#fbe9e7;--accent:#1f5fa8;--accent-bg:#e7f0fa;
+  --bg:#f6f5f1;--panel:#ffffff;--ink:#1d1d1b;--muted:#6b6a64;--faint:#a8a69e;--line:#e6e4dc;--line2:#cfccc1;--ghost:#f1f0eb;
+  --ok:#2f7d4f;--ok-bg:#e6f2ea;--warn:#9a6a0b;--warn-bg:#fbf0d9;--bad:#c0392b;--bad-bg:#fbe9e7;--accent:#1f5fa8;--accent-bg:#e7f0fa;
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--sans:Inter,system-ui,-apple-system,Segoe UI,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root{
-  --bg:#141413;--panel:#1d1d1b;--ink:#ecebe6;--muted:#a3a198;--faint:#75736c;--line:#2e2d2a;--line2:#3d3c38;
-  --ok:#6cc58f;--ok-bg:#1c3326;--miss:#e7b453;--miss-bg:#3a2d12;--undoc:#c59aea;--undoc-bg:#2f2240;
-  --bad:#f0806f;--bad-bg:#3d1f1b;--accent:#7fb2ea;--accent-bg:#1a2b40;}}
+  --bg:#141413;--panel:#1d1d1b;--ink:#ecebe6;--muted:#a3a198;--faint:#5f5d57;--line:#2e2d2a;--line2:#3d3c38;--ghost:#232220;
+  --ok:#6cc58f;--ok-bg:#1c3326;--warn:#e7b453;--warn-bg:#3a2d12;--bad:#f0806f;--bad-bg:#3d1f1b;--accent:#7fb2ea;--accent-bg:#1a2b40;}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 var(--sans)}
-header{display:flex;align-items:center;gap:16px;padding:14px 24px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5}
+code{font:12.5px var(--mono)}
+header{display:flex;align-items:center;gap:12px;padding:12px 24px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5}
 header h1{font-size:16px;font-weight:600;margin:0}
-header .meta{color:var(--muted);font-size:12px;font-family:var(--mono)}
+header .meta{color:var(--muted);font-size:12px}
 header .sp{flex:1}
 .toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer;user-select:none}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--faint)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--faint);flex:none}
 .toggle.on .dot{background:var(--ok);box-shadow:0 0 0 3px var(--ok-bg)}
-main{padding:20px 24px;display:grid;gap:20px;max-width:1500px;margin:0 auto}
-.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
-.tile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
-.tile .k{font-size:12px;color:var(--muted)}
-.tile .v{font-size:26px;font-weight:600;font-variant-numeric:tabular-nums;margin-top:2px}
-.tile.bad .v{color:var(--bad)} .tile.warn .v{color:var(--undoc)} .tile.good .v{color:var(--ok)}
-.bar{height:6px;border-radius:3px;background:var(--line);margin-top:8px;overflow:hidden}
-.bar i{display:block;height:100%;background:var(--ok)}
-.grid2{display:grid;grid-template-columns:minmax(320px,420px) 1fr;gap:20px;align-items:start}
-@media (max-width:900px){.grid2{grid-template-columns:1fr}}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.panel h2{font-size:13px;font-weight:600;margin:0;padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
-.panel h2 small{font-weight:400;color:var(--muted)}
-.filters{display:flex;gap:6px;padding:10px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-.chip{border:1px solid var(--line2);background:none;color:var(--muted);border-radius:999px;padding:2px 10px;font-size:12px;cursor:pointer}
-.chip.on{background:var(--ink);color:var(--panel);border-color:var(--ink)}
-.eps{max-height:560px;overflow:auto}
-.grp{display:grid;grid-template-columns:1fr 90px 44px;gap:10px;align-items:center;padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--line);font-size:12px;font-weight:600;position:sticky;top:0;z-index:1}
-.gbar{height:5px;border-radius:3px;background:var(--line);overflow:hidden}.gbar i{display:block;height:100%;background:var(--ok)}
-.gn{color:var(--muted);font-weight:400;text-align:right;font-variant-numeric:tabular-nums}
-.ep{display:grid;grid-template-columns:62px 1fr auto;gap:8px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--line);cursor:pointer}
-.ep:hover{background:var(--bg)} .ep.sel{background:var(--accent-bg)}
-.m{font:600 11px var(--mono);padding:2px 0;border-radius:4px;text-align:center;border:1px solid var(--line2);color:var(--muted)}
+main{padding:16px 24px 32px;display:grid;gap:16px;max-width:1500px;margin:0 auto}
+@media (max-width:700px){main,header{padding-left:16px;padding-right:16px}}
+.intro{margin:0;color:var(--muted);font-size:13.5px}
+.intro b{color:var(--ink);font-weight:600}
+.health{display:flex;flex-wrap:wrap;gap:8px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;padding:4px 11px;border-radius:999px;border:1px solid var(--line);background:var(--panel);color:var(--ink);text-decoration:none}
+.pill .dot{background:var(--ok)} .pill.warn .dot{background:var(--warn)} .pill.bad .dot{background:var(--bad)}
+a.pill:hover{border-color:var(--line2)}
+.grid{display:grid;grid-template-columns:minmax(280px,340px) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;min-width:0}
+.ph{font-size:13px;font-weight:600;margin:0;padding:11px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.ph small{font-weight:400;color:var(--muted)}
+.tabs{display:flex;gap:4px;padding:8px 10px;border-bottom:1px solid var(--line)}
+.tab{flex:1;border:none;background:none;color:var(--muted);border-radius:6px;padding:5px 8px;font:500 12.5px var(--sans);cursor:pointer}
+.tab.on{background:var(--ghost);color:var(--ink)}
+.side{max-height:calc(100vh - 230px);min-height:200px;overflow:auto}
+.follow{display:flex;align-items:center;gap:8px;padding:7px 14px;font-size:12px;color:var(--muted);border-bottom:1px solid var(--line)}
+.follow .sp{flex:1}
+.btn{border:1px solid var(--line2);background:var(--panel);color:var(--ink);border-radius:6px;padding:2px 9px;font-size:12px;cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.act{display:grid;grid-template-columns:10px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line);cursor:pointer;border-left:3px solid transparent}
+.act:hover{background:var(--bg)} .act.sel{background:var(--accent-bg);border-left-color:var(--accent)}
+.act .dot{background:var(--ok)} .act.fail .dot{background:var(--bad)}
+.act b{display:block;font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.act small{display:block;color:var(--muted);font-size:11.5px;font-family:var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.act .ms{font:11.5px var(--mono);color:var(--muted);text-align:right}
+.act.fail .ms{color:var(--bad)}
+.act.fresh{animation:fresh 1.6s ease-out}
+@keyframes fresh{from{background:var(--ok-bg)}}
+.grp{padding:6px 14px;background:var(--bg);border-bottom:1px solid var(--line);font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;position:sticky;top:0;z-index:1}
+.ep{display:grid;grid-template-columns:54px minmax(0,1fr) auto;gap:8px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--line);cursor:pointer;border-left:3px solid transparent}
+.ep:hover{background:var(--bg)} .ep.sel{background:var(--accent-bg);border-left-color:var(--accent)}
+.m{font:600 10.5px var(--mono);padding:1px 0;border-radius:4px;text-align:center;border:1px solid var(--line2);color:var(--muted);display:inline-block;min-width:50px}
 .m.GET{color:#1f7a8c}.m.POST{color:#2f7d4f}.m.PUT,.m.PATCH{color:#9a6a0b}.m.DELETE{color:#c0392b}
-.p{font:13px var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.p small{display:block;font:12px var(--sans);color:var(--muted)}
-.st{font-size:11px;padding:2px 8px;border-radius:999px;white-space:nowrap}
-.st.built{background:var(--ok-bg);color:var(--ok)} .st.missing{background:var(--miss-bg);color:var(--miss)} .st.undocumented{background:var(--undoc-bg);color:var(--undoc)}
-.flowhead{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.flowhead code{font:13px var(--mono)}
-.canvas{overflow:auto;padding:14px}
-.empty{padding:28px 14px;color:var(--muted);text-align:center}
+.p{font:12.5px var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.p small{display:block;font:12px var(--sans);color:var(--muted);overflow:hidden;text-overflow:ellipsis}
+.st{font-size:11px;padding:1px 8px;border-radius:999px;white-space:nowrap;text-align:right}
+.st.built{color:var(--ok)} .st.missing{background:var(--warn-bg);color:var(--warn)} .st.undocumented{background:var(--warn-bg);color:var(--warn)}
+.empty{padding:24px 16px;color:var(--muted);text-align:center;font-size:13px}
+.empty ol{text-align:left;display:inline-block;margin:8px 0 0;padding-left:20px}
+.what{padding:14px 16px;border-bottom:1px solid var(--line);display:grid;gap:4px}
+.eyebrow{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.what h2{margin:0;font-size:19px;font-weight:600}
+.what .sub{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:12.5px;color:var(--muted)}
+.okc{color:var(--ok);font-weight:600}.badc{color:var(--bad);font-weight:600}
+.route{display:flex;flex-wrap:wrap;align-items:center;gap:4px;font-size:12.5px;color:var(--muted);margin-top:4px}
+.lchip{display:inline-flex;align-items:center;gap:5px;padding:1px 9px;border-radius:999px;background:var(--ghost);color:var(--ink);font-size:12px}
+.ldot{width:9px;height:9px;border-radius:3px;flex:none;display:inline-block}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:10px 16px 0;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:18px;height:12px;border-radius:3px;border:1.5px solid var(--line2);background:var(--panel)}
+.sw.on{border-color:var(--accent);background:var(--accent-bg)}
+.sw.ar{border:none;border-top:2px dashed var(--accent);border-radius:0;height:0;background:none}
+.sw.bd{border:none;border-top:2px dashed var(--bad);border-radius:0;height:0;background:none}
+.canvas{overflow:auto;padding:10px 12px 12px}
 svg text{font-family:var(--mono);font-size:11.5px}
-.node rect{fill:var(--panel);stroke:var(--line2)} .node text{fill:var(--ink)}
-.node.focus rect{stroke:var(--accent);stroke-width:2;fill:var(--accent-bg)}
-.node.badn rect{stroke:var(--bad)}
-.colhead{fill:var(--muted);font-family:var(--sans)!important;font-size:12px!important;font-weight:600}
-.colsub{fill:var(--faint);font-family:var(--sans)!important;font-size:11px!important}
+.colhead{fill:var(--ink);font-family:var(--sans)!important;font-size:12.5px!important;font-weight:600}
+.colsub{fill:var(--muted);font-family:var(--sans)!important;font-size:11px!important}
 .lane{fill:var(--bg)}
-.edge{fill:none;stroke:var(--line2);stroke-width:1.4}
-.edge.bad{stroke:var(--bad);stroke-width:2;stroke-dasharray:5 4}
-.viol{padding:0;margin:0;list-style:none}
-.viol li{padding:10px 14px;border-bottom:1px solid var(--line);font:12.5px var(--mono)}
-.viol li b{color:var(--bad);font-weight:600}
-.viol li span{display:block;color:var(--muted);font-family:var(--sans);font-size:12px}
-.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);padding:0 14px 12px}
-.legend i{display:inline-block;width:18px;height:0;border-top:2px solid var(--line2);vertical-align:middle;margin-right:5px}
-.legend i.b{border-top:2px dashed var(--bad)}
-.nav{display:flex;gap:4px;margin-left:8px}.nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:3px 9px;border-radius:999px}.nav a:hover{background:var(--bg);color:var(--ink)}
-.calls{font:11px var(--mono);color:var(--muted);margin-right:6px}.calls.err{color:var(--bad)}
-.ep{grid-template-columns:62px 1fr auto auto}
-.btn{border:1px solid var(--line2);background:var(--panel);color:var(--ink);border-radius:6px;padding:3px 10px;font-size:12px;cursor:pointer}.btn:hover{border-color:var(--accent);color:var(--accent)}
-.tl{max-height:520px;overflow:auto}
-.tr{display:grid;grid-template-columns:1fr auto;gap:2px 10px;padding:8px 14px;border-bottom:1px solid var(--line);cursor:pointer}
-.tr:hover{background:var(--bg)}.tr.sel{background:var(--accent-bg)}
-.tr .n{font:12.5px var(--mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.tr .t{font-size:11.5px;color:var(--muted)}
-.tr .x{font:12px var(--mono);text-align:right}.tr.bad .n{color:var(--bad)}
-.wf{padding:10px 14px 14px}
-.wf-row{display:grid;grid-template-columns:minmax(180px,34%) 1fr 64px;gap:10px;align-items:center;min-height:26px;cursor:pointer;border-radius:5px}
-.wf-row:hover{background:var(--bg)}.wf-row.sel{background:var(--accent-bg)}
-.wf-label{font:12px var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:6px}
-.ldot{width:8px;height:8px;border-radius:2px;flex:none}
-.wf-track{position:relative;height:16px}
-.wf-track i{position:absolute;top:2px;height:12px;border-radius:3px;min-width:3px;opacity:.85}
-.wf-track i.err{outline:2px solid var(--bad);outline-offset:1px}
-.wf-ms{font:11px var(--mono);color:var(--muted);white-space:nowrap;text-align:right}
-.wf-axis{display:grid;grid-template-columns:minmax(180px,34%) 1fr 64px;gap:10px;font:11px var(--mono);color:var(--faint);margin-bottom:4px}
-.wf-axis div:nth-child(2){display:flex;justify-content:space-between}
-.detail{border-top:1px solid var(--line);padding:12px 14px;display:grid;gap:8px;font-size:12.5px}
-.detail h3{margin:0;font:600 13px var(--mono)}
-.kv{display:grid;grid-template-columns:110px 1fr;gap:4px 10px}.kv span:nth-child(odd){color:var(--muted)}
-.kv code{font:12px var(--mono);word-break:break-all}
-.dchip{display:inline-block;font:11.5px var(--mono);padding:2px 8px;margin:2px 4px 2px 0;border-radius:999px;background:var(--accent-bg);color:var(--accent);cursor:pointer;border:none}
-.dchip.on{background:var(--accent);color:var(--panel)}
+.node rect.box{fill:var(--panel);stroke:var(--line2);stroke-width:1.2}
+.node text{fill:var(--ink)}
+.dim .node rect.box{fill:var(--ghost);stroke:var(--line)} .dim .node text{fill:var(--faint)}
+.dim .node.on rect.box,.node.on rect.box{stroke-width:2;fill:var(--panel)} .dim .node.on text{fill:var(--ink);font-weight:600}
+.node.prev rect.box{stroke:var(--accent)!important;stroke-dasharray:4 3;stroke-width:1.6!important} .dim .node.prev text{fill:var(--ink)}
+.node.fail rect.box{stroke:var(--bad)!important}
+.node.hl rect.box{stroke-width:3.5!important}
+.node.user rect.box{fill:var(--accent-bg);stroke:var(--accent);stroke-width:2} .node.user text{fill:var(--accent);font-family:var(--sans);font-weight:600}
+.badge circle{fill:var(--accent)} .badge text{fill:var(--panel)!important;font:600 10px var(--sans)!important}
+.more{fill:var(--faint);font-family:var(--sans)!important;font-size:11.5px!important}
+.edge{fill:none;stroke:var(--line2);stroke-width:1.2}
+.dim .edge{stroke:var(--line);opacity:.8}
+.edge.bad{stroke:var(--bad)!important;stroke-width:1.8;stroke-dasharray:5 4;opacity:1}
+.edge.run{stroke:var(--accent);stroke-width:2.4;stroke-dasharray:7 5;animation:flow .9s linear infinite;opacity:1}
+.edge.run.err{stroke:var(--bad)}
+.edge.pv{stroke:var(--accent);stroke-width:1.6;stroke-dasharray:4 4;opacity:.8}
+@keyframes flow{to{stroke-dashoffset:-12}}
+@media (prefers-reduced-motion:reduce){.edge.run{animation:none}.act.fresh{animation:none}}
+.enum circle{fill:var(--panel);stroke:var(--accent);stroke-width:1.6} .enum text{fill:var(--accent);font:600 10.5px var(--sans)!important}
+.enum.err circle{stroke:var(--bad)} .enum.err text{fill:var(--bad)}
+.steps{border-top:1px solid var(--line)}
+.steps h3{margin:0;padding:11px 16px 4px;font-size:13px;font-weight:600}
+.steps h3 small{font-weight:400;color:var(--muted)}
+.rq{padding:8px 16px 2px;font-size:12px;color:var(--muted)}
+.step{display:grid;grid-template-columns:26px minmax(0,1fr) minmax(60px,22%) 62px;gap:10px;align-items:center;padding:5px 16px;cursor:pointer}
+.step:hover,.step.open{background:var(--bg)}
+.num{width:22px;height:22px;border-radius:50%;border:1.6px solid var(--accent);color:var(--accent);font:600 11px var(--sans);display:grid;place-items:center}
+.step.err .num{border-color:var(--bad);color:var(--bad)}
+.sname{min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:6px}
+.sname code{font-weight:600}
+.sname small{color:var(--muted);font-size:12px}
+.track{position:relative;height:8px;background:var(--ghost);border-radius:4px}
+.track i{position:absolute;top:0;height:8px;border-radius:4px;min-width:3px}
+.sms{font:11.5px var(--mono);color:var(--muted);text-align:right}
+.sdet{margin:0 16px 8px 52px;padding:8px 12px;border-left:2px solid var(--line2);display:grid;grid-template-columns:90px minmax(0,1fr);gap:3px 10px;font-size:12.5px}
+.sdet>span:nth-child(odd){color:var(--muted)}
+.sdet code{word-break:break-all}
 .errtxt{color:var(--bad);font:12px var(--mono)}
-.legendl{display:flex;flex-wrap:wrap;gap:10px;padding:0 14px 12px;font-size:12px;color:var(--muted)}
-.legendl span{display:flex;align-items:center;gap:5px}
-.jhead{padding:10px 14px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.jhead input{border:1px solid var(--line2);background:var(--panel);color:var(--ink);border-radius:6px;padding:4px 8px;font:12px var(--mono);width:200px}
-.jnode rect{stroke-width:1.2}.jnode text{fill:var(--ink)}.jnode .sub{fill:var(--muted);font-size:10.5px!important}
-.jlane{fill:var(--bg)}.jlabel{fill:var(--muted);font-family:var(--sans)!important;font-size:12px!important;font-weight:600}
-.jedge{fill:none;stroke:var(--line2);stroke-width:1.4}.jedge.cross{stroke-dasharray:4 4}
-.jlink{fill:var(--accent);font-size:11px!important}
-table.fn{width:100%;border-collapse:collapse;font-size:12.5px}
-table.fn th{text-align:left;font-weight:600;color:var(--muted);font-size:11.5px;padding:6px 14px;border-bottom:1px solid var(--line)}
-table.fn td{padding:6px 14px;border-bottom:1px solid var(--line)}
-table.fn td.f{font-family:var(--mono)}table.fn td.num{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--mono)}
-table.fn tr.lay td{background:var(--bg);font-weight:600;font-size:12px}
-.ok{color:var(--ok)}.warnc{color:var(--miss)}.badc{color:var(--bad)}
-.fns{max-height:520px;overflow:auto}
+.note{padding:10px 16px 14px;font-size:12px;color:var(--muted)}
+details.fix>summary{cursor:pointer;list-style:none;padding:11px 14px;font-size:13px;font-weight:600;display:flex;gap:8px;align-items:center}
+details.fix>summary::-webkit-details-marker{display:none}
+details.fix>summary::before{content:'▸';color:var(--muted);transition:transform .15s}
+details.fix[open]>summary::before{transform:rotate(90deg)}
+details.fix>summary small{font-weight:400;color:var(--muted)}
+.fixes h4{margin:0;padding:10px 14px 4px;font-size:12px;color:var(--muted);font-weight:600;border-top:1px solid var(--line)}
+.fixes ul{list-style:none;margin:0;padding:0 0 6px}
+.fixes li{padding:5px 14px;font-size:12.5px}
+.fixes li span{color:var(--muted)}
+.fixes li.click{cursor:pointer}.fixes li.click:hover{background:var(--bg)}
 </style>
 </head>
 <body>
 <header>
   <h1 id="title">Backend map</h1>
   <span class="meta" id="gen"></span>
-  <nav class="nav"><a href="#s-endpoints">Endpoints</a><a href="#s-map">Map</a><a href="#s-traces">Traces</a><a href="#s-journey">Data journey</a><a href="#s-functions">Functions</a></nav>
   <span class="sp"></span>
   <span class="toggle" id="live" title="Reload every 3s while Claude edits"><span class="dot"></span>Live</span>
 </header>
 <main>
-  <section class="tiles" id="tiles"></section>
-  <section class="grid2" id="s-endpoints">
+  <p class="intro">Every click or form submit in your app sends a request to the backend, which runs a chain of code. <b>Pick an action on the left</b> and the map lights up the files it ran, with numbered arrows in the order they ran. Grey files were not used by that action.</p>
+  <div class="health" id="health"></div>
+  <section class="grid">
     <div class="panel">
-      <h2>Endpoints <small id="contract"></small></h2>
-      <div class="filters" id="filters"></div>
-      <div class="eps" id="eps"></div>
+      <div class="tabs"><button class="tab" data-tab="actions">User actions</button><button class="tab" data-tab="endpoints">All endpoints</button></div>
+      <div class="side" id="side"></div>
     </div>
     <div class="panel">
-      <h2 id="flowTitle">Request flow</h2>
-      <div class="flowhead" id="flowhead"></div>
-      <div class="canvas" id="flow"></div>
+      <div class="what" id="what"></div>
+      <div class="legend" id="legend"></div>
+      <div class="canvas" id="map"></div>
+      <div class="steps" id="steps"></div>
     </div>
   </section>
-  <section class="panel" id="s-map">
-    <h2>Architecture map <small>every layer from architecture.yaml · files inside · arrows = imports · hover a layer for its job</small></h2>
-    <div class="canvas" id="map"></div>
-    <div class="legend"><span><i></i>allowed import</span><span><i class="b"></i>breaks a layer rule</span><span><b style="font:11px var(--mono)">12×</b>&nbsp;calls seen at runtime</span></div>
-  </section>
-  <section class="grid2" id="s-traces">
-    <div class="panel">
-      <h2>Traces <small id="traceCount"></small></h2>
-      <div class="tl" id="tl"></div>
-    </div>
-    <div class="panel">
-      <h2 id="wfTitle">Waterfall <small>every traced call in one request, colored by layer · click a bar</small></h2>
-      <div class="wf" id="wf"></div>
-      <div class="legendl" id="wfLegend"></div>
-      <div class="detail" id="detail" hidden></div>
-    </div>
-  </section>
-  <section class="panel" id="s-journey">
-    <h2>Data journey <small>follow one piece of data through the layers, including what it became (link)</small></h2>
-    <div class="jhead" id="jhead"></div>
-    <div class="canvas" id="journey"></div>
-  </section>
-  <section class="panel" id="s-functions">
-    <h2>Functions <small id="fnCount"></small></h2>
-    <div class="filters" id="fnFilters"></div>
-    <div class="fns" id="fns"></div>
-  </section>
-  <section class="panel" id="violPanel">
-    <h2>Layer violations <small id="violCount"></small></h2>
-    <ul class="viol" id="viol"></ul>
-  </section>
+  <details class="panel fix" id="fix">
+    <summary>Things to fix <small id="fixCount"></small></summary>
+    <div class="fixes" id="fixes"></div>
+  </details>
 </main>
 <script>
 let R = /*__REPORT__*/null;
-const store = { get(k){ try{return sessionStorage.getItem(k)}catch(e){return null} }, set(k,v){ try{sessionStorage.setItem(k,v)}catch(e){} } };
+// sessionStorage keeps choices across live reloads; memory covers pages where it is blocked
+const mem = {};
+const store = { get(k){ try{ const v = sessionStorage.getItem(k); if (v !== null) return v; }catch(e){} return k in mem ? mem[k] : null; },
+                set(k,v){ mem[k] = v; try{sessionStorage.setItem(k,v)}catch(e){} } };
 const $ = id => document.getElementById(id);
 const clip = (t, n) => t.length > n ? t.slice(0, n-1)+'…' : t;
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const normPath = p => (String(p||'').replace(/\{[^}]+\}/g,'{}').replace(/:[A-Za-z_]\w*\??/g,'{}').replace(/\/+/g,'/').replace(/(.)\/$/,'$1')) || '/';
+const fmtMs = ms => ms < 1 ? ms.toFixed(2)+' ms' : ms < 100 ? ms.toFixed(1)+' ms' : Math.round(ms)+' ms';
+const fmtTime = t => new Date(t).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
+const plural = (n, w) => n + ' ' + w + (n === 1 ? '' : 's');
+const PAL = ['#3b82c4','#2f9e74','#c27c1a','#8a5cc2','#c2456e','#3aa0b8','#7f8f2a','#b55a30','#5b6bd0','#8a8a8a','#a0527a','#4f8f6a'];
+const STATUS = {built:'working', missing:'not built yet', undocumented:'not in contract'};
+const USER = '@user';
+let EP = {}, FL = {}, lastNewest = null;
+
+// the tracer's own files are plumbing, not part of the app's story
+const shown = f => !/(^|\/)trace\//.test(f);
+const layerColor = name => { const i = R.layers.findIndex(l => l.name === name); return i < 0 ? '#9c9a92' : PAL[i % PAL.length]; };
+const layerOf = f => FL[f] || null;
 
 if (!R) { document.body.innerHTML = '<p class="empty">No report data. Run backend_map.py.</p>'; }
 else queueMicrotask(render);  // after every const below exists
 
 function render(){
-  const S = R.summary;
+  EP = {}; R.endpoints.forEach(e => EP[e.method+' '+normPath(e.path)] = e);
+  FL = {}; R.layers.forEach(l => l.files.forEach(f => FL[f] = l.name));
   $('title').textContent = R.project + ' · backend map';
   $('gen').textContent = 'updated ' + R.generated.replace('T',' ');
-  $('contract').textContent = R.design.contract_file ? 'from ' + R.design.contract_file : 'no contract yet';
-  const cov = S.coverage ?? 0;
-  $('tiles').innerHTML = `
-    <div class="tile good"><div class="k">Contract coverage</div><div class="v">${S.coverage==null?'–':cov+'%'}</div><div class="bar"><i style="width:${cov}%"></i></div></div>
-    <div class="tile"><div class="k">Built / designed</div><div class="v">${S.built} / ${S.designed}</div></div>
-    <div class="tile ${S.undocumented?'warn':''}"><div class="k">Undocumented endpoints</div><div class="v">${S.undocumented}</div></div>
-    <div class="tile ${S.violations?'bad':''}"><div class="k">Layer violations</div><div class="v">${S.violations}</div></div>
-    <div class="tile"><div class="k">Files · unlayered</div><div class="v">${S.files} · ${S.unlayered}</div></div>
-    <div class="tile ${S.untraced?'warn':'good'}"><div class="k">Traced functions</div><div class="v">${S.must_trace ? (S.must_trace-S.untraced)+' / '+S.must_trace : '–'}</div></div>
-    <div class="tile ${S.trace_errors?'bad':''}"><div class="k">Seen running · traces</div><div class="v">${S.called}/${S.functions} · ${S.traces}</div></div>`;
+  drawHealth(); drawSide(); drawSelected(); drawFixes();
+}
 
-  // filters + endpoint list
-  const kinds = ['all','built','missing','undocumented'];
-  let filter = store.get('bv-filter') || 'all';
-  const drawFilters = () => $('filters').innerHTML = kinds.map(k => {
-    const n = k==='all' ? R.endpoints.length : R.endpoints.filter(e=>e.status===k).length;
-    return `<button class="chip ${k===filter?'on':''}" data-k="${k}">${k} ${n}</button>`;}).join('');
-  const order = R.tag_order || [];
-  const groupOf = e => e.tag || (e.status==='undocumented' ? 'off-contract' : 'other');
-  const rank = g => { const i = order.indexOf(g); return i < 0 ? 999 : i; };
-  const drawList = () => {
-    const sel = store.get('bv-sel');
-    const list = R.endpoints.filter(e => filter==='all' || e.status===filter);
-    const groups = [...new Set(R.endpoints.map(groupOf))].sort((a,b) => rank(a)-rank(b) || a.localeCompare(b));
-    let html = '';
-    groups.forEach(g => {
-      const all = R.endpoints.filter(e => groupOf(e)===g && e.status!=='undocumented');
-      const rows = list.filter(e => groupOf(e)===g);
-      if (!rows.length) return;
-      const built = all.filter(e=>e.status==='built').length, pct = all.length ? Math.round(100*built/all.length) : 0;
-      html += `<div class="grp"><span>${esc(g)}</span><span class="gbar"><i style="width:${pct}%"></i></span><span class="gn">${built}/${all.length}</span></div>`;
-      html += rows.map(e => {
-        const id = e.method+' '+e.path;
-        return `<div class="ep ${id===sel?'sel':''}" data-id="${esc(id)}"><span class="m ${e.method}">${e.method}</span>
-          <span class="p">${esc(e.path)}<small>${esc(e.summary || (e.file ? e.file+':'+e.line : ''))}</small></span>
-          <span class="calls ${e.errors?'err':''}" title="calls seen at runtime${e.errors?' · '+e.errors+' errors':''}">${e.calls?e.calls+'×':''}</span><span class="st ${e.status}">${e.status}</span></div>`;}).join('');
-    });
-    $('eps').innerHTML = html || '<div class="empty">Nothing here.</div>';
+// ---------- what is selected: a trace ("t:<id>"), an endpoint ("e:<METHOD path>"), or nothing = follow the newest trace
+function selection(){
+  const T = R.traces || [], v = store.get('bv-pick') || '';
+  if (v.startsWith('t:') && T.find(t => t.id === v.slice(2))) return {trace: T.find(t => t.id === v.slice(2))};
+  if (v.startsWith('e:') && R.endpoints.find(e => e.method+' '+e.path === v.slice(2))) return {ep: R.endpoints.find(e => e.method+' '+e.path === v.slice(2))};
+  return T.length ? {trace: T[0], following: true} : {};
+}
+const pick = v => { store.set('bv-pick', v); store.set('bv-open', ''); drawSide(); drawSelected(); };
+
+// ---------- one trace -> requests, numbered steps, and the arrows between files
+const requestsOf = t => t.spans.filter(s => (s.attrs||{}).kind === 'request' && !t.spans.some(p => p.span === s.parent));
+const epOfRequest = r => EP[((r.attrs||{}).method||'').toUpperCase()+' '+normPath((r.attrs||{}).route)];
+function actionOf(t){
+  const reqs = requestsOf(t), named = reqs.find(r => (r.attrs||{}).action);
+  if (named) return {label: named.attrs.action, named: true};
+  const e = reqs[0] && epOfRequest(reqs[0]);
+  return {label: (e && e.summary) || t.name, named: false};
+}
+
+function planOf(t){
+  const byId = Object.fromEntries(t.spans.map(s => [s.span, s])), kids = {}, roots = [];
+  t.spans.forEach(s => byId[s.parent] ? (kids[s.parent] = kids[s.parent] || []).push(s) : roots.push(s));
+  roots.forEach(r => {  // route handlers are often untraced: put the handler file in from the route
+    const e = (r.attrs||{}).kind === 'request' ? epOfRequest(r) : null;
+    if (!e || !e.file || (kids[r.span]||[]).some(c => c.file === e.file)) return;
+    const v = {span: r.span+'~h', parent: r.span, file: e.file, func: e.handler || 'handler', start: r.start, ms: r.ms, ok: r.ok, inferred: true};
+    kids[v.span] = kids[r.span] || []; kids[r.span] = [v];
+  });
+  const steps = [], edges = {}, groups = [];
+  const walk = (s, depth, from) => {
+    let next = from, d = depth;
+    if (s.file && shown(s.file)){
+      const n = steps.length + 1;
+      steps.push({sp: s, n, depth});
+      if (s.file !== from){ const k = from+'>'+s.file; (edges[k] = edges[k] || {from, to: s.file, steps: [], err: false}).steps.push(n); if (!s.ok) edges[k].err = true; }
+      next = s.file; d = depth + 1;
+    }
+    (kids[s.span]||[]).sort((a,b) => a.start - b.start).forEach(c => walk(c, d, next));
   };
-  drawFilters(); drawList();
-  $('filters').onclick = ev => { const k = ev.target.dataset.k; if(!k) return; filter=k; store.set('bv-filter',k); drawFilters(); drawList(); };
-  $('eps').onclick = ev => { const row = ev.target.closest('.ep'); if(!row) return; store.set('bv-sel', row.dataset.id); drawList(); showFlow(row.dataset.id); };
-  const first = store.get('bv-sel') || (R.endpoints.find(e=>e.file) ? R.endpoints.find(e=>e.file).method+' '+R.endpoints.find(e=>e.file).path : null);
-  if (first) showFlow(first); else $('flow').innerHTML = '<div class="empty">Select an endpoint to see its path through the layers.</div>';
-
-  // whole map
-  const allFiles = R.layers.flatMap(l=>l.files).concat(R.unlayered);
-  $('map').innerHTML = (allFiles.length || R.layers.length) ? graph(allFiles, R.edges, null, true) : '<div class="empty">No source files found yet.</div>';
-
-  // violations
-  $('violCount').textContent = R.violations.length ? R.violations.length + ' found' : 'none';
-  $('viol').innerHTML = R.violations.length ? R.violations.map(v =>
-    `<li><b>${esc(v.from)}</b> → <b>${esc(v.to)}</b><span>${esc(v.from_layer)} imports ${esc(v.to_layer)} · ${esc(v.rule)}</span></li>`).join('')
-    : '<li class="empty" style="font-family:var(--sans)">Every import follows the layer rules.</li>';
-
-  drawTraces(); drawJourney(); drawFunctions();
+  roots.sort((a,b) => a.start - b.start).forEach(r => { groups.push({root: r, at: steps.length}); walk(r, 0, USER); });
+  return {steps, edges: Object.values(edges), groups};
 }
 
-function showFlow(id){
-  const e = R.endpoints.find(x => x.method+' '+x.path === id);
-  if (!e) return;
-  $('flowhead').innerHTML = `<span class="m ${e.method}" style="padding:2px 8px">${e.method}</span><code>${esc(e.path)}</code>
-    <span class="st ${e.status}">${e.status}</span>${e.handler?`<span style="color:var(--muted);font-size:12px">handler <code>${esc(e.handler)}</code> · ${esc(e.file)}:${e.line}</code></span>`:''}
-    ${e.last_trace?`<button class="btn" id="lastRun">Last run ▸</button>`:''}`;
-  if (e.last_trace) $('lastRun').onclick = () => { store.set('bv-trace', e.last_trace); drawTraces(); $('s-traces').scrollIntoView({behavior:'smooth'}); };
-  if (!e.file) { $('flow').innerHTML = `<div class="empty">Designed in the contract but not built yet.${e.summary?'<br><b>'+esc(e.summary)+'</b>':''}<br><br>Ask Claude to implement it; this view fills in as files appear.</div>`; return; }
-  const out = {}; R.edges.forEach(x => (out[x.from] = out[x.from] || []).push(x));
-  const seen = new Set([e.file]), q = [[e.file,0]], used = [];
-  while (q.length){ const [f,d] = q.shift(); if (d>=6) continue;
-    (out[f]||[]).forEach(x => { used.push(x); if(!seen.has(x.to)){ seen.add(x.to); q.push([x.to,d+1]); } }); }
-  $('flow').innerHTML = graph([...seen], used, e.file);
+// ---------- health line: plain-language status, warnings jump to "Things to fix"
+function drawHealth(){
+  const S = R.summary, P = [];
+  const pill = (cls, txt, fix) => P.push(fix ? `<a class="pill ${cls}" href="#fix" data-fix><span class="dot"></span>${txt}</a>` : `<span class="pill ${cls}"><span class="dot"></span>${txt}</span>`);
+  if (S.designed) pill(S.built === S.designed ? '' : 'warn', `${S.built} of ${S.designed} planned endpoints built`, S.built !== S.designed);
+  if (S.undocumented) pill('warn', `${plural(S.undocumented, 'endpoint')} not in the contract`, true);
+  pill(S.violations ? 'bad' : '', S.violations ? `${plural(S.violations, 'import')} ${S.violations === 1 ? 'breaks' : 'break'} the layer rules` : 'Layer rules followed', S.violations);
+  if (S.untraced) pill('warn', `${plural(S.untraced, 'function')} not traced`, true);
+  if (S.trace_errors) pill('bad', `${plural(S.trace_errors, 'recent action')} failed`, true);
+  $('health').innerHTML = P.join('');
+  $('health').onclick = ev => { if (ev.target.closest('[data-fix]')) $('fix').open = true; };
 }
 
-// layered graph: one column per layer (in architecture order), files stacked, curved import edges
-function graph(files, edges, focus, allLayers){
-  const fl = {}; R.layers.forEach(l => l.files.forEach(f => fl[f]=l.name));
-  const cols = R.layers.map(l=>l.name).filter(n => allLayers || files.some(f=>fl[f]===n));
-  if (files.some(f=>!fl[f])) cols.push('(unlayered)');
-  const W=168, H=28, GX=46, GY=10, TOP=52, PAD=10;
-  const pos = {}, colFiles = {};
-  cols.forEach((c,i) => { colFiles[c] = files.filter(f => (fl[f]||'(unlayered)')===c).sort();
-    colFiles[c].forEach((f,j) => pos[f] = {x:PAD+i*(W+GX), y:TOP+j*(H+GY)}); });
-  const maxRows = Math.max(allLayers?2:1,...cols.map(c=>colFiles[c].length));
-  const w = PAD*2 + cols.length*(W+GX) - GX, h = TOP + maxRows*(H+GY) + 10;
-  const bad = new Set(edges.filter(x=>x.violation).flatMap(x=>[x.from,x.to]));
-  const layerInfo = Object.fromEntries(R.layers.map(l=>[l.name,l]));
-  let s = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Layered import graph">`;
-  cols.forEach((c,i) => { const x = PAD+i*(W+GX), L = layerInfo[c];
-    s += `<g><rect class="lane" x="${x-6}" y="4" width="${W+12}" height="${h-8}" rx="8"/>
-      <text class="colhead" x="${x}" y="22">${esc(c)}</text>
-      <text class="colsub" x="${x}" y="38">${L ? (L.may_depend_on.length ? esc(clip('→ '+L.may_depend_on.join(', '), 30)) : 'imports nothing') : 'no layer rule'}</text>
-      ${!colFiles[c].length ? `<text class="colsub" x="${x}" y="${TOP+18}">planned</text>` : ''}
-      ${L && L.description ? `<title>${esc(L.description)}</title>` : ''}</g>`; });
-  edges.forEach(x => { const a = pos[x.from], b = pos[x.to]; if(!a||!b) return;
-    let d;
-    if (b.x > a.x){ const x1=a.x+W, y1=a.y+H/2, x2=b.x, y2=b.y+H/2, m=(x2-x1)/2, skip=(x2-x1)>GX+5, dip=skip?H*0.9:0; d=skip?`M${a.x+W/2} ${a.y+H} C${a.x+W/2} ${a.y+H+dip+20},${x2-30} ${y2+dip+14},${x2} ${y2+6}`:`M${x1} ${y1} C${x1+m} ${y1},${x2-m} ${y2},${x2} ${y2}`; }
-    else if (b.x < a.x){ const x1=a.x, y1=a.y+H/2, x2=b.x+W, y2=b.y+H/2, m=(x1-x2)/2; d=`M${x1} ${y1} C${x1-m} ${y1-30},${x2+m} ${y2-30},${x2} ${y2}`; }
-    else { const x1=a.x+W, y1=a.y+H/2, y2=b.y+H/2; d=`M${x1} ${y1} C${x1+40} ${y1},${x1+40} ${y2},${x1} ${y2}`; }
-    s += `<path class="edge ${x.violation?'bad':''}" d="${d}" marker-end="url(#ah${x.violation?'b':''})"><title>${esc(x.from)} → ${esc(x.to)}</title></path>`; });
-  s = s.replace('<svg', '<svg').replace('aria-label="Layered import graph">',
-    `aria-label="Layered import graph"><defs>
-      <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1L9 5L1 9" fill="none" stroke="var(--line2)" stroke-width="1.6"/></marker>
-      <marker id="ahb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1L9 5L1 9" fill="none" stroke="var(--bad)" stroke-width="1.6"/></marker></defs>`);
-  const hits = {}; (R.functions||[]).forEach(fn => hits[fn.file] = (hits[fn.file]||0) + fn.calls);
-  files.forEach(f => { const p = pos[f]; if(!p) return;
-    const n = hits[f]||0, base = f.split('/').pop(), lim = n ? 16 : 22, name = base.length > lim ? base.slice(0,lim-1)+'…' : base;
-    s += `<g class="node ${f===focus?'focus':''} ${bad.has(f)?'badn':''}"><rect x="${p.x}" y="${p.y}" width="${W}" height="${H}" rx="6"/>
-      <text x="${p.x+10}" y="${p.y+H/2+4}">${esc(name)}</text>
-      ${n?`<text x="${p.x+W-8}" y="${p.y+H/2+4}" text-anchor="end" style="fill:var(--accent);font-weight:600">${n}×</text>`:''}<title>${esc(f)}${n?' · '+n+' calls':''}</title></g>`; });
-  return s + '</svg>';
-}
-
-
-// ---------- runtime: traces, journey, functions
-const PAL = ['#3b82c4','#2f9e74','#c27c1a','#8a5cc2','#c2456e','#3aa0b8','#7f8f2a','#b55a30','#5b6bd0','#8a8a8a','#a0527a','#4f8f6a'];
-const layerColor = name => { const i = R.layers.findIndex(l => l.name === name); return i < 0 ? '#9c9a92' : PAL[i % PAL.length]; };
-const fmtMs = ms => ms < 1 ? ms.toFixed(2)+' ms' : ms < 100 ? ms.toFixed(1)+' ms' : Math.round(ms)+' ms';
-const fmtTime = t => new Date(t).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
-const spanLabel = sp => sp.func || sp.name;
-
-function drawTraces(){
-  const T = R.traces || [];
-  $('traceCount').textContent = T.length ? `last ${T.length} · newest first` : '';
-  if (!T.length){
-    $('tl').innerHTML = `<div class="empty">No traces yet.<br><br>Add <code>app.add_middleware(TraceMiddleware)</code>, decorate functions with <code>@traced</code>,<br>run the app and make a request.</div>`;
-    $('wf').innerHTML = ''; $('wfLegend').innerHTML = ''; $('detail').hidden = true; return;
+// ---------- left: recent user actions, or every endpoint
+function drawSide(){
+  let tab = store.get('bv-tab') || 'actions';
+  document.querySelectorAll('.tab').forEach(b => { b.classList.toggle('on', b.dataset.tab === tab); b.onclick = () => { store.set('bv-tab', b.dataset.tab); drawSide(); }; });
+  const sel = selection(), T = R.traces || [];
+  if (tab === 'actions'){
+    if (!T.length){
+      $('side').innerHTML = `<div class="empty"><b>No actions recorded yet.</b><ol><li>Start your API</li><li>Use your app: click a button, submit a form</li><li>Each request shows up here</li></ol></div>`;
+      return;
+    }
+    const fresh = T[0].id !== lastNewest && lastNewest !== null; lastNewest = T[0].id;
+    $('side').innerHTML = `<div class="follow">${sel.following ? '<span class="dot" style="background:var(--ok)"></span>Showing the newest action' : 'Pinned to one action'}<span class="sp"></span>${sel.following ? '' : '<button class="btn" id="followBtn">Follow newest</button>'}</div>` +
+      T.map((t, i) => { const a = actionOf(t);
+        return `<div class="act ${sel.trace && sel.trace.id === t.id ? 'sel' : ''} ${t.ok ? '' : 'fail'} ${i === 0 && fresh ? 'fresh' : ''}" data-t="${esc(t.id)}">
+          <span class="dot"></span><div><b title="${esc(a.label)}">${esc(a.label)}</b><small>${esc(t.name)} · ${fmtTime(t.start)}</small></div>
+          <span class="ms">${t.ok ? fmtMs(t.ms) : 'failed'}</span></div>`; }).join('');
+    if ($('followBtn')) $('followBtn').onclick = () => pick('');
+    $('side').onclick = ev => { const r = ev.target.closest('.act'); if (r) pick('t:' + r.dataset.t); };
+    return;
   }
-  let sel = store.get('bv-trace'); if (!T.find(t => t.id === sel)) sel = T[0].id;
-  $('tl').innerHTML = T.map(t => `<div class="tr ${t.id===sel?'sel':''} ${t.ok?'':'bad'}" data-t="${t.id}">
-      <span class="n">${esc(t.name)}</span><span class="x">${fmtMs(t.ms)}</span>
-      <span class="t">${fmtTime(t.start)} · ${t.count} calls${t.status?' · '+t.status:''}</span><span class="t">${t.ok?'':'<b class="badc">error</b>'}</span></div>`).join('');
-  $('tl').onclick = ev => { const r = ev.target.closest('.tr'); if (!r) return; store.set('bv-trace', r.dataset.t); store.set('bv-span',''); drawTraces(); };
-  drawWaterfall(T.find(t => t.id === sel));
+  const order = R.tag_order || [], groupOf = e => e.tag || (e.status === 'undocumented' ? 'not in contract' : 'other');
+  const rank = g => { const i = order.indexOf(g); return i < 0 ? 999 : i; };
+  const groups = [...new Set(R.endpoints.map(groupOf))].sort((a,b) => rank(a) - rank(b) || a.localeCompare(b));
+  const selId = sel.ep ? sel.ep.method+' '+sel.ep.path : null;
+  $('side').innerHTML = groups.map(g => `<div class="grp">${esc(g)}</div>` + R.endpoints.filter(e => groupOf(e) === g).map(e => {
+    const id = e.method+' '+e.path;
+    return `<div class="ep ${id === selId ? 'sel' : ''}" data-id="${esc(id)}"><span class="m ${e.method}">${e.method}</span>
+      <span class="p">${esc(e.path)}<small>${esc(e.summary || e.handler || '')}${e.calls ? ' · ran '+e.calls+'×' : ''}</small></span>
+      <span class="st ${e.status}">${STATUS[e.status] || e.status}</span></div>`; }).join('')).join('') || '<div class="empty">No endpoints yet.</div>';
+  $('side').onclick = ev => { const r = ev.target.closest('.ep'); if (!r) return;
+    const e = R.endpoints.find(x => x.method+' '+x.path === r.dataset.id);
+    pick(e && e.last_trace && (R.traces||[]).some(t => t.id === e.last_trace) ? 't:' + e.last_trace : 'e:' + r.dataset.id); };
 }
 
-function drawWaterfall(t){
-  const ids = new Set(t.spans.map(x => x.span)), kids = {};
-  t.spans.forEach(x => { const p = ids.has(x.parent) ? x.parent : '_root'; (kids[p] = kids[p] || []).push(x); });
-  const rows = []; const walk = (x, d) => { rows.push([x, d]); (kids[x.span] || []).sort((a,b)=>a.start-b.start).forEach(k => walk(k, d+1)); };
-  (kids._root || []).forEach(x => walk(x, 0));
-  const t0 = t.start, total = Math.max(t.ms, 0.001);
-  let selSpan = store.get('bv-span'); if (!t.spans.find(x => x.span === selSpan)) selSpan = null;
-  $('wfTitle').innerHTML = `${esc(t.name)} <small>${fmtMs(t.ms)} · ${t.count} calls · trace ${esc(t.id)}</small>`;
-  $('wf').innerHTML = `<div class="wf-axis"><div></div><div><span>0</span><span>${fmtMs(total/2)}</span><span>${fmtMs(total)}</span></div><div></div></div>` +
-    rows.map(([x, d]) => {
-      const left = (x.start - t0) / total * 100, width = Math.max(x.ms / total * 100, 0.4), c = layerColor(x.layer);
-      return `<div class="wf-row ${x.span===selSpan?'sel':''}" data-s="${x.span}">
-        <div class="wf-label" style="padding-left:${d*14}px"><span class="ldot" style="background:${c}"></span>${esc(spanLabel(x))}${x.ok?'':' <b class="badc">✕</b>'}</div>
-        <div class="wf-track"><i class="${x.ok?'':'err'}" style="left:${Math.min(left, 99.6)}%;width:${width}%;background:${c}"></i></div><span class="wf-ms">${fmtMs(x.ms)}</span></div>`; }).join('');
-  const lays = [...new Set(t.spans.map(x => x.layer).filter(Boolean))];
-  $('wfLegend').innerHTML = lays.map(l => `<span><span class="ldot" style="background:${layerColor(l)}"></span>${esc(l)}</span>`).join('');
-  $('wf').onclick = ev => { const r = ev.target.closest('.wf-row'); if (!r) return; store.set('bv-span', r.dataset.s); drawWaterfall(t); };
-  const sp = t.spans.find(x => x.span === selSpan);
-  const det = $('detail');
-  if (!sp){ det.hidden = true; return; }
-  det.hidden = false;
+// ---------- right: what the selected action did
+function drawSelected(){
+  const sel = selection();
+  const bad = R.violations.length ? '<span><i class="sw bd"></i>import that breaks a layer rule</span>' : '';
+  $('legend').innerHTML = !sel.trace && !sel.ep ? `<span><i class="sw"></i>a file in your code</span>${bad}`
+    : `<span><i class="sw on"></i>${sel.ep ? 'code this endpoint imports' : 'used by this action'}</span><span><i class="sw"></i>not used</span><span><i class="sw ar"></i>${sel.ep ? 'import' : 'call, numbered in order'}</span>${bad}`;
+  if (sel.trace) return drawTrace(sel.trace);
+  if (sel.ep) return drawEndpoint(sel.ep);
+  $('what').innerHTML = `<div class="eyebrow">Your backend</div><h2>Nothing has run yet</h2><div class="sub">Every file is shown in its layer. Use the app and the code each action runs lights up here.</div>`;
+  $('map').innerHTML = mapSvg({});
+  $('steps').innerHTML = '';
+}
+
+function drawTrace(t){
+  const plan = planOf(t), a = actionOf(t), reqs = requestsOf(t);
+  const failed = t.spans.find(s => s.error);
+  const status = t.ok ? `<span class="okc">${t.status ? t.status+' · ' : ''}succeeded</span>` : `<span class="badc">${t.status ? t.status+' · ' : ''}failed</span>`;
+  const lays = [...new Set(plan.steps.map(s => layerOf(s.sp.file)).filter(Boolean))];
+  $('what').innerHTML = `<div class="eyebrow">${reqs.length ? 'User action' : 'Background job'}</div><h2>${esc(a.label)}</h2>
+    <div class="sub">${reqs.length ? reqs.map(r => `<span class="m ${esc(r.attrs.method)}">${esc(r.attrs.method)}</span><code>${esc(r.attrs.path || r.attrs.route)}</code>`).join(' ') : `<code>${esc(t.name)}</code>`}
+      <span>${status}</span><span>${fmtMs(t.ms)}</span><span>${fmtTime(t.start)}</span></div>
+    ${lays.length ? `<div class="route">Went through ${lays.map(l => `<span class="lchip"><span class="ldot" style="background:${layerColor(l)}"></span>${esc(l)}</span>`).join(' → ')}</div>` : ''}
+    ${failed ? `<div class="errtxt">${esc(failed.error)}</div>` : ''}`;
+  const on = new Set(plan.steps.map(s => s.sp.file)), first = {}, bad = new Set();
+  plan.steps.forEach(s => { if (!(s.sp.file in first)) first[s.sp.file] = s.n; if (!s.sp.ok) bad.add(s.sp.file); });
+  $('map').innerHTML = mapSvg({on, first, bad, runs: plan.edges, user: reqs.length ? 'User action' : 'Trigger'});
+  drawSteps(t, plan, a);
+}
+
+function drawEndpoint(e){
+  $('what').innerHTML = `<div class="eyebrow">Endpoint · ${STATUS[e.status] || e.status}</div><h2>${esc(e.summary || e.method+' '+e.path)}</h2>
+    <div class="sub"><span class="m ${e.method}">${e.method}</span><code>${esc(e.path)}</code>${e.handler ? `<span>handled by <code>${esc(e.handler)}</code> in <code>${esc(e.file)}:${e.line}</code></span>` : ''}</div>`;
+  $('steps').innerHTML = `<div class="note">${!e.file ? 'This endpoint is planned in the contract but not built yet. Ask Claude to implement it.'
+    : 'This endpoint has not run since tracing started, so the map shows (dashed) the files its code imports. Use the feature in your app to see what actually runs.'}</div>`;
+  if (!e.file){ $('map').innerHTML = mapSvg({}); return; }
+  const out = {}; R.edges.forEach(x => (out[x.from] = out[x.from] || []).push(x.to));
+  const seen = new Set([e.file]), q = [e.file], pv = [{from: USER, to: e.file}];
+  while (q.length){ const f = q.shift(); (out[f]||[]).filter(shown).forEach(g => { pv.push({from: f, to: g}); if (!seen.has(g)){ seen.add(g); q.push(g); } }); }
+  $('map').innerHTML = mapSvg({prev: seen, pv, user: 'User action'});
+}
+
+function drawSteps(t, plan, a){
+  if (!plan.steps.length){ $('steps').innerHTML = `<div class="note">No traced code ran inside this request. Add <code>@traced</code> to the functions it calls to see them here.</div>`; return; }
+  const t0 = t.start, total = Math.max(t.ms, 0.001), open = store.get('bv-open');
+  let html = `<h3>Step by step <small>· the numbers match the arrows on the map · click a step for its inputs and result</small></h3>`;
+  plan.groups.forEach((g, gi) => {
+    const r = g.root, end = gi + 1 < plan.groups.length ? plan.groups[gi+1].at : plan.steps.length;
+    if (plan.groups.length > 1) html += `<div class="rq">${(r.attrs||{}).kind === 'request' ? `Request ${gi+1}: <code>${esc(r.name)}</code>` : esc(r.name)}${r.attrs && r.attrs.status ? ' · '+r.attrs.status : ''}</div>`;
+    plan.steps.slice(g.at, end).forEach(({sp, n, depth}) => {
+      const c = layerColor(layerOf(sp.file)), left = (sp.start - t0) / total * 100, width = Math.max(sp.ms / total * 100, 0.6);
+      const id = sp.span;
+      html += `<div class="step ${sp.ok ? '' : 'err'} ${open === id ? 'open' : ''}" data-s="${esc(id)}" data-f="${esc(sp.file)}">
+        <span class="num">${n}</span>
+        <span class="sname" style="padding-left:${depth*16}px"><span class="ldot" style="background:${c}"></span><code>${esc(sp.func || sp.name)}</code><small>${esc(layerOf(sp.file) || '')} · ${esc(sp.file.split('/').pop())}${sp.inferred ? ' · handler' : ''}</small></span>
+        <span class="track"><i style="left:${Math.min(Math.max(left,0), 99.4)}%;width:${width}%;background:${sp.ok ? c : 'var(--bad)'}"></i></span>
+        <span class="sms">${fmtMs(sp.ms)}</span></div>`;
+      if (open === id) html += stepDetail(sp, t0);
+    });
+  });
+  if (!a.named) html += `<div class="note">Tip: send an <code>X-User-Action</code> header from your frontend (e.g. <code>"Clicked Place order"</code>) and this list names the real button or form instead of the endpoint.</div>`;
+  $('steps').innerHTML = html;
+  $('steps').onclick = ev => { const r = ev.target.closest('.step'); if (!r) return; store.set('bv-open', store.get('bv-open') === r.dataset.s ? '' : r.dataset.s); drawSteps(t, plan, a); };
+  $('steps').onmouseover = ev => hl(ev.target.closest('.step'));
+  $('steps').onmouseleave = () => hl(null);
+}
+
+function stepDetail(sp, t0){
+  if (sp.inferred) return `<div class="sdet"><span>what</span><span>The route handler that received the request. It is not traced, so only its file is known.</span><span>where</span><code>${esc(sp.file)}</code></div>`;
   const args = Object.entries(sp.args || {});
-  det.innerHTML = `<h3>${esc(spanLabel(sp))}</h3><div class="kv">
-      <span>layer</span><span><span class="ldot" style="display:inline-block;background:${layerColor(sp.layer)}"></span> ${esc(sp.layer || '–')}</span>
-      <span>where</span><code>${esc(sp.file || '(request)')}</code>
-      <span>took</span><span>${fmtMs(sp.ms)} · started ${fmtMs(sp.start - t0)} in</span>
-      ${args.map(([k,v]) => `<span>arg ${esc(k)}</span><code>${esc(v)}</code>`).join('')}
-      ${sp.result != null ? `<span>returned</span><code>${esc(sp.result)}</code>` : ''}
-      ${sp.attrs && sp.attrs.status ? `<span>status</span><span>${sp.attrs.status}</span>` : ''}
-      ${sp.error ? `<span>error</span><span class="errtxt">${esc(sp.error)}</span>` : ''}
-      ${(sp.links||[]).length ? `<span>became</span><span>${sp.links.map(l => `<code>${esc(l.from)} → ${esc(l.to)}</code> ${esc(l.how||'')}`).join('<br>')}</span>` : ''}
-      <span>data</span><span>${(sp.data||[]).map(d => `<button class="dchip" data-id="${esc(d.id)}" title="${esc(d.role)}">${esc(d.id)}</button>`).join('') || '–'}</span></div>`;
-  det.onclick = ev => { const b = ev.target.closest('.dchip'); if (!b) return; store.set('bv-data', b.dataset.id); drawJourney(); $('s-journey').scrollIntoView({behavior:'smooth'}); };
+  return `<div class="sdet"><span>where</span><code>${esc(sp.file)}</code>
+    <span>started</span><span>${fmtMs(sp.start - t0)} after the action · took ${fmtMs(sp.ms)}</span>
+    ${args.map(([k,v]) => `<span>input ${esc(k)}</span><code>${esc(v)}</code>`).join('')}
+    ${sp.result != null ? `<span>returned</span><code>${esc(sp.result)}</code>` : ''}
+    ${sp.error ? `<span>error</span><span class="errtxt">${esc(sp.error)}</span>` : ''}
+    ${(sp.links||[]).length ? `<span>became</span><span>${sp.links.map(l => `<code>${esc(l.from)} → ${esc(l.to)}</code> ${esc(l.how||'')}`).join('<br>')}</span>` : ''}
+    ${(sp.data||[]).length ? `<span>data</span><span>${sp.data.map(d => `<code>${esc(d.id)}</code>`).join(', ')}</span>` : ''}</div>`;
 }
 
-function allDataIds(){
-  const n = {};
-  (R.traces||[]).forEach(t => t.spans.forEach(sp => (sp.data||[]).forEach(d => n[d.id] = (n[d.id]||0) + 1)));
-  return Object.entries(n).sort((a,b) => b[1]-a[1]);
+function hl(row){
+  document.querySelectorAll('#map .node.hl').forEach(n => n.classList.remove('hl'));
+  if (row) document.querySelectorAll('#map .node').forEach(n => { if (n.dataset.f === row.dataset.f) n.classList.add('hl'); });
 }
 
-function drawJourney(){
-  const ids = allDataIds();
-  if (!ids.length){ $('jhead').innerHTML = ''; $('journey').innerHTML = '<div class="empty">No data ids recorded yet. Arguments ending in <code>_id</code> are tagged automatically; use <code>data("payment:p1")</code> and <code>link("payment:p1", "row:r1")</code> for the rest.</div>'; return; }
-  let cur = store.get('bv-data'); if (!ids.find(([i]) => i === cur)) cur = ids[0][0];
-  // lineage closure over links, both directions
-  const spans = (R.traces||[]).flatMap(t => t.spans.map(sp => ({...sp, trace: t.id})));
-  const set = new Set([cur]); let grew = true;
-  while (grew){ grew = false; spans.forEach(sp => (sp.links||[]).forEach(l => {
-    if (set.has(l.from) && !set.has(l.to)) { set.add(l.to); grew = true; }
-    if (set.has(l.to) && !set.has(l.from)) { set.add(l.from); grew = true; } })); }
-  const steps = spans.filter(sp => (sp.data||[]).some(d => set.has(d.id)) || (sp.links||[]).some(l => set.has(l.from) || set.has(l.to)))
-    .sort((a,b) => a.start - b.start).slice(-40);
-  const chain = [...new Set(spans.flatMap(sp => (sp.links||[]).filter(l => set.has(l.from) && set.has(l.to)).map(l => `${l.from} → ${l.to}${l.how ? ' ('+l.how+')' : ''}`)))];
-  $('jhead').innerHTML = `<input id="jq" placeholder="find a data id…" value="">` +
-    ids.slice(0, 18).map(([i,n]) => `<button class="dchip ${set.has(i)?'on':''}" data-id="${esc(i)}" title="${n} spans">${esc(i)}</button>`).join('') +
-    (chain.length ? `<span style="font-size:12px;color:var(--muted);margin-left:6px">lineage: <code>${chain.map(esc).join(' · ')}</code></span>` : '');
-  $('jhead').onclick = ev => { const b = ev.target.closest('.dchip'); if (!b) return; store.set('bv-data', b.dataset.id); drawJourney(); };
-  $('jq').onchange = ev => { const v = ev.target.value.trim(); const hit = ids.find(([i]) => i.includes(v)); if (hit){ store.set('bv-data', hit[0]); drawJourney(); } };
-  // swimlanes: one row per layer, one column per step in time order
-  const laneOf = s => s.layer || '(other)';
-  const known = R.layers.map(l => l.name);
-  const lanes = [...new Set(steps.map(laneOf))].sort((a,b) => {
-    const ia = a === 'api' ? -1 : known.indexOf(a), ib = b === 'api' ? -1 : known.indexOf(b);
-    return (ia < -1 ? 999 : ia) - (ib < -1 ? 999 : ib); });
-  const LW = 110, CW = 158, NW = 142, NH = 34, LH = 54, TOP = 10;
-  const w = LW + steps.length * CW + 20, h = TOP + lanes.length * LH + 10;
-  let svg = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Data journey"><defs><marker id="ja" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M1 1L9 5L1 9" fill="none" stroke="var(--line2)" stroke-width="1.6"/></marker></defs>`;
-  lanes.forEach((l, i) => { const y = TOP + i * LH;
-    svg += `<rect class="jlane" x="4" y="${y}" width="${w-8}" height="${LH-6}" rx="7"/><text class="jlabel" x="14" y="${y + LH/2}">${esc(l)}</text>`; });
-  const pos = steps.map((s, i) => ({ x: LW + i * CW, y: TOP + lanes.indexOf(laneOf(s)) * LH + (LH - 6 - NH) / 2 }));
-  steps.forEach((s, i) => { if (!i) return; const a = pos[i-1], b = pos[i];
-    const x1 = a.x + NW, y1 = a.y + NH/2, x2 = b.x, y2 = b.y + NH/2, m = (x2 - x1) / 2;
-    svg += `<path class="jedge ${steps[i-1].trace !== s.trace ? 'cross' : ''}" d="M${x1} ${y1} C${x1+m} ${y1},${x2-m} ${y2},${x2-2} ${y2}" marker-end="url(#ja)"/>`; });
-  steps.forEach((s, i) => { const p = pos[i], c = layerColor(s.layer);
-    const lk = (s.links||[]).find(l => set.has(l.from) || set.has(l.to));
-    svg += `<g class="jnode" data-t="${s.trace}" data-s="${s.span}" style="cursor:pointer"><rect x="${p.x}" y="${p.y}" width="${NW}" height="${NH}" rx="6" fill="var(--panel)" stroke="${s.ok ? c : 'var(--bad)'}"/>
-      <text x="${p.x+8}" y="${p.y+14}">${esc(clip(spanLabel(s), 17))}</text>
-      <text class="sub" x="${p.x+8}" y="${p.y+27}">${fmtTime(s.start)} · ${fmtMs(s.ms)}</text>
-      ${lk ? `<text class="jlink" x="${p.x}" y="${p.y+NH+12}">→ ${esc(clip(lk.to, 20))}</text>` : ''}
-      <title>${esc(spanLabel(s))} · ${esc(s.file||s.name)}${s.error ? ' · '+esc(s.error) : ''}</title></g>`; });
-  $('journey').innerHTML = steps.length ? svg + '</svg>' : '<div class="empty">This id was not seen in the recent traces.</div>';
-  $('journey').onclick = ev => { const g = ev.target.closest('.jnode'); if (!g) return; store.set('bv-trace', g.dataset.t); store.set('bv-span', g.dataset.s); drawTraces(); $('s-traces').scrollIntoView({behavior:'smooth'}); };
+// ---------- the one map: user on the left, a column per layer, files inside.
+// o.on/o.runs = what a trace used; o.prev/o.pv = static preview for an endpoint that has not run
+function mapSvg(o){
+  const on = o.on || new Set(), prev = o.prev || new Set(), active = on.size > 0 || prev.size > 0;
+  const files = R.layers.flatMap(l => l.files).concat(R.unlayered).filter(shown);
+  const badFiles = new Set(R.violations.flatMap(v => [v.from, v.to]));
+  const cols = R.layers.filter(l => l.files.some(shown)).map(l => l.name);
+  if (R.unlayered.some(shown)) cols.push('(no layer)');
+  const colOf = f => FL[f] || '(no layer)';
+  const CAP = 12, W = 158, H = 30, GX = 50, GY = 10, TOP = 58, PAD = 8, UW = 112;
+  const pos = {}, more = {};
+  const X = i => PAD + UW + GX + i*(W+GX);
+  cols.forEach((c, i) => {
+    const all = files.filter(f => colOf(f) === c).sort();
+    const keep = all.filter(f => on.has(f) || prev.has(f) || badFiles.has(f));
+    all.forEach(f => { if (keep.length < CAP && !keep.includes(f)) keep.push(f); });
+    const list = all.filter(f => keep.includes(f));  // stay in name order
+    more[c] = all.length - list.length;
+    list.forEach((f, j) => pos[f] = {x: X(i), y: TOP + j*(H+GY), w: W});
+  });
+  const rows = Math.max(2, ...cols.map(c => files.filter(f => colOf(f) === c && pos[f]).length + (more[c] ? 1 : 0)));
+  const w = X(cols.length) - GX + PAD, h = TOP + rows*(H+GY) + 8;
+  pos[USER] = {x: PAD, y: TOP, w: UW};
+  const layerInfo = Object.fromEntries(R.layers.map(l => [l.name, l]));
+
+  const curve = (a, b) => {  // returns path + a point near the middle for the step number
+    const ay = a.y + H/2, by = b.y + H/2;
+    if (b.x > a.x + 5){
+      const x1 = a.x + a.w, x2 = b.x, skip = x2 - x1 > GX + 5;
+      if (skip){ const sx = a.x + a.w/2, sy = a.y + H, ex = x2, ey = by + 6, dip = H + 18;
+        return {d: `M${sx} ${sy} C${sx} ${sy+dip},${ex-40} ${ey+dip-6},${ex} ${ey}`, mx: (sx + 3*sx + 3*(ex-40) + ex)/8, my: (sy + 3*(sy+dip) + 3*(ey+dip-6) + ey)/8}; }
+      const m = (x2 - x1)/2;
+      return {d: `M${x1} ${ay} C${x1+m} ${ay},${x2-m} ${by},${x2} ${by}`, mx: (x1+x2)/2, my: (ay+by)/2};
+    }
+    if (b.x < a.x - 5){ const x1 = a.x, x2 = b.x + b.w, m = (x1 - x2)/2;
+      return {d: `M${x1} ${ay} C${x1-m} ${ay-34},${x2+m} ${by-34},${x2} ${by}`, mx: (x1+x2)/2, my: (ay+by)/2 - 26}; }
+    const x1 = a.x + a.w;
+    return {d: `M${x1} ${ay} C${x1+34} ${ay},${x1+34} ${by},${x1} ${by}`, mx: x1 + 26, my: (ay+by)/2};
+  };
+
+  let s = `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="Backend map" class="${active ? 'dim' : ''}"><defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1L9 5L1 9" fill="none" stroke="var(--line2)" stroke-width="1.6"/></marker>
+    <marker id="ahr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1L9 5L1 9Z" fill="var(--accent)"/></marker>
+    <marker id="ahe" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1L9 5L1 9Z" fill="var(--bad)"/></marker>
+    <marker id="ahb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1L9 5L1 9" fill="none" stroke="var(--bad)" stroke-width="1.6"/></marker></defs>`;
+  // lanes
+  s += `<text class="colhead" x="${PAD}" y="22">Start</text><text class="colsub" x="${PAD}" y="38">${o.user === 'Trigger' ? 'job or event' : 'click, form, page load'}</text>`;
+  cols.forEach((c, i) => { const x = X(i), L = layerInfo[c], sub = L && L.description ? L.description.split(/\.\s/)[0].replace(/\.$/, '') : 'not matched by any layer';
+    s += `<g><rect class="lane" x="${x-7}" y="4" width="${W+14}" height="${h-8}" rx="8"/>
+      <text class="colhead" x="${x}" y="22">${esc(c)}</text><text class="colsub" x="${x}" y="38">${esc(clip(sub, 30))}</text>
+      ${more[c] ? `<text class="more" x="${x+4}" y="${TOP + files.filter(f => colOf(f) === c && pos[f]).length*(H+GY) + 18}">+${more[c]} more files</text>` : ''}
+      <title>${esc(c)}${L && L.description ? ': '+esc(L.description) : ''}</title></g>`; });
+  // static imports (faint), rule breaks (red); hidden behind the live arrows
+  R.edges.forEach(x => { const a = pos[x.from], b = pos[x.to]; if (!a || !b) return;
+    s += `<path class="edge ${x.violation ? 'bad' : ''}" d="${curve(a, b).d}" marker-end="url(#${x.violation ? 'ahb' : 'ah'})"><title>${esc(x.from)} imports ${esc(x.to)}${x.violation ? ' (breaks a layer rule)' : ''}</title></path>`; });
+  (o.pv || []).forEach(x => { const a = pos[x.from], b = pos[x.to]; if (a && b) s += `<path class="edge pv" d="${curve(a, b).d}" marker-end="url(#ahr)"/>`; });
+  const labels = [];
+  (o.runs || []).forEach(x => { const a = pos[x.from], b = pos[x.to]; if (!a || !b) return; const c = curve(a, b);
+    s += `<path class="edge run ${x.err ? 'err' : ''}" d="${c.d}" marker-end="url(#${x.err ? 'ahe' : 'ahr'})"><title>step ${x.steps.join(', ')}: ${esc(x.from === USER ? 'request' : x.from)} → ${esc(x.to)}</title></path>`;
+    const txt = x.steps.length > 2 ? x.steps[0]+'…' : x.steps.join(',');
+    labels.push(`<g class="enum ${x.err ? 'err' : ''}"><circle cx="${c.mx}" cy="${c.my}" r="${txt.length > 2 ? 13 : 10}"/><text x="${c.mx}" y="${c.my+3.5}" text-anchor="middle">${txt}</text></g>`); });
+  // nodes
+  const hasUser = !!o.user;
+  s += `<g class="node ${hasUser ? 'user' : ''}"><rect class="box" x="${PAD}" y="${TOP}" width="${UW}" height="${H}" rx="15"/><text x="${PAD + UW/2}" y="${TOP+H/2+4}" text-anchor="middle">${esc(o.user || 'User')}</text></g>`;
+  files.forEach(f => { const p = pos[f]; if (!p) return;
+    const isOn = on.has(f), c = layerColor(FL[f]), base = f.split('/').pop(), name = clip(base, isOn ? 17 : 20);
+    s += `<g class="node ${isOn ? 'on' : ''} ${prev.has(f) ? 'prev' : ''} ${(o.bad && o.bad.has(f)) ? 'fail' : ''}" data-f="${esc(f)}">
+      <rect class="box" x="${p.x}" y="${p.y}" width="${W}" height="${H}" rx="6" ${isOn ? `style="stroke:${c}"` : ''}/>
+      ${isOn ? `<rect x="${p.x}" y="${p.y}" width="${W}" height="${H}" rx="6" fill="${c}" fill-opacity=".14"/>` : ''}
+      <text x="${p.x + (isOn ? 28 : 10)}" y="${p.y+H/2+4}">${esc(name)}</text>
+      ${isOn ? `<g class="badge"><circle cx="${p.x+14}" cy="${p.y+H/2}" r="8"/><text x="${p.x+14}" y="${p.y+H/2+3.5}" text-anchor="middle">${o.first[f]}</text></g>` : ''}
+      <title>${esc(f)}${FL[f] ? ' · '+esc(FL[f])+' layer' : ''}${isOn ? ' · first used at step '+o.first[f] : active ? ' · not used by this action' : ''}</title></g>`; });
+  return s + labels.join('') + '</svg>';
 }
 
-function drawFunctions(){
-  const F = R.functions || [];
-  const kinds = { all: () => true, untraced: f => f.required && !f.traced, 'never ran': f => !f.calls, errors: f => f.errors };
-  let k = store.get('bv-fn') || 'all'; if (!kinds[k]) k = 'all';
-  $('fnCount').textContent = F.length ? `${F.length} public functions · tracing required in ${(R.tracing && R.tracing.required_in || []).join(', ') || 'no layer yet'}` : '';
-  $('fnFilters').innerHTML = Object.keys(kinds).map(n => `<button class="chip ${n===k?'on':''}" data-k="${n}">${n} ${F.filter(kinds[n]).length}</button>`).join('');
-  $('fnFilters').onclick = ev => { const n = ev.target.dataset.k; if (!n) return; store.set('bv-fn', n); drawFunctions(); };
-  const list = F.filter(kinds[k]);
-  if (!list.length){ $('fns').innerHTML = `<div class="empty">${F.length ? 'Nothing here.' : 'No Python functions found yet.'}</div>`; return; }
-  const lays = R.layers.map(l => l.name).concat([null]);
-  let html = '<table class="fn"><thead><tr><th>function</th><th>traced</th><th style="text-align:right">calls</th><th style="text-align:right">avg</th><th style="text-align:right">errors</th></tr></thead><tbody>';
-  lays.forEach(l => { const rows = list.filter(f => (f.layer||null) === l); if (!rows.length) return;
-    html += `<tr class="lay"><td colspan="5"><span class="ldot" style="display:inline-block;background:${layerColor(l)}"></span> ${esc(l || '(unlayered)')}</td></tr>`;
-    html += rows.map(f => `<tr><td class="f" title="${esc(f.file)}:${f.line}">${esc(f.func)} <span style="color:var(--faint)">${esc(f.file.split('/').pop())}:${f.line}</span></td>
-      <td>${f.traced ? '<span class="ok">✓</span>' : f.required ? '<span class="warnc">add @traced</span>' : '<span style="color:var(--faint)">optional</span>'}</td>
-      <td class="num">${f.calls || '<span style="color:var(--faint)">0</span>'}</td><td class="num">${f.avg_ms != null ? fmtMs(f.avg_ms) : ''}</td>
-      <td class="num ${f.errors?'badc':''}">${f.errors || ''}</td></tr>`).join(''); });
-  $('fns').innerHTML = html + '</tbody></table>';
+// ---------- things to fix, in plain words
+function drawFixes(){
+  const sec = [], undoc = R.endpoints.filter(e => e.status === 'undocumented'), missing = R.endpoints.filter(e => e.status === 'missing');
+  const failed = (R.traces||[]).filter(t => !t.ok), untraced = R.untraced || [];
+  if (R.violations.length) sec.push(`<h4>Imports that break the layer rules</h4><ul>${R.violations.map(v => `<li><code>${esc(v.from)}</code> imports <code>${esc(v.to)}</code><br><span>${esc(v.from_layer)} code should not reach into ${esc(v.to_layer)}; ${esc(v.rule)}</span></li>`).join('')}</ul>`);
+  if (failed.length) sec.push(`<h4>Recent actions that failed</h4><ul>${failed.slice(0, 10).map(t => { const e = t.spans.find(s => s.error);
+    return `<li class="click" data-t="${esc(t.id)}"><b>${esc(actionOf(t).label)}</b> <span>· ${fmtTime(t.start)}${e ? ' · '+esc(clip(e.error, 90)) : ''}</span></li>`; }).join('')}</ul>`);
+  if (undoc.length) sec.push(`<h4>Endpoints in the code but not in the contract</h4><ul>${undoc.map(e => `<li><code>${e.method} ${esc(e.path)}</code> <span>in ${esc(e.file)}:${e.line} · add it to ${esc(R.design.contract_file || 'design/openapi.yaml')}</span></li>`).join('')}</ul>`);
+  if (missing.length) sec.push(`<h4>Planned endpoints not built yet</h4><ul>${missing.map(e => `<li><code>${e.method} ${esc(e.path)}</code> <span>${esc(e.summary)}</span></li>`).join('')}</ul>`);
+  if (untraced.length) sec.push(`<h4>Functions that will not show up on the map (add @${esc((R.tracing||{}).decorator || 'traced')})</h4><ul>${untraced.map(f => `<li><code>${esc(f.func)}</code> <span>in ${esc(f.file)}:${f.line}</span></li>`).join('')}</ul>`);
+  const n = R.violations.length + failed.length + undoc.length + missing.length + untraced.length;
+  $('fixCount').textContent = n ? `· ${n}` : '· nothing to fix';
+  $('fixes').innerHTML = sec.join('') || '<div class="empty">All clear.</div>';
+  $('fixes').onclick = ev => { const r = ev.target.closest('li[data-t]'); if (!r) return; store.set('bv-tab', 'actions'); pick('t:' + r.dataset.t); window.scrollTo({top: 0, behavior: 'smooth'}); };
+  $('fix').ontoggle = () => store.set('bv-fix', $('fix').open ? '1' : '');
+  if (store.get('bv-fix')) $('fix').open = true;
 }
 
 // live: served -> poll fresh data; file -> reload

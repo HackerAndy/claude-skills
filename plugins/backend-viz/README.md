@@ -35,10 +35,13 @@ Everything else is automatic: after every edit Claude is told about layer breaks
 
 ## Dashboard
 
-- **Coverage tiles**: designed vs built, off-contract, violations
-- **Endpoints**: built / missing / undocumented
-- **Request flow**: click an endpoint → its path through routes → services → repositories
-- **Architecture map**: every file in its layer column; red dashed = rule broken
+One screen, built for someone seeing the backend for the first time:
+
+- **User actions** (left): each click or form submit that reached the backend, newest first; failed ones in red. Send an `X-User-Action: Clicked Place order` header from the frontend and the list uses that name instead of the endpoint.
+- **The map** (right): every file in its layer column. The selected action lights up the files it ran, with numbered arrows in the order they ran; files it did not use stay grey. Red dashed = an import that breaks a layer rule.
+- **Step by step** (under the map): the same numbers as the arrows, with timing; click a step for its inputs, result and error.
+- **All endpoints** tab: built / not built yet / not in contract; pick one that has not run to see the files its code imports.
+- **Things to fix** (bottom): rule breaks, failed actions, off-contract and missing endpoints, untraced functions.
 
 Try it on the demos: `bin/backend-viz --root examples/fastapi-demo --open`
 

@@ -5,7 +5,8 @@
 
 The root span is named like the contract ("GET /api/data/sources/{sourceId}/stop"), so the dashboard
 can line traces up with endpoints. A caller may send X-Trace-Id (e.g. the UI, to tie a click to the
-backend work it caused); the response always carries it back.
+backend work it caused); the response always carries it back. It may also send X-User-Action
+("Clicked Place order") so the dashboard names the action by what the user did, not the endpoint.
 """
 from __future__ import annotations
 
@@ -16,6 +17,7 @@ from starlette.requests import Request
 
 from . import TRACE_HEADER, span
 
+ACTION_HEADER = "X-User-Action"
 SKIP = ("/_viz", "/docs", "/openapi.json", "/redoc", "/favicon.ico")
 
 
@@ -48,6 +50,9 @@ class TraceMiddleware(BaseHTTPMiddleware):
         template, params = _route(request)
         with span(f"{request.method} {template}", trace_id=request.headers.get(TRACE_HEADER),
                   kind="request", method=request.method, route=template, path=request.url.path) as s:
+            action = request.headers.get(ACTION_HEADER, "").strip()
+            if action:
+                s.attrs["action"] = action[:120]
             for key, value in params.items():
                 s.tag(f"{key.removesuffix('Id').removesuffix('_id')}:{value}", "in")
             try:

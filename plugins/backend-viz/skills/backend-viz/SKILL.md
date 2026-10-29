@@ -51,7 +51,8 @@ link("payment:p1", "row:r1", "tidied")   # lineage: this became that (use at eve
 
 - One trace per HTTP request (`TraceMiddleware`); background jobs/event handlers open one with `with span("job name"):`.
 - Spans go to `.backend-viz/traces/spans.jsonl`. Vault modules and secret-looking args are redacted automatically. `BACKEND_VIZ_TRACE=0` turns it off.
-- Dashboard: **Traces** (waterfall per request, click a bar for args/result/data), **Data journey** (one id across layers and what it became), **Functions** (traced?, calls, avg ms, errors, never ran), call counts on the endpoint list and architecture map.
+- Dashboard: one view. **User actions** (one per trace; named by the `X-User-Action` request header when the frontend sends it, else the endpoint summary) and a **map** of every file by layer where the selected action lights up the files it ran with numbered arrows; **Step by step** below gives timing, args, result and errors per call; **Things to fix** lists rule breaks, failed actions and untraced functions.
+- To tie UI events to backend work, have the frontend send `X-User-Action` (and optionally one `X-Trace-Id` for every request one click makes, so they show as one action).
 - After building a slice: exercise it (test or curl), run `--traces 3`, and check the tree matches the intended path through the layers.
 
 ## External tracing (optional)
