@@ -32,7 +32,7 @@ import time
 import uuid
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Callable, Iterator
+from typing import Any, Callable, Iterator, TypeVar, overload
 
 __all__ = ["traced", "data", "link", "span", "current_trace_id", "TRACE_HEADER"]
 
@@ -46,6 +46,7 @@ DATA_ARG = re.compile(r"(^id$|_id$|_ids$|^ids$)")
 
 _current: contextvars.ContextVar["_Span | None"] = contextvars.ContextVar("backend_viz_span", default=None)
 _lock = threading.Lock()
+_Traced = TypeVar("_Traced")
 
 
 def _short(value: Any, limit: int = 160) -> str:
@@ -167,7 +168,13 @@ def _bind(fn: Callable, s: _Span, args: tuple, kwargs: dict) -> None:
                     s.tag(f"{name.removesuffix('s').removesuffix('_id')}:{v}", "in")
 
 
-def traced(target: Any = None, *, name: str | None = None, redact: bool | None = None):
+@overload
+def traced(target: _Traced) -> _Traced: ...
+@overload
+def traced(*, name: str | None = None, redact: bool | None = None) -> Callable[[_Traced], _Traced]: ...
+
+
+def traced(target: Any = None, *, name: str | None = None, redact: bool | None = None) -> Any:
     """Decorate a function or a class (every public method) so each call becomes a span."""
 
     def wrap_fn(fn: Callable) -> Callable:

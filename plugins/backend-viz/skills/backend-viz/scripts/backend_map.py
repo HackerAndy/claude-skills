@@ -241,11 +241,19 @@ def scan_py_functions(f_rel: str, src: str, decorator: str):
                 return True
         return False
 
+    def is_protocol(cls):
+        """A Protocol only declares a port; its adapters are what run, so there's nothing to trace."""
+        for base in cls.bases:
+            b = base.value if isinstance(base, ast.Subscript) else base
+            if (isinstance(b, ast.Name) and b.id == "Protocol") or (isinstance(b, ast.Attribute) and b.attr == "Protocol"):
+                return True
+        return False
+
     out = []
     for node in tree.body:
         if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and not node.name.startswith("_"):
             out.append({"file": f_rel, "func": node.name, "line": node.lineno, "traced": is_traced(node.decorator_list)})
-        elif isinstance(node, ast.ClassDef) and not node.name.startswith("_"):
+        elif isinstance(node, ast.ClassDef) and not node.name.startswith("_") and not is_protocol(node):
             cls_traced = is_traced(node.decorator_list)
             for m in node.body:
                 if isinstance(m, (ast.FunctionDef, ast.AsyncFunctionDef)) and not m.name.startswith("_"):
