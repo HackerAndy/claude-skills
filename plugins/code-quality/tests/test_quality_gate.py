@@ -1,0 +1,110 @@
+"""End-to-end tests on a copy of examples/demo. Run from the plugin folder:
+    python3 -m unittest discover tests
+Needs the tools the gate uses (installed, or uvx / npx to fetch them)."""
+import json
+import shutil
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+PLUGIN = Path(__file__).resolve().parent.parent
+QG = PLUGIN / "skills" / "code-quality" / "scripts" / "quality_gate.py"
+
+NEW_PY = '''
+
+def shipping(order, cache={}):
+    if order["id"] in cache:
+        return cache[order["id"]]
+    cost = 0
+    for p in order["parcels"]:
+        if p["weight"] > 10:
+            if p["fragile"]:
+                cost += 20
+            elif p["oversize"]:
+                cost += 15
+            else:
+                cost += 10
+        elif p["weight"] > 5:
+            if p["fragile"] and p["express"]:
+                cost += 12
+            else:
+                cost += 6
+        elif p["express"]:
+            cost += 4
+        else:
+            cost += 2
+    cache[order["id"]] = cost
+    return cost
+'''
+
+
+def gate(cwd, *args, stdin=None):
+    return subprocess.run([sys.executable, str(QG), *args], cwd=cwd, input=stdin,
+                          capture_output=True, text=True, check=False)
+
+
+class GateTest(unittest.TestCase):
+    def setUp(self):
+        self.dir = Path(tempfile.mkdtemp()) / "demo"
+        shutil.copytree(PLUGIN / "examples" / "demo", self.dir)
+        self.assertEqual(gate(self.dir, "init", "--no-ci").returncode, 0)
+
+    def tearDown(self):
+        shutil.rmtree(self.dir.parent)
+
+    def hook(self, file):
+        return gate(self.dir, "--hook", stdin=json.dumps({"cwd": str(self.dir), "tool_input": {"file_path": file}}))
+
+    def test_existing_code_is_baselined(self):
+        entries = json.loads((self.dir / ".quality" / "baseline.json").read_text())["entries"]
+        self.assertEqual(entries["app/orders.py::ccn::legacy_price"], 13)
+        self.assertEqual(gate(self.dir, "check", "--all").returncode, 0)
+
+    def test_hook_reports_new_findings(self):
+        with open(self.dir / "app" / "orders.py", "a") as f:
+            f.write(NEW_PY)
+        r = self.hook("app/orders.py")
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("shipping (81%): cognitive complexity 17 > 15", r.stderr)
+        self.assertIn("ruff B006", r.stderr)
+        self.assertNotIn("legacy_price", r.stderr)
+
+    def test_hook_ignores_projects_without_quality(self):
+        shutil.rmtree(self.dir / ".quality")
+        self.assertEqual(self.hook("app/orders.py").returncode, 0)
+
+    def test_functions_are_scored(self):
+        r = gate(self.dir, "check", "--all", "--json")
+        scores = {fn["symbol"]: fn for fn in json.loads(r.stdout)["functions"]}
+        # cognitive 21 against 15 is the worst metric: 90 - 30 * (21/15 - 1) = 78
+        self.assertEqual(scores["legacy_price"]["score"], 78)
+        self.assertFalse(scores["legacy_price"]["approved"])
+        self.assertTrue(scores["subtotal"]["approved"])
+
+    def test_minified_and_ignored_files_are_skipped(self):
+        (self.dir / "web" / "bundle.js").write_text("function a(b){" + "if(b){b++}" * 200 + "}\n")
+        r = gate(self.dir, "check", "--all", "--json")
+        self.assertNotIn("web/bundle.js", json.loads(r.stdout)["scores"]["files"])
+
+    def test_each_package_uses_its_own_config(self):
+        # A sub-package whose ruff config selects the magic-number rule; the demo root doesn't.
+        pkg = self.dir / "svc"
+        pkg.mkdir()
+        (pkg / "pyproject.toml").write_text('[tool.ruff.lint]\nselect = ["PLR2004"]\n')
+        (pkg / "rates.py").write_text("def rate(x):\n    return x > 42\n")
+        r = gate(self.dir, "check", "svc/rates.py")
+        self.assertIn("ruff PLR2004", r.stdout)
+
+    def test_baseline_lowers_as_code_improves(self):
+        src = self.dir / "app" / "orders.py"
+        src.write_text(src.read_text().replace("coupon, season, rush)", "coupon, season)")
+                       .replace("    if rush:", "    if season == 'rush':"))
+        self.assertEqual(gate(self.dir, "check", "app/orders.py").returncode, 0)
+        entries = json.loads((self.dir / ".quality" / "baseline.json").read_text())["entries"]
+        self.assertNotIn("app/orders.py::params::legacy_price", entries)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -24,6 +24,11 @@
       "name": "backend-viz-live",
       "source": "./plugins/backend-viz-live",
       "description": "Live 'Backend map' pane and status line inside Claude Code (mod; needs backend-viz)"
+    },
+    {
+      "name": "code-quality",
+      "source": "./plugins/code-quality",
+      "description": "Deterministic complexity and code-smell gate: per-function limits, lint and a baseline, fed back to Claude after every edit and run as a CI check (Python, JS, TS)"
     }
   ]
 }

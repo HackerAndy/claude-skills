@@ -1,0 +1,8 @@
+{
+  "name": "code-quality",
+  "version": "0.3.0",
+  "description": "Deterministic complexity and code-smell gate: per-function limits, lint and a baseline, fed back to Claude after every edit and run as a CI check (Python, JS, TS)",
+  "author": {
+    "name": "Andy Kaminski"
+  }
+}

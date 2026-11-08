@@ -1,0 +1,27 @@
+# code-quality: this file opts the project in. Commit it with baseline.json.
+# Per-function limits are measured by lizard for Python, JS and TS. Lint uses the
+# project's own ruff / biome config, plus the rules added below.
+
+[limits]
+ccn = 10          # cyclomatic complexity: independent paths through a function
+cognitive = 15    # cognitive complexity: how hard the function is to read (nesting costs more)
+nloc = 60         # lines of code per function, blank lines and comments excluded
+params = 5        # parameters per function
+file_nloc = 500   # lines of code per file
+
+[scope]
+# Globs relative to the project root; node_modules, .venv, dist, build etc. are always skipped.
+exclude = ["**/migrations/**", "**/*.min.js", "**/vendor/**", "**/*.generated.*"]
+
+[lint]
+ruff_extend_select = ["B", "SIM", "C4", "UP"]  # bugbear, simplify, comprehensions, pyupgrade
+biome = true
+
+[full]              # `check --full` (CI): slower, project-wide checks
+types = true        # pyright for Python, the project's tsc for TypeScript (needs tsconfig.json)
+duplication = true  # jscpd across Python, JS and TS
+min_tokens = 70     # smallest duplicated block reported
+
+[tools]
+download = true     # run a tool through uvx / npx at the pinned version when it isn't installed
+# pins = { ruff = "0.17.4" }  # override a pinned version
