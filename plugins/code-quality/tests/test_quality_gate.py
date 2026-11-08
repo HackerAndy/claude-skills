@@ -105,6 +105,19 @@ class GateTest(unittest.TestCase):
         entries = json.loads((self.dir / ".quality" / "baseline.json").read_text())["entries"]
         self.assertNotIn("app/orders.py::params::legacy_price", entries)
 
+    def test_targets_lists_functions_below_90(self):
+        r = gate(self.dir, "targets", "--json")
+        rows = json.loads(r.stdout)
+        self.assertEqual([row["symbol"] for row in rows], ["legacy_price"])
+        self.assertIn("cognitive complexity 21 > 15", rows[0]["why"])
+        self.assertEqual(json.loads(gate(self.dir, "targets", "web", "--json").stdout), [])
+
+    def test_score_passes_only_when_the_function_is_approved(self):
+        self.assertEqual(gate(self.dir, "score", "app/orders.py", "--symbol", "subtotal").returncode, 0)
+        r = gate(self.dir, "score", "app/orders.py", "--symbol", "legacy_price")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("LOW  app/orders.py", r.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

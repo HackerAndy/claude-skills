@@ -38,6 +38,7 @@ METRICS = {  # rule -> how the message reads
 }
 APPROVED = 90    # a function scoring at least this is approved
 SMELL_COST = 5   # points per lint finding inside the function
+CHURN_DAYS = 180  # how far back a file's commits count toward refactoring priority
 
 
 # ---------------------------------------------------------------- files and packages
@@ -360,9 +361,26 @@ def score_functions(conf, functions, findings):
     limits = conf["limits"]
     for fn in functions:
         worst = min(metric_score(v, limits[m]) for m, v in fn["values"].items())
-        fn["score"] = max(0, round(worst - SMELL_COST * smells.get(id(fn), 0)))
+        fn["smells"] = smells.get(id(fn), 0)
+        fn["score"] = max(0, round(worst - SMELL_COST * fn["smells"]))
         fn["approved"] = fn["score"] >= APPROVED
     return functions
+
+
+def reasons(conf, fn):
+    """Why a function scores what it does: its metrics over the limits, and lint findings in it."""
+    limits = conf["limits"]
+    out = [METRICS[m].format(v=v, limit=limits[m]) for m, v in fn["values"].items() if v > limits[m]]
+    return [*out, f"{fn['smells']} lint finding(s)"] if fn["smells"] else out
+
+
+def churn(root):
+    """Commits touching each file (relative to root) in the last CHURN_DAYS days."""
+    counts = {}
+    for name in git(root, "log", f"--since={CHURN_DAYS}.days", "--format=", "--name-only", "--relative") or []:
+        if name:
+            counts[name] = counts.get(name, 0) + 1
+    return counts
 
 
 def mean(xs):

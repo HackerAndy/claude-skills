@@ -13,6 +13,12 @@ Usage:
       --json                                   machine-readable output
   quality_gate.py baseline [--full]            accept today's findings; checks then report only new or
                                                worse ones, and lower the baseline as code improves
+  quality_gate.py targets [PATHS...] [--limit N] [--json]
+                                               functions below 90%, highest refactoring priority first:
+                                               (100 - score) x (1 + commits to the file, last 180 days)
+  quality_gate.py score FILE [--symbol NAME] [--json]
+                                               every function's score in FILE, and new findings; exit 0
+                                               when NAME (or every function) is approved and nothing is new
   quality_gate.py doctor                       which tools were found for each package, and how they run
   quality_gate.py --hook                       Claude Code PostToolUse mode (hook JSON on stdin;
                                                exit 2 + stderr feedback on new findings)
@@ -245,6 +251,68 @@ def cmd_check(root, opts):
     return 1 if result["new"] else 0
 
 
+def under(root, files, paths):
+    """files within any of paths (files or folders, relative to the working directory)."""
+    wanted = [qc.rel(root, Path(p)) for p in paths]
+    return [f for f in files if any(w == "." or qc.rel(root, f) == w or qc.rel(root, f).startswith(w + "/")
+                                    for w in wanted)]
+
+
+def target_rows(root, conf, functions):
+    commits = qc.churn(root)
+    rows = [{**fn, "churn": commits.get(fn["file"], 0), "why": qc.reasons(conf, fn),
+             "priority": (100 - fn["score"]) * (1 + commits.get(fn["file"], 0))}
+            for fn in functions if not fn["approved"]]
+    return sorted(rows, key=lambda r: (-r["priority"], r["file"], r["line"]))
+
+
+def cmd_targets(root, opts):
+    ctx = new_context(root, load_config(root))
+    files = qc.all_files(root, ctx["conf"])
+    _, functions = qc.analyze(ctx, under(root, files, opts["files"]) if opts["files"] else files, False)
+    rows = target_rows(root, ctx["conf"], functions)[:int(opts["limit"]) if opts["limit"] else None]
+    if "--json" in opts["flags"]:
+        print(json.dumps(rows, indent=1))
+        return 0
+    for r in rows:
+        print(f"{r['score']:>4}%  {r['file']}:{r['line']}  {r['symbol']}  (churn {r['churn']})  {', '.join(r['why'])}")
+    print(f"{len(rows)} function(s) below {qc.APPROVED}%" if rows else f"every function is at {qc.APPROVED}% or more")
+    return 0
+
+
+def score_passes(result, symbol):
+    if result["new"]:
+        return False
+    if symbol:
+        return any(fn["symbol"] == symbol and fn["approved"] for fn in result["functions"])
+    return all(fn["approved"] for fn in result["functions"])
+
+
+def score_text(conf, result, symbol):
+    lines = [f"{fn['score']:>4}%  {'ok ' if fn['approved'] else 'LOW'}  {fn['file']}:{fn['line']}  {fn['symbol']}  "
+             f"{', '.join(qc.reasons(conf, fn))}"
+             for fn in sorted(result["functions"], key=lambda fn: (fn["file"], fn["line"]))]
+    if symbol and not any(fn["symbol"] == symbol for fn in result["functions"]):
+        lines.append(f"(no function named {symbol} in the file)")
+    if result["new"]:
+        lines.append(report_text(result))
+    return "\n".join(lines)
+
+
+def cmd_score(root, opts):
+    conf = load_config(root)
+    files = [Path(a).resolve() for a in opts["files"] if qc.in_scope(root, conf, Path(a))]
+    if not files:
+        print("code-quality: score needs a source file in scope", file=sys.stderr)
+        return 3
+    result = check(root, files, full=False)
+    if "--json" in opts["flags"]:
+        print(json.dumps(result, indent=1))
+    else:
+        print(score_text(conf, result, opts["symbol"]))
+    return 0 if score_passes(result, opts["symbol"]) else 1
+
+
 def cmd_hook():
     try:
         data = json.load(sys.stdin)
@@ -265,11 +333,11 @@ def cmd_hook():
 
 
 def parse_args(argv):
-    """{command, files, flags, root, base}; --root and --base take a value."""
-    opts = {"files": [], "flags": set(), "root": ".", "base": None}
+    """{command, files, flags, root, base, limit, symbol}; the last four take a value."""
+    opts = {"files": [], "flags": set(), "root": ".", "base": None, "limit": None, "symbol": None}
     it = iter(argv)
     for a in it:
-        if a in ("--root", "--base"):
+        if a in ("--root", "--base", "--limit", "--symbol"):
             opts[a[2:]] = next(it, opts[a[2:]])
         elif a.startswith("--"):
             opts["flags"].add(a)
@@ -279,7 +347,8 @@ def parse_args(argv):
     return opts
 
 
-COMMANDS = {"check": cmd_check, "baseline": cmd_baseline, "doctor": cmd_doctor}
+COMMANDS = {"check": cmd_check, "baseline": cmd_baseline, "doctor": cmd_doctor, "targets": cmd_targets,
+            "score": cmd_score}
 
 
 def main(argv):

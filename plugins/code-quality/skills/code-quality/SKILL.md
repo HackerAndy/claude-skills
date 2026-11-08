@@ -31,6 +31,7 @@ Every function gets a score from 0 to 100%. **A function is approved at 90% or m
 | *(none)* / `check` | `python3 $QG check` (files changed since HEAD). `--all` for every file, `--full` adds type checking and duplication. Summarize; fix new findings in code you wrote this session. |
 | `report` | `python3 $QG check --all --full --json`, then show: approved / total functions and the average (for reading only), per-file averages, and a table of the functions below 90% (file, function, score, worst metric vs limit), lowest first. |
 | `baseline` | Only when the user asks: `python3 $QG baseline` accepts all current findings. Never run it to make a check pass. |
+| `targets` | `python3 $QG targets [paths] [--limit N]`: functions below 90%, highest refactoring priority first. To fix them, use the `quality-refactor` skill. |
 | `doctor` | `python3 $QG doctor`: which tools were found and how each is run. |
 
 ## After every edit (the hook)

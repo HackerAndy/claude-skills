@@ -26,7 +26,11 @@ In Claude Code: `/code-quality init` in a project. That writes `.quality/config.
 
 From then on the hook checks each file Claude edits and sends new findings back to Claude, which fixes them. Existing code doesn't block anything: it's in the baseline, and the baseline lowers itself as code gets better, so improvements stick.
 
-Without Claude: `bin/quality-gate init`, `bin/quality-gate check [--all] [--full] [--json]`, `bin/quality-gate doctor`.
+Without Claude: `bin/quality-gate init`, `bin/quality-gate check [--all] [--full] [--json]`, `bin/quality-gate targets`, `bin/quality-gate score FILE --symbol NAME`, `bin/quality-gate doctor`.
+
+## Refactoring existing code
+
+`/code-quality:quality-refactor` takes functions below 90%, worst and most-changed first (`quality-gate targets`), and refactors each one until `quality-gate score <file> --symbol <name>` approves it, with the project's tests green before and after. Each function gets at most 3 attempts; one that still isn't approved is left for a person, with the reason. Untested functions get a characterization test first. The baseline lowers to lock in what improved.
 
 ## Monorepos
 
