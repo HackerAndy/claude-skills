@@ -117,6 +117,43 @@ input[type=search]{border:1px solid var(--line2);background:var(--panel);color:v
 .bar span{position:absolute;left:0;top:0;bottom:0;border-radius:3px}
 .bar span.green{background:var(--g-fill)}.bar span.yellow{background:var(--y-fill)}.bar span.red{background:var(--r-fill)}
 .bar i{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink);opacity:.45}
+.math{margin:0;font-size:13.5px}
+.issues{display:grid;gap:8px}
+.issue{background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--y-fill);border-radius:8px;padding:9px 12px;font-size:13px;cursor:pointer}
+.issue.lint-issue{border-left-color:var(--r-fill)}
+.issue:hover{border-color:var(--line2)}
+.issue p{margin:4px 0 0;color:var(--ink)}
+.issue p b{font-weight:600}
+.issue .where{color:var(--muted)}
+.issue p a{color:var(--accent)}
+.issue code,.math code{font:12px var(--mono);background:var(--ghost);padding:0 4px;border-radius:4px}
+.it{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.it b{font-size:13.5px}
+.it .meta{font:11.5px var(--mono);color:var(--muted)}
+.it a{margin-left:auto;font-size:12px;color:var(--accent);text-decoration:none}
+.it a:hover{text-decoration:underline}
+details.ex{margin-top:6px}
+details.ex summary{cursor:pointer;font-size:12px;color:var(--accent)}
+.exg{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:8px;margin-top:6px}
+.exg pre{margin:3px 0 0;padding:8px 10px;background:var(--ghost);border-radius:6px;font:12px/1.45 var(--mono);overflow:auto}
+.code{background:var(--panel);border:1px solid var(--line);border-radius:8px;overflow:auto;font:12px/1.55 var(--mono);padding:6px 0;max-height:260px}
+.code.tall{max-height:480px}
+.cl{display:grid;grid-template-columns:44px 26px max-content;min-width:100%}
+.cl .gn{color:var(--faint);text-align:right;padding-right:8px;user-select:none}
+.cl .gm{color:var(--y);font-weight:600;font-size:10.5px;user-select:none}
+.cl .tx{white-space:pre;padding-right:16px}
+.cl.dim .tx{opacity:.5}
+.cl.l-lint{background:var(--r-bg)}
+.cl.l-lint .gn{color:var(--r);font-weight:600}
+.cl.cmore .tx{color:var(--muted);font-style:italic}
+.cl.hit{outline:2px solid var(--accent);outline-offset:-2px}
+mark{background:none;color:inherit;border-radius:3px}
+mark.k-branch{background:var(--y-bg);box-shadow:inset 0 -2px 0 var(--y-fill);font-weight:700}
+mark.k-default{background:var(--y-bg);box-shadow:inset 0 -2px 0 var(--y-fill);font-weight:700}
+mark.k-lint,mark.k-new{text-decoration:wavy underline var(--r-fill);text-decoration-thickness:1.5px;text-underline-offset:3px;background:color-mix(in srgb,var(--r-fill) 18%,transparent)}
+.key{font:600 10.5px var(--mono);padding:0 6px;border-radius:4px;margin-left:6px;text-transform:none;letter-spacing:0}
+.key.k-branch{background:var(--y-bg);color:var(--y)}.key.k-lint{background:var(--r-bg);color:var(--r)}
+.pair{display:grid;gap:6px}
 .finds{margin:0;padding:0;list-style:none;display:grid;gap:3px;font-size:12.5px}
 .finds li{display:grid;grid-template-columns:48px minmax(0,1fr);gap:8px}
 .finds .ln{font:12px var(--mono);color:var(--faint);text-align:right}
@@ -221,6 +258,7 @@ function fileTally(e) {
 }
 
 function visibleFile(name, e) {
+  if (state.query) return matches(name) || e.functions.some(fn => matches(name, fn))  // a search looks everywhere
   const t = fileTally(e)
   const flagged = state.show === 'all' || t.fresh || e.functions.some(needsWork) ||
     (state.show === 'work' && e.findings.some(f => f.symbol === '<file>'))
@@ -249,19 +287,122 @@ function metricBars(fn) {
   }).join('') + '</div>'
 }
 
-function findingList(list) {
-  if (!list.length) return ''
-  return '<ul class="finds">' + list.map(f => `<li><span class="ln">${f.line}</span><span>${f.new ? '<span class="tag">new</span>' : ''}<span class="rule">${esc(f.rule)}</span>${esc(f.message)}</span></li>`).join('') + '</ul>'
+const LINT_COST = 5
+const metricScore = (v, limit) => { const r = v / limit; return r <= 1 ? 100 - 10 * r : 90 - 30 * (r - 1) }
+const inRange = (f, fn) => f.line >= fn.line && f.line <= fn.end
+// The function a lint finding counts against: the smallest one around it, as the gate scores it.
+const owner = (f, e) => e.functions.filter(fn => inRange(f, fn)).sort((a, b) => (a.end - a.line) - (b.end - b.line))[0]
+
+function scoreMath(fn) {
+  const parts = Object.entries(fn.values).map(([m, v]) => ({ m, v, s: metricScore(v, R.limits[m]) }))
+  const worst = parts.reduce((a, b) => (b.s < a.s ? b : a))
+  const base = `the worst measure, ${(R.metrics[worst.m]?.title ?? worst.m).toLowerCase()} (${worst.v} against a limit of ${R.limits[worst.m]}), gives <b>${Math.round(worst.s)}%</b>`
+  const lint = fn.smells ? `, minus ${LINT_COST} for each of its ${fn.smells} lint finding${fn.smells > 1 ? 's' : ''}` : ''
+  return `<p class="math">Score <b class="txt ${band(fn.score)}">${fn.score}%</b>: ${base}${lint}.${fn.score >= T.green ? '' : ` Approved needs ${T.green}%.`}</p>`
 }
 
-function fnDetail(fn, e) {
-  const lint = e.findings.filter(f => !f.symbol && f.line >= fn.line && f.line <= fn.end)
-  const why = fn.why.length ? fn.why.join(' · ') : 'Inside every limit.'
-  return `<div class="detail">
-    <div><span class="sub">Why ${fn.score}%</span> <span>${esc(why)}</span>${fn.smells ? ` <span class="txt red">(−5 per lint finding)</span>` : ''}</div>
-    ${metricBars(fn)}
-    ${lint.length ? '<div class="sub">Findings inside it</div>' + findingList(lint) : ''}
+function helpFor(f) {
+  const tool = f.rule.includes(':') ? f.rule.split(':')[0] : null
+  if (R.rules[f.rule]) return R.rules[f.rule]
+  if (R.metrics[f.rule]) return R.metrics[f.rule]
+  if (['tsc', 'mypy', 'pyright'].includes(tool)) return { title: 'Type error', what: `${tool} says the types here don't fit together.`, why: 'Code that type-checks can still be wrong, but code that doesn\'t usually is.', fix: 'Fix the types or the code so they agree; don\'t silence it with a cast or an ignore comment.' }
+  return { title: f.rule }
+}
+
+function issueCard(f, opts = {}) {
+  const h = helpFor(f)
+  const metric = !!R.metrics[f.rule] && f.rule !== 'duplicate'
+  const title = metric ? h.title : esc(f.message.replace(/\.$/, ''))
+  const meta = metric ? `${f.message.match(/\d+/)?.[0] ?? ''} against a limit of ${R.limits[f.rule]}`
+    : `${esc(f.rule.split(':').pop())} · ${(f.end_line ?? f.line) - f.line >= WIDE ? `lines ${f.line}–${f.end_line}` : `line ${f.line}`}${opts.inFn ? ` · −${LINT_COST} points` : ''}`
+  const what = h.what && h.what.replace(/\.$/, '') !== f.message.replace(/\.$/, '') ? `<p><b>What it means.</b> ${md(h.what)}</p>` : ''
+  const ex = h.bad || h.good ? `<details class="ex"><summary>Example</summary><div class="exg">
+      ${h.bad ? `<div><div class="sub">Flagged</div><pre>${esc(h.bad)}</pre></div>` : ''}${h.good ? `<div><div class="sub">Instead</div><pre>${esc(h.good)}</pre></div>` : ''}</div></details>` : ''
+  return `<div class="issue ${metric ? 'metric-issue' : 'lint-issue'} ${f.new ? 'is-new' : ''}" data-lines="${f.line}-${f.end_line ?? f.line}" tabindex="0">
+    <div class="it">${f.new ? '<span class="tag">new</span>' : ''}<b>${title}</b><span class="meta">${meta}</span>${h.url ? `<a href="${esc(h.url)}" target="_blank" rel="noopener">rule docs ↗</a>` : ''}</div>
+    ${what}${h.why ? `<p><b>Why it matters.</b> ${md(h.why)}</p>` : ''}${h.fix ? `<p><b>How to fix.</b> ${md(h.fix)}</p>` : ''}
+    ${opts.where ? `<p class="where">${opts.where}</p>` : ''}${ex}
   </div>`
+}
+
+// Inline `code` in rule docs.
+const md = s => esc(s).replace(/`([^`]+)`/g, '<code>$1</code>')
+  .replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+
+// Code with marks: [{line, col, endLine, endCol, kind}], columns 1-based, end exclusive; no col marks the whole line.
+function codeBlock(code, marks, opts = {}) {
+  const byLine = new Map()
+  const add = (n, m) => byLine.set(n, [...(byLine.get(n) ?? []), m])
+  for (const m of marks) {
+    const last = m.endLine ?? m.line
+    for (let n = m.line; n <= last; n++) {
+      add(n, { a: n === m.line ? m.col ?? null : 1, b: n === last ? m.endCol ?? null : null, kind: m.kind, whole: !m.col })
+    }
+  }
+  const rows = code.lines.map((text, i) => {
+    const n = code.start + i
+    const ms = byLine.get(n) ?? []
+    const dim = opts.dim?.has(n) ? ' dim' : ''
+    const cls = [...new Set(ms.map(m => (m.kind === 'lint' || m.kind === 'new' ? 'l-lint' : m.whole ? 'l-' + m.kind : '')).filter(Boolean))]
+    const gut = ms.filter(m => m.kind === 'branch' || m.kind === 'default').length
+    return `<div class="cl ${cls.join(' ')}${dim}" data-n="${n}"><span class="gn">${n}</span><span class="gm">${gut ? '+' + gut : ''}</span><span class="tx">${paint(text, ms.filter(m => !m.whole))}</span></div>`
+  }).join('')
+  const more = code.more ? `<div class="cl cmore"><span class="gn"></span><span class="gm"></span><span class="tx">… ${code.more} more line${code.more > 1 ? 's' : ''}</span></div>` : ''
+  return `<div class="code${opts.tall ? ' tall' : ''}">${rows}${more}</div>`
+}
+
+function paint(text, ms) {
+  if (!ms.length) return esc(text) || ' '
+  const cuts = new Set([0, text.length])
+  for (const m of ms) { cuts.add(Math.max(0, (m.a ?? 1) - 1)); cuts.add(m.b == null ? text.length : Math.min(text.length, m.b - 1)) }
+  const pts = [...cuts].sort((a, b) => a - b)
+  let out = ''
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [x, y] = [pts[i], pts[i + 1]]
+    if (x === y) continue
+    const kinds = ms.filter(m => (m.a ?? 1) - 1 <= x && (m.b == null ? text.length : m.b - 1) >= y).map(m => 'k-' + m.kind)
+    const seg = esc(text.slice(x, y))
+    out += kinds.length ? `<mark class="${[...new Set(kinds)].join(' ')}">${seg}</mark>` : seg
+  }
+  return out
+}
+
+// A finding spanning more than a few lines (a whole function) marks only its first line, not all of it.
+const WIDE = 3
+const lintMark = f => ((f.end_line ?? f.line) - f.line >= WIDE
+  ? { line: f.line, kind: f.new ? 'new' : 'lint' }
+  : { line: f.line, col: f.col, endLine: f.end_line, endCol: f.end_col, kind: f.new ? 'new' : 'lint' })
+
+function fnDetail(fn, e) {
+  const own = e.findings.filter(f => f.symbol === fn.symbol)
+  const lint = e.findings.filter(f => !f.symbol && inRange(f, fn))
+  const counted = lint.filter(f => owner(f, e) === fn && ['ruff', 'biome'].includes(f.rule.split(':')[0]))
+  const branchy = own.some(f => f.rule === 'ccn' || f.rule === 'cognitive')
+  const c = fn.code
+  const nb = c ? c.branches.length : 0
+  const nested = new Set((c?.nested ?? []).flatMap(([a, b]) => Array.from({ length: b - a }, (_, k) => c.start + a + 1 + k)))
+  const where = c && branchy && nb
+    ? `Highlighted in yellow: the ${nb} place${nb > 1 ? 's' : ''} that add a path, each <b>+1</b> in the margin (${c.branches.filter(b => b[3] === 'default').length ? 'a default value counts too; ' : ''}the function itself is the first path).${nested.size ? ' Dimmed lines are functions nested inside it, scored on their own.' : ''}${own.some(f => f.rule === 'cognitive') ? ' Cognitive complexity also charges more for each one nested deeper.' : ''}`
+    : ''
+  const cards = [
+    ...own.map(f => issueCard(f, { where: f.rule === 'ccn' || f.rule === 'cognitive' ? where : f.rule === 'nloc' ? `${fn.values.nloc} lines of code, from line ${fn.line} to ${fn.end}.` : '' })),
+    ...lint.map(f => issueCard(f, { inFn: counted.includes(f) })),
+  ].join('')
+  const marks = c ? [
+    ...(branchy ? c.branches.map(([i, a, b, k]) => ({ line: c.start + i, col: a, endLine: c.start + i, endCol: b, kind: k })) : []),
+    ...lint.map(lintMark),
+  ] : []
+  return `<div class="detail">
+    ${scoreMath(fn)}
+    ${metricBars(fn)}
+    ${cards ? `<div class="issues">${cards}</div>` : ''}
+    ${c ? `<div class="sub">The code${branchy ? ' <span class="key k-branch">path</span>' : ''}${lint.length ? ' <span class="key k-lint">lint</span>' : ''}</div>${codeBlock(c, marks, { tall: true, dim: nested })}` : ''}
+    ${!c && lint.length ? lint.map(f => f.context ? codeBlock(f.context, [lintMark(f)]) : '').join('') : ''}
+  </div>`
+}
+
+function looseDetail(list) {
+  return list.map(f => `<div class="pair">${issueCard(f)}${f.context ? codeBlock(f.context, [lintMark(f)]) : ''}</div>`).join('')
 }
 
 function fileBody(name, e) {
@@ -280,7 +421,7 @@ function fileBody(name, e) {
   if (hidden) out += `<button class="more" data-all="${esc(name)}">Show ${hidden} approved function${hidden > 1 ? 's' : ''}</button>`
   if (!fns.length) out += `<div class="quiet" style="padding-left:58px">No functions in this file.</div>`
   const loose = e.findings.filter(f => f.symbol === '<file>' || (!f.symbol && !e.functions.some(fn => f.line >= fn.line && f.line <= fn.end)))
-  if (loose.length) out += `<div class="detail" style="padding-left:58px"><div class="sub">Other findings in the file</div>${findingList(loose)}</div>`
+  if (loose.length) out += `<div class="detail" style="padding-left:58px"><div class="sub">Other findings in the file</div>${looseDetail(loose)}</div>`
   return out
 }
 
@@ -362,6 +503,16 @@ document.addEventListener('click', ev => {
     renderTree()
     document.querySelector(`[data-key="${CSS.escape(k)}"]`)?.focus()
   }
+})
+document.addEventListener('click', ev => {
+  const card = ev.target.closest('.issue')
+  if (!card || ev.target.closest('a,summary')) return
+  const [a, b] = card.dataset.lines.split('-').map(Number)
+  const box = card.closest('.detail, .pair')
+  const lines = [...box.querySelectorAll('.cl')].filter(l => +l.dataset.n >= a && +l.dataset.n <= b)
+  box.querySelectorAll('.cl.hit').forEach(l => l.classList.remove('hit'))
+  lines.forEach(l => l.classList.add('hit'))
+  lines[0]?.scrollIntoView({ block: 'center', behavior: 'smooth' })
 })
 document.addEventListener('input', ev => { if (ev.target.id === 'q') { state.query = ev.target.value; renderTree() } })
 

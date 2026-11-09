@@ -132,6 +132,21 @@ class GateTest(unittest.TestCase):
         self.assertEqual(report["targets"][0]["symbol"], "legacy_price")
         self.assertIn("web/cart.ts", report["files"])
 
+    def test_report_explains_a_low_function_with_its_code(self):
+        with open(self.dir / "app" / "orders.py", "a") as f:
+            f.write(NEW_PY)
+        self.hook("app/orders.py")
+        report = json.loads((self.dir / ".quality" / "report.json").read_text())
+        entry = report["files"]["app/orders.py"]
+        legacy = next(fn for fn in entry["functions"] if fn["symbol"] == "legacy_price")
+        # every place lizard counts a path is marked: one per decision, the function itself is the first
+        self.assertEqual(len(legacy["code"]["branches"]), legacy["values"]["ccn"] - 1)
+        self.assertTrue(legacy["code"]["lines"][0].startswith("def legacy_price"))
+        b006 = next(f for f in entry["findings"] if f["rule"] == "ruff:B006")
+        self.assertEqual(entry["functions"][-1]["code"]["lines"][0][b006["col"] - 1:b006["end_col"] - 1], "{}")
+        self.assertIn("mutable", report["rules"]["ruff:B006"]["what"])
+        self.assertIn("ccn", report["metrics"])
+
 
 if __name__ == "__main__":
     unittest.main()

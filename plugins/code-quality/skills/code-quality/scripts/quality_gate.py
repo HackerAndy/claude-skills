@@ -198,9 +198,10 @@ def cmd_init(root, opts):
     if not (root / CONFIG).exists():
         shutil.copy(TEMPLATES / "config.toml", root / CONFIG)
         print(f"wrote {CONFIG}")
-    for script in (HERE, HERE.parent / "qg_checks.py", HERE.parent / "qg_report.py"):  # CI runs these copies; re-run init to update them
+    for script in (HERE, HERE.parent / "qg_checks.py", HERE.parent / "qg_report.py",
+                   HERE.parent / "qg_explain.py"):  # CI runs these copies; re-run init to update them
         shutil.copy(script, q / script.name)
-    print("wrote .quality/quality_gate.py, qg_checks.py and qg_report.py (CI's copy of the gate)")
+    print("wrote .quality/quality_gate.py and its modules (CI's copy of the gate)")
     wf = root / ".github" / "workflows" / "code-quality.yml"
     if "--no-ci" not in opts["flags"] and not wf.exists():
         wf.parent.mkdir(parents=True, exist_ok=True)

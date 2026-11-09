@@ -30,9 +30,9 @@ Without Claude: `bin/quality-gate init`, `bin/quality-gate check [--all] [--full
 
 ## The report
 
-`/code-quality report` (or `bin/quality-gate report --open`) writes `.quality/report.html`: one page, no server, light and dark. At the top, the share of functions approved and how many are green (90% and up), yellow (70–89%) and red (below 70%); then the 10 functions to fix first; then a drill-down from folder to file to function, where each function shows its metrics against the limits and the lint findings inside it. Every check after that keeps the page and `.quality/report.json` up to date, and both are git-ignored.
+`/code-quality report` (or `bin/quality-gate report --open`) writes `.quality/report.html`: one page, no server, light and dark. At the top, the share of functions approved and how many are green (90% and up), yellow (70–89%) and red (below 70%); then the 10 functions to fix first; then a drill-down from folder to file to function. A function below 90% opens to how its score was worked out, one card per problem (what it means, why it matters, how to fix it, and for lint rules the rule's own docs with a bad/good example), and its code: each place that adds a path to the cyclomatic count is marked with its `+1`, and each lint finding is underlined at the exact characters the tool reported. Click a card to jump to its lines. Every check after that keeps the page and `.quality/report.json` up to date, and both are git-ignored.
 
-In Claude Code, the `code-quality-live` mod shows the same in a pane beside the chat (`/quality-live`), with the approved share in the status line. Press a folder or file to drill in, and `‹` to go back. It refreshes after each edit.
+In Claude Code, the `code-quality-live` mod shows the same in a pane beside the chat (`/quality-live`), with the approved share in the status line. Press a folder, a file, then a function to see its issues and the lines causing them, highlighted; `‹` goes back. It refreshes after each edit.
 
 ## Refactoring existing code
 

@@ -225,8 +225,15 @@ def check_ruff(ctx, files):
         cmd = [*cmd, "check", "--output-format", "json", "--no-fix", "--force-exclude", "--quiet"]
         cmd += ["--extend-select", ",".join(extend)] if extend else []
         out += [finding(rel(ctx["root"], i["filename"]), i["location"]["row"], f"ruff:{i['code'] or 'syntax'}",
-                        i["message"]) for i in run_json([*cmd, *map(str, group)], pkg, [])]
+                        i["message"], **span(i["location"], i.get("end_location"), "row"))
+                for i in run_json([*cmd, *map(str, group)], pkg, [])]
     return out
+
+
+def span(start, end, row):
+    """Where on its lines a finding is: 1-based columns, the end one past the last character."""
+    end = end or {}
+    return {"col": start.get("column"), "end_line": end.get(row), "end_col": end.get("column")}
 
 
 def biome_finding(root, pkg, d):
@@ -234,7 +241,8 @@ def biome_finding(root, pkg, d):
     if d.get("severity") not in ("error", "warning") or not loc.get("path"):
         return None
     return finding(rel(root, pkg / loc["path"]), loc["start"]["line"],
-                   f"biome:{d['category'].removeprefix('lint/')}", d["message"])
+                   f"biome:{d['category'].removeprefix('lint/')}", d["message"],
+                   **span(loc["start"], loc.get("end"), "line"))
 
 
 def check_biome(ctx, files):
@@ -291,7 +299,7 @@ def check_pyright(ctx, pkg):
             for d in diags if d.get("severity") == "error" and in_scope(ctx["root"], ctx["conf"], d["file"])]
 
 
-TSC_LINE = re.compile(r"^(.+?)\((\d+),\d+\): error (TS\d+): (.*)$")
+TSC_LINE = re.compile(r"^(.+?)\((\d+),(\d+)\): error (TS\d+): (.*)$")
 
 
 def check_tsc(ctx, pkg):
@@ -300,7 +308,7 @@ def check_tsc(ctx, pkg):
         return []
     r = run([*cmd, "--noEmit", "--pretty", "false", "-p", "tsconfig.json"], pkg)
     matches = (TSC_LINE.match(line) for line in r.stdout.splitlines())
-    return [finding(rel(ctx["root"], pkg / m[1]), int(m[2]), f"tsc:{m[3]}", m[4])
+    return [finding(rel(ctx["root"], pkg / m[1]), int(m[2]), f"tsc:{m[4]}", m[5], col=int(m[3]))
             for m in matches if m and in_scope(ctx["root"], ctx["conf"], pkg / m[1])]
 
 

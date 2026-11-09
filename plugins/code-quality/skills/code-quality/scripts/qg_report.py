@@ -7,6 +7,7 @@ from datetime import datetime
 from pathlib import Path
 
 import qg_checks as qc
+import qg_explain as qx
 
 HERE = Path(__file__).resolve()
 TEMPLATE = HERE.parent.parent / "templates" / "report.html"
@@ -34,8 +35,9 @@ def file_entries(root, conf, run):
             | {"why": qc.reasons(conf, fn)})
     for f in run["findings"]:
         out.setdefault(f["file"], {"functions": [], "findings": []})["findings"].append(
-            {k: f[k] for k in ("line", "rule", "message", "symbol")} | {"new": id(f) in fresh})
-    return out
+            {k: f[k] for k in ("line", "rule", "message", "symbol")} | {"new": id(f) in fresh}
+            | {k: f[k] for k in ("col", "end_line", "end_col") if f.get(k)})
+    return {name: qx.add_code(root, name, entry, qc.APPROVED) for name, entry in out.items()}
 
 
 def merge(old, entries, full):
@@ -75,7 +77,7 @@ def targets(root, files):
     return sorted(rows, key=lambda r: (-r["priority"], r["file"], r["line"]))[:TARGETS]
 
 
-def build(root, conf, files, full):
+def build(root, conf, files, full, rules):
     fns = [fn for e in files.values() for fn in e["functions"]]
     findings = [f for e in files.values() for f in e["findings"]]
     return {"version": 1, "generated": datetime.now().isoformat(timespec="seconds"),
@@ -84,6 +86,7 @@ def build(root, conf, files, full):
             "summary": {**tally(fns), "files": len(files), "findings": len(findings),
                         "new": sum(f["new"] for f in findings)},
             "folders": folders(files), "targets": targets(root, files),
+            "metrics": qx.METRIC_HELP, "rules": rules,
             "files": dict(sorted(files.items()))}
 
 
@@ -110,11 +113,12 @@ def write(root, report):
 def update(ctx, run, full, fresh=False):
     """Refresh the report for the files just checked; a check only does so once `report` made one."""
     root, conf = ctx["root"], ctx["conf"]
-    old = None if fresh else load(root)
+    old = load(root)
     if old is None and not fresh:
         return None
-    entries = file_entries(root, conf, run)
-    merged = merge({} if old is None else old["files"], entries, full)
+    before = {} if fresh else old  # a fresh report keeps only the rule docs fetched before
+    merged = merge(before.get("files", {}), file_entries(root, conf, run), full)
     merged = {name: e for name, e in merged.items() if (root / name).is_file()}
-    was_full = full or bool(old and old.get("full"))
-    return write(root, build(root, conf, merged, was_full))
+    was_full = full or before.get("full", False)
+    rules = qx.rules(ctx, merged, (old or {}).get("rules", {}))
+    return write(root, build(root, conf, merged, was_full, rules))
