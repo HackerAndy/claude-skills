@@ -204,6 +204,7 @@ def cmd_init(root, opts):
                    HERE.parent / "qg_explain.py", HERE.parent / "qg_smells.py"):  # CI runs these copies; re-run init to update them
         shutil.copy(script, q / script.name)
     print("wrote .quality/quality_gate.py and its modules (CI's copy of the gate)")
+    qr.ignore_generated(root)
     wf = root / ".github" / "workflows" / "code-quality.yml"
     if "--no-ci" not in opts["flags"] and not wf.exists():
         wf.parent.mkdir(parents=True, exist_ok=True)

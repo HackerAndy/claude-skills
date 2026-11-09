@@ -154,6 +154,7 @@ class GateTest(unittest.TestCase):
         page = self.dir / ".quality" / "report.html"
         self.assertTrue(page.is_file())
         self.assertNotIn("/*__REPORT__*/null", page.read_text(encoding="utf-8"))
+        self.assertIn("__pycache__/", (self.dir / ".quality" / ".gitignore").read_text(encoding="utf-8").splitlines())
         with open(self.dir / "app" / "orders.py", "a") as f:
             f.write(NEW_PY)
         self.hook("app/orders.py")
