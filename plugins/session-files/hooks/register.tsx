@@ -1,7 +1,7 @@
 import { atom, read, update } from 'claude-code'
 import type { EngineInterface, Register } from 'claude-code'
 
-import type { GitMark, Snapshot, ViewMode } from '../types'
+import type { GitMark, Outside, Snapshot, ViewMode } from '../types'
 
 const PANE = 'session-files'
 const TITLE = 'Files'
@@ -12,6 +12,7 @@ const EDIT_TOOLS = new Set(['Edit', 'Write', 'MultiEdit', 'NotebookEdit'])
 const EMPTY: Snapshot = { root: '', isGit: false, files: [], git: {} }
 const snapshot = atom({ plugin: 'session-files', key: 'snapshot' } as const, EMPTY)
 const touched = atom({ plugin: 'session-files', key: 'touched' } as const, [] as string[])
+const elsewhere = atom({ plugin: 'session-files', key: 'elsewhere' } as const, [] as Outside[])
 const collapsed = atom({ plugin: 'session-files', key: 'collapsed' } as const, [] as string[])
 const mode = atom({ plugin: 'session-files', key: 'mode' } as const, 'all' as ViewMode)
 
@@ -79,12 +80,45 @@ async function refresh($: EngineInterface) {
   }
 }
 
+// Windows reports paths with backslashes and git with slashes; compare them on slashes (and, on a drive, ignoring case).
+const norm = (p: string) => p.replace(/\\/g, '/')
+const isDrivePath = (p: string) => /^[A-Za-z]:\//.test(p)
+
 function relativeTo(root: string, path: string): string | undefined {
   if (!root) return undefined
-  const base = root.endsWith('/') ? root : root + '/'
-  if (path.startsWith(base)) return path.slice(base.length)
-  if (!path.startsWith('/')) return path
+  const base = norm(root).replace(/\/+$/, '') + '/'
+  const p = norm(path)
+  const inside = isDrivePath(base) ? p.toLowerCase().startsWith(base.toLowerCase()) : p.startsWith(base)
+  if (inside) return p.slice(base.length)
+  if (!p.startsWith('/') && !isDrivePath(p)) return p // already relative to the project
   return undefined
+}
+
+const labels = new Map<string, string>()
+
+// A short name for a file outside the project, so the pane shows "Temp" or ".claude" instead of a long path: the
+// settings folder, else the name of the git repository the file lives in, else a temp folder, else its parent folder.
+async function labelFor($: EngineInterface, path: string): Promise<string> {
+  const segs = norm(path).split('/').filter(Boolean)
+  const dirs = segs.slice(0, -1)
+  const lower = dirs.map(s => s.toLowerCase())
+  if (lower.includes('.claude')) return '.claude'
+  const dir = norm(path).replace(/\/[^/]*$/, '')
+  const cached = labels.get(dir)
+  if (cached) return cached
+  let label = ''
+  try {
+    const top = await $.process.run(['git', 'rev-parse', '--show-toplevel'], { cwd: dir })
+    if (top.exitCode === 0) label = top.stdout.trim().split('/').pop() ?? ''
+  } catch {
+    // the folder may be gone; fall through to the name-based guesses
+  }
+  if (!label) {
+    const temp = lower.findIndex(s => s === 'temp' || s === 'tmp')
+    label = temp >= 0 ? dirs[temp]! : (dirs[dirs.length - 1] ?? 'other')
+  }
+  labels.set(dir, label)
+  return label
 }
 
 type Dir = { dirs: Map<string, Dir>; files: string[] }
@@ -138,9 +172,20 @@ export const register: Register = on => {
     if (EDIT_TOOLS.has(tool) && !answered.deny && !answered.isError) {
       const args = e as unknown as { file_path?: string; notebook_path?: string }
       const path = args.file_path ?? args.notebook_path
-      const { root } = await read($, snapshot)
+      let { root } = await read($, snapshot)
+      if (!root) {
+        await refresh($)
+        root = (await read($, snapshot)).root
+      }
       const rel = path ? relativeTo(root, path) : undefined
-      if (rel) await update($, touched, list => (list.includes(rel) ? list : [...list, rel]))
+      if (rel) {
+        await update($, touched, list => (list.includes(rel) ? list : [...list, rel]))
+      } else if (path) {
+        const full = norm(path)
+        const label = await labelFor($, full)
+        const name = full.split('/').pop() ?? full
+        await update($, elsewhere, list => (list.some(x => x.path === full) ? list : [...list, { path: full, label, name }]))
+      }
     }
     if (EDIT_TOOLS.has(tool) || tool === 'Bash') void refresh($)
 
@@ -151,6 +196,7 @@ export const register: Register = on => {
     const { Box, Text, Button } = $.ui.resolve(e)
     const snap = await read($, snapshot)
     const edited = await read($, touched)
+    const outside = await read($, elsewhere)
     const shut = new Set(await read($, collapsed))
     const view = await read($, mode)
 
@@ -191,6 +237,11 @@ export const register: Register = on => {
     walk(buildTree(shown), '', 0)
 
     const changedCount = [...all].filter(isChanged).length
+    // files edited outside the project, grouped under a short label; a duplicate name gets its parent folder
+    const groups = new Map<string, Outside[]>()
+    for (const o of outside) groups.set(o.label, [...(groups.get(o.label) ?? []), o])
+    const shortName = (o: Outside, peers: Outside[]) =>
+      peers.filter(x => x.name === o.name).length > 1 ? o.path.split('/').slice(-2).join('/') : o.name
     const toggleMode = () => update($, mode, m => (m === 'all' ? 'changed' : 'all'))
     const toggleDir = (path: string) =>
       update($, collapsed, list =>
@@ -209,9 +260,9 @@ export const register: Register = on => {
     return (
       <Box flexDirection="column">
         <Box flexDirection="row" gap={1}>
-          <Text bold>{snap.root.split('/').pop() || 'files'}</Text>
+          <Text bold>{norm(snap.root).split('/').pop() || 'files'}</Text>
           <Text dimColor>
-            {edited.length} edited by Claude · {changedCount} changed
+            {edited.length + outside.length} edited by Claude · {changedCount} changed
           </Text>
         </Box>
         <Box flexDirection="row" gap={1}>
@@ -267,6 +318,24 @@ export const register: Register = on => {
         {rows.length >= MAX_ROWS && (
           <Text dimColor>Showing the first {MAX_ROWS} rows. Collapse folders or show changed only.</Text>
         )}
+        {groups.size > 0 && <Text dimColor>Edited outside this project</Text>}
+        {[...groups].map(([label, list]) => (
+          <Box key={'g:' + label} flexDirection="column">
+            <Box flexDirection="row" gap={1}>
+              <Text bold>{label}/</Text>
+              <Text dimColor>{list.length}</Text>
+            </Box>
+            {list.map(o => (
+              <Box key={'o:' + o.path} flexDirection="row">
+                <Text color="claude" bold wrap="truncate-end">
+                  {'  '}
+                  {shortName(o, list)}
+                </Text>
+                <Text color="claude"> ●</Text>
+              </Box>
+            ))}
+          </Box>
+        ))}
       </Box>
     )
   })

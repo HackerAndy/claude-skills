@@ -8,6 +8,8 @@ A Claude Code mod that adds a **Files** pane beside the chat. It shows your proj
 
 The pane opens when a session starts and refreshes every few seconds and after each edit or shell command. Press **v** to show only changed files, **r** to refresh, and click a folder to collapse it. `/files` reopens the pane if you close it. Outside a git repo it lists the folder's files and highlights only Claude's edits.
 
+Files Claude edits outside the project (settings, a temp folder, another repository) are listed at the bottom under a short folder label such as `.claude/` or `Temp/`, with just the file name, never the full path. Windows paths (backslashes, drive letters) are handled.
+
 ## Install
 
 At the prompt of a Claude Code terminal session:
