@@ -118,6 +118,20 @@ class GateTest(unittest.TestCase):
         self.assertEqual(r.returncode, 1)
         self.assertIn("LOW  app/orders.py", r.stdout)
 
+    def test_report_page_and_json_follow_each_check(self):
+        page = self.dir / ".quality" / "report.html"
+        self.assertTrue(page.is_file())
+        self.assertNotIn("/*__REPORT__*/null", page.read_text())
+        with open(self.dir / "app" / "orders.py", "a") as f:
+            f.write(NEW_PY)
+        self.hook("app/orders.py")
+        report = json.loads((self.dir / ".quality" / "report.json").read_text())
+        self.assertEqual(report["summary"]["new"], 2)
+        self.assertEqual(report["summary"]["bands"], {"green": 3, "yellow": 2, "red": 0})
+        self.assertEqual(report["folders"][0]["path"], "app")
+        self.assertEqual(report["targets"][0]["symbol"], "legacy_price")
+        self.assertIn("web/cart.ts", report["files"])
+
 
 if __name__ == "__main__":
     unittest.main()

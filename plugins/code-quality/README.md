@@ -26,7 +26,13 @@ In Claude Code: `/code-quality init` in a project. That writes `.quality/config.
 
 From then on the hook checks each file Claude edits and sends new findings back to Claude, which fixes them. Existing code doesn't block anything: it's in the baseline, and the baseline lowers itself as code gets better, so improvements stick.
 
-Without Claude: `bin/quality-gate init`, `bin/quality-gate check [--all] [--full] [--json]`, `bin/quality-gate targets`, `bin/quality-gate score FILE --symbol NAME`, `bin/quality-gate doctor`.
+Without Claude: `bin/quality-gate init`, `bin/quality-gate check [--all] [--full] [--json]`, `bin/quality-gate targets`, `bin/quality-gate score FILE --symbol NAME`, `bin/quality-gate report [--open]`, `bin/quality-gate doctor`.
+
+## The report
+
+`/code-quality report` (or `bin/quality-gate report --open`) writes `.quality/report.html`: one page, no server, light and dark. At the top, the share of functions approved and how many are green (90% and up), yellow (70–89%) and red (below 70%); then the 10 functions to fix first; then a drill-down from folder to file to function, where each function shows its metrics against the limits and the lint findings inside it. Every check after that keeps the page and `.quality/report.json` up to date, and both are git-ignored.
+
+In Claude Code, the `code-quality-live` mod shows the same in a pane beside the chat (`/quality-live`), with the approved share in the status line. Press a folder or file to drill in, and `‹` to go back. It refreshes after each edit.
 
 ## Refactoring existing code
 

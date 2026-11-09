@@ -4,5 +4,6 @@
 # Then in any project:  quality-gate init       (opt in, record a baseline)
 #                       quality-gate check      (changed files)
 #                       quality-gate check --all --full
+#                       quality-gate report --open
 HERE="$(cd "$(dirname "$(readlink -f "$0" 2>/dev/null || python3 -c 'import os,sys;print(os.path.realpath(sys.argv[1]))' "$0")")" && pwd)"
 exec python3 "$HERE/../skills/code-quality/scripts/quality_gate.py" "$@"

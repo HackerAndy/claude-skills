@@ -27,9 +27,9 @@ Every function gets a score from 0 to 100%. **A function is approved at 90% or m
 
 | Action | Do |
 |---|---|
-| `init` | `python3 $QG init` in the project root. It writes `.quality/config.toml`, `.quality/quality_gate.py` (the copy CI runs), `.github/workflows/code-quality.yml`, and a baseline of today's findings. Report in 3 lines: what was written, how many existing findings were baselined, which tools were not found. Suggest committing `.quality/` and the workflow. `--no-ci` skips the workflow. |
+| `init` | `python3 $QG init` in the project root. It writes `.quality/config.toml`, `.quality/quality_gate.py` (the copy CI runs), `.github/workflows/code-quality.yml`, a baseline of today's findings, and the report (`.quality/report.html`, git-ignored). Report in 3 lines: what was written, how many existing findings were baselined, which tools were not found. Suggest committing `.quality/` and the workflow. `--no-ci` skips the workflow. |
 | *(none)* / `check` | `python3 $QG check` (files changed since HEAD). `--all` for every file, `--full` adds type checking and duplication. Summarize; fix new findings in code you wrote this session. |
-| `report` | `python3 $QG check --all --full --json`, then show: approved / total functions and the average (for reading only), per-file averages, and a table of the functions below 90% (file, function, score, worst metric vs limit), lowest first. |
+| `report` | `python3 $QG report` (`--full` adds type checking and duplication; `--open` opens it in the browser). It writes `.quality/report.html`, one page that drills down from the share of functions approved to folders, files and each function's metrics, and `.quality/report.json`, which the `code-quality-live` pane reads; each check afterwards refreshes both. Colors: green 90% and up, yellow 70–89%, red below 70%. Then say in 3 lines: approved / total (and the share), red and yellow counts, the top 3 to fix first, and the page's path. |
 | `baseline` | Only when the user asks: `python3 $QG baseline` accepts all current findings. Never run it to make a check pass. |
 | `targets` | `python3 $QG targets [paths] [--limit N]`: functions below 90%, highest refactoring priority first. To fix them, use the `quality-refactor` skill. |
 | `doctor` | `python3 $QG doctor`: which tools were found and how each is run. |

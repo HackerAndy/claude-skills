@@ -19,21 +19,26 @@ Usage:
   quality_gate.py score FILE [--symbol NAME] [--json]
                                                every function's score in FILE, and new findings; exit 0
                                                when NAME (or every function) is approved and nothing is new
+  quality_gate.py report [--full] [--open]     the visual report: .quality/report.html (one page: scores by
+                                               folder, file and function) and report.json for the
+                                               code-quality-live pane; each check then keeps it current
   quality_gate.py doctor                       which tools were found for each package, and how they run
   quality_gate.py --hook                       Claude Code PostToolUse mode (hook JSON on stdin;
                                                exit 2 + stderr feedback on new findings)
 
 Exit codes: 0 clean, 1 new findings, 3 setup error.
 Opt-in per project: nothing runs unless .quality/config.toml exists (found by walking up).
-Python 3.11+ and no dependencies; the checks themselves are in qg_checks.py next to this file.
+Python 3.11+ and no dependencies; the checks are in qg_checks.py next to this file, the report in qg_report.py.
 """
 import json
 import shutil
 import sys
 import tomllib
+import webbrowser
 from pathlib import Path
 
 import qg_checks as qc
+import qg_report as qr
 
 HERE = Path(__file__).resolve()
 TEMPLATES = HERE.parent.parent / "templates"
@@ -144,6 +149,7 @@ def check(root, files, full):
     lowered = ratchet(baseline, findings, checked, ctx["ran"])
     if lowered != baseline:
         save_baseline(root, lowered)
+    qr.update(ctx, {"files": files, "findings": findings, "functions": functions, "new": new}, full)
     return {"root": str(root), "files_checked": len(files), "new": with_scores(new, functions),
             "baselined": baselined, "scores": qc.score_summary(functions), "functions": functions,
             "missing_tools": sorted(ctx["missing"] - ctx["ran"])}
@@ -192,9 +198,9 @@ def cmd_init(root, opts):
     if not (root / CONFIG).exists():
         shutil.copy(TEMPLATES / "config.toml", root / CONFIG)
         print(f"wrote {CONFIG}")
-    for script in (HERE, HERE.parent / "qg_checks.py"):  # CI runs these copies; re-run init to update them
+    for script in (HERE, HERE.parent / "qg_checks.py", HERE.parent / "qg_report.py"):  # CI runs these copies; re-run init to update them
         shutil.copy(script, q / script.name)
-    print("wrote .quality/quality_gate.py and qg_checks.py (CI's copy of the gate)")
+    print("wrote .quality/quality_gate.py, qg_checks.py and qg_report.py (CI's copy of the gate)")
     wf = root / ".github" / "workflows" / "code-quality.yml"
     if "--no-ci" not in opts["flags"] and not wf.exists():
         wf.parent.mkdir(parents=True, exist_ok=True)
@@ -206,15 +212,35 @@ def cmd_init(root, opts):
 def cmd_baseline(root, opts):
     full = "--full" in opts["flags"]
     ctx = new_context(root, load_config(root))
-    findings, _ = qc.analyze(ctx, qc.all_files(root, ctx["conf"]), full)
+    files = qc.all_files(root, ctx["conf"])
+    findings, functions = qc.analyze(ctx, files, full)
     # Without --full, keep what the project-wide checks recorded last time.
     kept = {} if full else {k: v for k, v in load_baseline(root).items()
                             if qc.source_of(k.split("::")[1]) not in FILE_SOURCES}
     save_baseline(root, {**kept, **measure(findings)})
     print(f"baseline: {len(findings)} existing finding(s) accepted in {BASELINE}")
+    page = qr.update(ctx, {"files": files, "findings": findings, "functions": functions, "new": []}, full,
+                     fresh=True)
+    print(f"report: {qc.rel(root, page)}")
     missing = sorted(ctx["missing"] - ctx["ran"])
     if missing:
         print(f"(not run, tool not found: {', '.join(missing)})")
+    return 0
+
+
+def cmd_report(root, opts):
+    full = "--full" in opts["flags"]
+    ctx = new_context(root, load_config(root))
+    files = qc.all_files(root, ctx["conf"])
+    findings, functions = qc.analyze(ctx, files, full)
+    new, _ = compare(findings, load_baseline(root))
+    page = qr.update(ctx, {"files": files, "findings": findings, "functions": functions, "new": new}, full,
+                     fresh=True)
+    s = qc.score_summary(functions)
+    print(f"report: {page}\n{s['approved']}/{s['functions']} functions approved (>= {qc.APPROVED}%),"
+          f" average {s['average']}%, {len(new)} new finding(s)")
+    if "--open" in opts["flags"]:
+        webbrowser.open(page.as_uri())
     return 0
 
 
@@ -348,7 +374,7 @@ def parse_args(argv):
 
 
 COMMANDS = {"check": cmd_check, "baseline": cmd_baseline, "doctor": cmd_doctor, "targets": cmd_targets,
-            "score": cmd_score}
+            "score": cmd_score, "report": cmd_report}
 
 
 def main(argv):
