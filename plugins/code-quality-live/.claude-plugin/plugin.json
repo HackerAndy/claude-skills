@@ -1,0 +1,7 @@
+{
+  "name": "code-quality-live",
+  "version": "0.1.0",
+  "author": { "name": "Andy Kaminski" },
+  "description": "Live pane + status line in Claude Code with the code-quality scores: approved share, what to fix first, and a drill-down from folder to file to function (needs the code-quality plugin)",
+  "types": "./types/index.d.ts"
+}
