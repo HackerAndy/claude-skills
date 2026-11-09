@@ -1,0 +1,12 @@
+{
+  "name": "ux-audit",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "scripts": {
+    "audit": "node capture.mjs"
+  },
+  "dependencies": {
+    "playwright": "^1.49.0"
+  }
+}

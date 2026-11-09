@@ -34,6 +34,11 @@
       "name": "code-quality-live",
       "source": "./plugins/code-quality-live",
       "description": "Live pane + status line in Claude Code with the code-quality scores: approved share, what to fix first, and a drill-down from folder to file to function (needs the code-quality plugin)"
+    },
+    {
+      "name": "ux-usability-review",
+      "source": "./plugins/ux-usability-review",
+      "description": "First-time-user usability review of a web page or flow: drafts flows from your code, records clicks, scores wording, complexity, next-step clarity and flow coherence"
     }
   ]
 }

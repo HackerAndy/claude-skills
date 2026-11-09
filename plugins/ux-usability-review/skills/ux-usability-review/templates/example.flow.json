@@ -1,0 +1,11 @@
+{
+  "name": "First visit: find and start the main task",
+  "baseUrl": "http://localhost:5173",
+  "goal": "A brand-new user finds and starts their first task",
+  "auth": null,
+  "viewport": { "width": 1280, "height": 800 },
+  "steps": [
+    { "name": "Landing", "goto": "/" },
+    { "name": "Open first nav item", "click": "nav a >> nth=0" }
+  ]
+}

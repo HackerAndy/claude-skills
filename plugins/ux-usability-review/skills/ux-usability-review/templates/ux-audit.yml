@@ -1,0 +1,25 @@
+name: UX audit
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: URL of the deployed or preview app
+        required: true
+jobs:
+  ux-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - name: Install capture tool
+        working-directory: .github/skills/ux-usability-review/scripts
+        run: npm install && npx playwright install --with-deps chromium
+      - name: Capture evidence and heuristics
+        working-directory: .github/skills/ux-usability-review/scripts
+        run: node capture.mjs --flow ../../../../ux-flows/main.flow.json --base-url "${{ inputs.base_url }}" --out ../../../../ux-audit-out --min-score 60
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ux-audit
+          path: ux-audit-out
