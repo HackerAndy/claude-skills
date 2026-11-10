@@ -36,6 +36,8 @@ METRICS = {  # rule -> how the message reads
     "nloc": "{v} lines of code > {limit}",
     "params": "{v} parameters > {limit}",
     "nesting": "nested {v} levels deep > {limit}",
+    "conditional": "a condition with {v} && / || operators > {limit}",
+    "bumps": "{v} separate blocks of nested logic > {limit}",
 }
 APPROVED = 95    # a function scoring at least this is approved: 9.5 on CodeScene's 1-10 Code Health scale,
                  # the level it recommends for code that AI agents will work in
@@ -139,6 +141,12 @@ def locate(name, pkg, root, conf):
     """The package's own install first, then PATH, then a pinned download."""
     if cmd := installed(name, pkg, root):
         return cmd
+    if name == "tree-sitter":  # not the tree-sitter CLI that may be on PATH: the parsers qg_smells.py needs
+        if run([sys.executable, "-c", "import tree_sitter_language_pack"], root).returncode == 0:
+            return [sys.executable, str(SMELLS)]
+        pin = conf["tools"]["pins"]["tree-sitter"]
+        return (["uvx", "--with", f"tree-sitter-language-pack=={pin}", "python", str(SMELLS)]
+                if conf["tools"]["download"] and shutil.which("uvx") else None)
     if shutil.which(name):
         return [name]
     if name == "lizard" and run([sys.executable, "-c", "import lizard"], root).returncode == 0:
@@ -197,19 +205,44 @@ def lizard_functions(ctx, files):
     cmd = tool(ctx, "lizard") if files else None
     if not cmd:
         return []
-    r = run([*cmd, "--csv", "-Ecognitive", "-ENS", *map(str, files)], ctx["root"])
+    r = run([*cmd, "--csv", "-Ecognitive", *map(str, files)], ctx["root"])
     seen, out = {}, []
     for row in csv.reader(io.StringIO(r.stdout)):
         if len(row) < 12:
             continue
-        # nloc, ccn, tokens, params, length, location, file, name, long name, start, end, cognitive, nesting
+        # nloc, ccn, tokens, params, length, location, file, name, long name, start, end, cognitive
         file, name = rel(ctx["root"], row[6]), row[7]
         seen[(file, name)] = seen.get((file, name), 0) + 1
         symbol = name if seen[(file, name)] == 1 else f"{name}#{seen[(file, name)]}"
-        values = {"ccn": int(row[1]), "cognitive": int(row[11]), "nloc": int(row[0]), "params": int(row[3]),
-                  "nesting": int(row[12]) if len(row) > 12 else 0}
+        values = {"ccn": int(row[1]), "cognitive": int(row[11]), "nloc": int(row[0]), "params": int(row[3])}
         out.append({"file": file, "symbol": symbol, "line": int(row[9]), "end": int(row[10]), "values": values})
-    return out
+    return add_smells(ctx, files, out)
+
+
+SMELLS = Path(__file__).with_name("qg_smells.py")
+
+
+def smell_measures(ctx, files):
+    """{file: [per-function nesting / conditional / bumps]} from tree-sitter, {} if it isn't available."""
+    cmd = tool(ctx, "tree-sitter") if files else None
+    if not cmd:
+        return {}
+    r = run([*cmd, *map(str, files)], ctx["root"])
+    try:
+        found = json.loads(r.stdout or "{}")
+    except json.JSONDecodeError:
+        return {}
+    return {rel(ctx["root"], k): v for k, v in found.items()}
+
+
+def add_smells(ctx, files, functions):
+    """Give each lizard function the structure measures of the tree-sitter function at the same lines."""
+    measures = smell_measures(ctx, [f for f in files if Path(f).suffix.lower() in SOURCE_EXT])
+    for fn in functions:
+        around = [m for m in measures.get(fn["file"], []) if m["line"] <= fn["line"] and fn["end"] <= m["end"]]
+        if m := min(around, key=lambda m: m["end"] - m["line"], default=None):
+            fn["values"].update({k: m[k] for k in ("nesting", "conditional", "bumps")})
+    return functions
 
 
 def check_functions(conf, functions):

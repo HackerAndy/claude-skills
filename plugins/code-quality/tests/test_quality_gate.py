@@ -78,8 +78,8 @@ class GateTest(unittest.TestCase):
     def test_functions_are_scored(self):
         r = gate(self.dir, "check", "--all", "--json")
         scores = {fn["symbol"]: fn for fn in json.loads(r.stdout)["functions"]}
-        # cognitive 21 against 15 is the worst metric: 95 - 30 * (21/15 - 1) = 83
-        self.assertEqual(scores["legacy_price"]["score"], 83)
+        # two bumps against a limit of 1 is the worst metric: 95 - 30 * (2/1 - 1) = 65
+        self.assertEqual(scores["legacy_price"]["score"], 65)
         self.assertFalse(scores["legacy_price"]["approved"])
         self.assertTrue(scores["subtotal"]["approved"])
 
@@ -92,6 +92,21 @@ class GateTest(unittest.TestCase):
         fn = {f["symbol"]: f for f in json.loads(r.stdout)["functions"]}["deep"]
         self.assertEqual(fn["values"]["nesting"], 4)
         self.assertFalse(fn["approved"])  # limit 3: 95 - 30 * (4/3 - 1) = 85
+
+    def test_conditions_and_bumps_are_measured_in_python_and_typescript(self):
+        py_src = ["def f(a, b, c, d):", "    if a and b or c and d:", "        pass",
+                  "    if a:", "        if b:", "            pass", "    if c:", "        if d:", "            pass"]
+        ts_src = ["export function g(a: boolean, b: boolean, c: boolean, d: boolean) {",
+                  "  if (a && b || c && d) { return 1 }",
+                  "  if (a) { if (b) { return 2 } }",
+                  "  if (c) { if (d) { return 3 } }",
+                  "  return 0", "}"]
+        (self.dir / "app" / "many.py").write_text("\n".join(py_src) + "\n")
+        (self.dir / "web" / "many.ts").write_text("\n".join(ts_src) + "\n")
+        r = gate(self.dir, "check", "--all", "--json")
+        fns = {(f["file"], f["symbol"]): f["values"] for f in json.loads(r.stdout)["functions"]}
+        for key in (("app/many.py", "f"), ("web/many.ts", "g")):
+            self.assertEqual((fns[key]["conditional"], fns[key]["bumps"], fns[key]["nesting"]), (3, 2, 2), key)
 
     def test_minified_and_ignored_files_are_skipped(self):
         (self.dir / "web" / "bundle.js").write_text("function a(b){" + "if(b){b++}" * 200 + "}\n")
@@ -137,7 +152,7 @@ class GateTest(unittest.TestCase):
         self.hook("app/orders.py")
         report = json.loads((self.dir / ".quality" / "report.json").read_text())
         self.assertEqual(report["summary"]["new"], 2)
-        self.assertEqual(report["summary"]["bands"], {"green": 3, "yellow": 2, "red": 0})
+        self.assertEqual(report["summary"]["bands"], {"green": 3, "yellow": 1, "red": 1})
         self.assertEqual(report["folders"][0]["path"], "app")
         self.assertEqual(report["targets"][0]["symbol"], "legacy_price")
         self.assertIn("web/cart.ts", report["files"])

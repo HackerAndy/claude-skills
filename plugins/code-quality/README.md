@@ -4,7 +4,8 @@ A deterministic complexity and code-smell gate for Python, JavaScript and TypeSc
 
 | Check | Tool | When |
 |---|---|---|
-| Cyclomatic and cognitive complexity, nesting depth (CodeScene's Nested Complexity), function length, parameters (per function) | lizard | every edit, `check` |
+| Cyclomatic and cognitive complexity, function length, parameters (per function) | lizard | every edit, `check` |
+| Nesting depth, complex conditions, bumpy road (CodeScene's Nested Complexity, Complex Conditional and Bumpy Road; per function) | tree-sitter (`qg_smells.py`) | every edit, `check` |
 | File length | built in | every edit, `check` |
 | Lint and smells (project's config + bugbear, simplify, comprehensions, pyupgrade) | ruff, biome | every edit, `check` |
 | Type errors | the package's mypy if configured, else pyright; the package's tsc | `check --full` (CI) |
@@ -12,7 +13,7 @@ A deterministic complexity and code-smell gate for Python, JavaScript and TypeSc
 
 Each function gets a score from 0 to 100%, set by its worst metric (95% exactly at a limit) less 5 points per lint finding inside it. A function at 95% or more is approved. The scores are also shown as **Code Health** on a 1–10 scale (score ÷ 10), modelled on CodeScene's, whose 9.5 is the level it recommends for code that AI agents work in. Each file's and the project's figure weights functions by lines of code, so one large bad function outweighs many small good ones; the report also shows a hotspot figure (files changed in the last 180 days) and the worst file. CodeScene's own formula and thresholds aren't published, so these numbers are comparable in spirit, not identical. Nothing acts on averages.
 
-All tools are free and permissively licensed (MIT / Apache-2.0); nothing needs a subscription or a server.
+All tools are free and permissively licensed (MIT / Apache-2.0); nothing needs a subscription or a server. The structure checks read Python, JS and TS syntax trees with `tree-sitter-language-pack` (installed with pip, or fetched through `uvx` at a pinned version); without it those three measures are skipped and `check` says tree-sitter was not found. Bumpy Road and Complex Conditional are approximations: CodeScene doesn't publish its exact rules. Here, a bump is a top-level branch of the function that contains another branch, and a complex condition has more than 2 `&&` / `||` operators.
 
 ## Install
 

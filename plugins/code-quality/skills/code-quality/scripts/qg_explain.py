@@ -41,6 +41,24 @@ METRIC_HELP = {
                "to reach in a test.",
         "fix": "Use guard clauses (return or continue early), and move the inner block into a named helper.",
     },
+    "conditional": {
+        "title": "Complicated condition",
+        "what": "One if / while / ternary condition combines more && / || operators than the limit "
+                "(CodeScene's Complex Conditional).",
+        "why": "To know when the branch runs, a reader must work out every combination of its parts, and "
+               "a missed one is a bug.",
+        "fix": "Name each part (a variable or a small function such as is_eligible(order)) and combine "
+               "the names, or move the rule into one well-named predicate.",
+    },
+    "bumps": {
+        "title": "Bumpy road",
+        "what": "Several separate top-level branches of the function each contain more branches inside "
+                "them (CodeScene's Bumpy Road).",
+        "why": "Each bump is a chunk of logic that deserves a name; stacked together they make the function "
+               "read as several jobs, and the bumps hide behavior from tests.",
+        "fix": "Extract each bump into a helper named for what it does, leaving the function as a short "
+               "sequence of steps.",
+    },
     "params": {
         "title": "Too many parameters",
         "what": "The function takes more parameters than the limit.",

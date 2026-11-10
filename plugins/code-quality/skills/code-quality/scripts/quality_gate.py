@@ -48,12 +48,14 @@ BASELINE = ".quality/baseline.json"
 FILE_SOURCES = {"lizard", "ruff", "biome"}  # the checks that run per file, on every check
 
 DEFAULTS = {
-    "limits": {"ccn": 10, "cognitive": 15, "nloc": 60, "params": 5, "nesting": 3, "file_nloc": 500},
+    "limits": {"ccn": 10, "cognitive": 15, "nloc": 60, "params": 5, "nesting": 3, "conditional": 2, "bumps": 1,
+               "file_nloc": 500},
     "scope": {"exclude": []},
     "lint": {"ruff_extend_select": ["B", "SIM", "C4", "UP"], "biome": True},
     "full": {"types": True, "duplication": True, "min_tokens": 70},
     "tools": {"download": True, "pins": {"lizard": "1.25.1", "ruff": "0.17.4", "biome": "2.6.6",
-                                         "pyright": "1.1.414", "jscpd": "5.4.3"}},
+                                         "pyright": "1.1.414", "jscpd": "5.4.3",
+                                         "tree-sitter": "1.25.0"}},
 }
 FIX_HINT = ("Fix the code: extract helpers, return early, replace branch chains with lookup tables, "
             "group parameters into an object, move code into its own module. Don't silence findings "
@@ -199,7 +201,7 @@ def cmd_init(root, opts):
         shutil.copy(TEMPLATES / "config.toml", root / CONFIG)
         print(f"wrote {CONFIG}")
     for script in (HERE, HERE.parent / "qg_checks.py", HERE.parent / "qg_report.py",
-                   HERE.parent / "qg_explain.py"):  # CI runs these copies; re-run init to update them
+                   HERE.parent / "qg_explain.py", HERE.parent / "qg_smells.py"):  # CI runs these copies; re-run init to update them
         shutil.copy(script, q / script.name)
     print("wrote .quality/quality_gate.py and its modules (CI's copy of the gate)")
     wf = root / ".github" / "workflows" / "code-quality.yml"
@@ -261,7 +263,7 @@ def cmd_doctor(root, _opts):
         for pkg, group in qc.by_package(root, files, exts, markers).items():
             print(f"{qc.rel(root, pkg) if pkg != root else '.'}/  ({len(group)} files)")
             print("\n".join(tool_line(ctx, name, pkg) for name in names))
-    print("\n".join(tool_line(ctx, name, indent="") for name in ("lizard", "jscpd")))
+    print("\n".join(tool_line(ctx, name, indent="") for name in ("lizard", "tree-sitter", "jscpd")))
     return 0
 
 
