@@ -9,7 +9,7 @@ A deterministic complexity and code-smell gate for Python, JavaScript and TypeSc
 | File length | built in | every edit, `check` |
 | Lint and smells (project's config + bugbear, simplify, comprehensions, pyupgrade) | ruff, biome | every edit, `check` |
 | Type errors | the package's mypy if configured, else pyright; the package's tsc | `check --full` (CI) |
-| Duplicated code | jscpd | `check --full` (CI) |
+| Duplicated code (reported in each file that holds a copy; it costs the function 5 points, like a lint finding) | jscpd | every edit, `check`; skipped if the scan takes over 60 s. Set `duplication = false` under `[edit]` to turn it off |
 
 Each function gets a score from 0 to 100%, set by its worst metric (95% exactly at a limit) less 5 points per lint finding inside it. A function at 95% or more is approved. The scores are also shown as **Code Health** on a 1–10 scale (score ÷ 10), modelled on CodeScene's, whose 9.5 is the level it recommends for code that AI agents work in. Each file's and the project's figure weights functions by lines of code, so one large bad function outweighs many small good ones; the report also shows a hotspot figure (files changed in the last 180 days) and the worst file. CodeScene's own formula and thresholds aren't published, so these numbers are comparable in spirit, not identical. Nothing acts on averages.
 

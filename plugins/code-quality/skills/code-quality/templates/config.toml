@@ -20,6 +20,9 @@ exclude = ["**/migrations/**", "**/*.min.js", "**/vendor/**", "**/*.generated.*"
 ruff_extend_select = ["B", "SIM", "C4", "UP"]  # bugbear, simplify, comprehensions, pyupgrade
 biome = true
 
+[edit]              # what runs on every check, not just `check --full`
+duplication = true  # jscpd scans the project for copies of the code in the files checked; set false if slow
+
 [full]              # `check --full` (CI): slower, project-wide checks
 types = true        # pyright for Python, the project's tsc for TypeScript (needs tsconfig.json)
 duplication = true  # jscpd across Python, JS and TS

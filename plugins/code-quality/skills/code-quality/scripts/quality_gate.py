@@ -45,13 +45,13 @@ TEMPLATES = HERE.parent.parent / "templates"
 
 CONFIG = ".quality/config.toml"
 BASELINE = ".quality/baseline.json"
-FILE_SOURCES = {"lizard", "ruff", "biome"}  # the checks that run per file, on every check
 
 DEFAULTS = {
     "limits": {"ccn": 10, "cognitive": 15, "nloc": 60, "params": 5, "nesting": 3, "conditional": 2, "bumps": 1,
                "file_nloc": 500},
     "scope": {"exclude": []},
     "lint": {"ruff_extend_select": ["B", "SIM", "C4", "UP"], "biome": True},
+    "edit": {"duplication": True},
     "full": {"types": True, "duplication": True, "min_tokens": 70},
     "tools": {"download": True, "pins": {"lizard": "1.25.1", "ruff": "0.17.4", "biome": "2.6.6",
                                          "pyright": "1.1.414", "jscpd": "5.4.3",
@@ -188,7 +188,7 @@ def report_text(result):
         lines.append(f"scores: {s['approved']}/{s['functions']} functions approved (>= {qc.APPROVED}%),"
                      f" average {s['average']}%, Code Health {s['health']}/10")
     if result["missing_tools"]:
-        lines.append(f"(not run, tool not found: {', '.join(result['missing_tools'])}; see `quality_gate.py doctor`)")
+        lines.append(f"(not run: {', '.join(result['missing_tools'])}; see `quality_gate.py doctor`)")
     return "\n".join(lines)
 
 
@@ -219,7 +219,7 @@ def cmd_baseline(root, opts):
     findings, functions = qc.analyze(ctx, files, full)
     # Without --full, keep what the project-wide checks recorded last time.
     kept = {} if full else {k: v for k, v in load_baseline(root).items()
-                            if qc.source_of(k.split("::")[1]) not in FILE_SOURCES}
+                            if qc.source_of(k.split("::")[1]) not in qc.file_sources(ctx["conf"])}
     save_baseline(root, {**kept, **measure(findings)})
     print(f"baseline: {len(findings)} existing finding(s) accepted in {BASELINE}")
     page = qr.update(ctx, {"files": files, "findings": findings, "functions": functions, "new": []}, full,
@@ -227,7 +227,7 @@ def cmd_baseline(root, opts):
     print(f"report: {qc.rel(root, page)}")
     missing = sorted(ctx["missing"] - ctx["ran"])
     if missing:
-        print(f"(not run, tool not found: {', '.join(missing)})")
+        print(f"(not run: {', '.join(missing)})")
     return 0
 
 

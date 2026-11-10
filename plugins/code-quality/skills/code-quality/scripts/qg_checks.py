@@ -42,6 +42,8 @@ METRICS = {  # rule -> how the message reads
 APPROVED = 95    # a function scoring at least this is approved: 9.5 on CodeScene's 1-10 Code Health scale,
                  # the level it recommends for code that AI agents will work in
 SMELL_COST = 5   # points per lint finding inside the function
+FILE_SOURCES = {"lizard", "ruff", "biome"}  # the checks that run per file, on every check
+EDIT_DUPLICATION_SECONDS = 60  # a check on edit skips the duplication scan when it takes longer than this
 CHURN_DAYS = 180  # how far back a file's commits count toward refactoring priority
 
 
@@ -360,21 +362,34 @@ def check_types(ctx, files):
     return out
 
 
-def check_duplication(ctx):
+def check_duplication(ctx, only=None, timeout=600):
+    """Duplicated blocks, reported in both files that hold them. only: relative paths; a check of just
+    those files keeps the clones that touch them (jscpd still scans the project, to find the other copy)."""
     cmd = tool(ctx, "jscpd")
     if not cmd:
         return []
     root, conf = ctx["root"], ctx["conf"]
     ignore = ",".join([f"**/{d}/**" for d in sorted(SKIP_DIRS)] + conf["scope"]["exclude"])
     with tempfile.TemporaryDirectory() as tmp:
-        run([*cmd, "--reporters", "json", "--output", tmp, "--silent", "--min-tokens", str(conf["full"]["min_tokens"]),
-             "--ignore", ignore, "--format", "python,javascript,typescript,jsx,tsx", "."], root)
+        try:
+            run([*cmd, "--reporters", "json", "--output", tmp, "--silent", "--min-tokens",
+                 str(conf["full"]["min_tokens"]), "--ignore", ignore,
+                 "--format", "python,javascript,typescript,jsx,tsx", "."], root, timeout)
+        except subprocess.TimeoutExpired:  # too slow for an edit: skip it, and don't let the baseline ratchet on it
+            ctx["ran"].discard("jscpd")
+            ctx["missing"].add("jscpd (timed out)")
+            return []
         report = Path(tmp) / "jscpd-report.json"
         dups = json.loads(report.read_text()).get("duplicates", []) if report.is_file() else []
-    return [finding(rel(root, root / d["firstFile"]["name"]), d["firstFile"]["start"], "duplicate",
-                    f"{d['lines']} lines duplicated in {rel(root, root / d['secondFile']['name'])}"
-                    f":{d['secondFile']['start']}-{d['secondFile']['end']}")
-            for d in dups if in_scope(root, conf, root / d["firstFile"]["name"])]
+    out = []
+    for d in dups:
+        for here, there in ((d["firstFile"], d["secondFile"]), (d["secondFile"], d["firstFile"])):
+            file = rel(root, root / here["name"])
+            if in_scope(root, conf, root / here["name"]) and (only is None or file in only):
+                out.append(finding(file, here["start"], "duplicate",
+                                   f"{d['lines']} lines duplicated in {rel(root, root / there['name'])}"
+                                   f":{there['start']}-{there['end']}"))
+    return out
 
 
 # ---------------------------------------------------------------- scores
@@ -391,16 +406,21 @@ def innermost(functions, f):
     return min(around, key=lambda fn: fn["end"] - fn["line"], default=None)
 
 
+def file_sources(conf):
+    """FILE_SOURCES, plus jscpd when duplication is also checked on every edit."""
+    return FILE_SOURCES | ({"jscpd"} if conf["edit"]["duplication"] else set())
+
+
 def source_of(rule):
     return rule.split(":")[0] if ":" in rule else ("jscpd" if rule == "duplicate" else "lizard")
 
 
 def score_functions(conf, functions, findings):
     """Score each function 0-100: its worst metric against the limits, less SMELL_COST per lint
-    finding inside it. Averages over files are for reading only; approval is per function."""
+    or duplication finding inside it. Averages over files are for reading only; approval is per function."""
     smells = {}
     for f in findings:
-        fn = innermost(functions, f) if source_of(f["rule"]) in ("ruff", "biome") else None
+        fn = innermost(functions, f) if source_of(f["rule"]) in ("ruff", "biome", "jscpd") else None
         if fn:
             smells[id(fn)] = smells.get(id(fn), 0) + 1
     limits = conf["limits"]
@@ -468,5 +488,7 @@ def analyze(ctx, files, full):
         everything = all_files(ctx["root"], ctx["conf"])
         findings += check_types(ctx, everything) if ctx["conf"]["full"]["types"] else []
         findings += check_duplication(ctx) if ctx["conf"]["full"]["duplication"] else []
+    elif ctx["conf"]["edit"]["duplication"] and files:
+        findings += check_duplication(ctx, {rel(ctx["root"], f) for f in files}, EDIT_DUPLICATION_SECONDS)
     findings.sort(key=lambda f: (f["file"], f["line"], f["rule"]))
     return findings, score_functions(ctx["conf"], functions, findings)

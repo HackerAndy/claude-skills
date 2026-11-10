@@ -383,7 +383,7 @@ const lintMark = f => ((f.end_line ?? f.line) - f.line >= WIDE
 function fnDetail(fn, e) {
   const own = e.findings.filter(f => f.symbol === fn.symbol)
   const lint = e.findings.filter(f => !f.symbol && inRange(f, fn))
-  const counted = lint.filter(f => owner(f, e) === fn && ['ruff', 'biome'].includes(f.rule.split(':')[0]))
+  const counted = lint.filter(f => owner(f, e) === fn && (f.rule === 'duplicate' || ['ruff', 'biome'].includes(f.rule.split(':')[0])))
   const branchy = own.some(f => f.rule === 'ccn' || f.rule === 'cognitive')
   const c = fn.code
   const nb = c ? c.branches.length : 0
@@ -473,7 +473,7 @@ function how() {
   const l = R.limits
   return `<section class="panel"><details class="how"><summary>How scores work</summary><div>
     Each function gets the score of its worst metric: 100 at zero, ${T.green} exactly at the limit, then 30 points lower for every 100% over it,
-    minus 5 for each lint finding inside it. A function is approved at ${T.green}% or more.
+    minus 5 for each lint or duplication finding inside it. A function is approved at ${T.green}% or more.
     <b>Code Health</b> puts the same scores on CodeScene’s 1–10 scale (score ÷ 10), weighting each function by its lines of code and each file likewise; 9.5 is the level CodeScene recommends for code AI agents work in. The hotspot figure counts only files changed in the last 180 days; the worst file is the lowest single score.
     Limits: branches <code>${l.ccn}</code>, cognitive complexity <code>${l.cognitive}</code>, lines <code>${l.nloc}</code>,
     parameters <code>${l.params}</code>, nesting depth <code>${l.nesting}</code>, condition operators <code>${l.conditional}</code>, nested-logic blocks <code>${l.bumps}</code>, file length <code>${l.file_nloc}</code> lines.

@@ -108,6 +108,13 @@ class GateTest(unittest.TestCase):
         for key in (("app/many.py", "f"), ("web/many.ts", "g")):
             self.assertEqual((fns[key]["conditional"], fns[key]["bumps"], fns[key]["nesting"]), (3, 2, 2), key)
 
+    def test_copied_code_is_flagged_when_a_file_is_checked(self):
+        src = (self.dir / "app" / "orders.py").read_text()
+        (self.dir / "app" / "orders_copy.py").write_text(src)
+        r = gate(self.dir, "check", "app/orders_copy.py", "--json")
+        rules = [(f["file"], f["rule"]) for f in json.loads(r.stdout)["new"]]
+        self.assertIn(("app/orders_copy.py", "duplicate"), rules)
+
     def test_minified_and_ignored_files_are_skipped(self):
         (self.dir / "web" / "bundle.js").write_text("function a(b){" + "if(b){b++}" * 200 + "}\n")
         r = gate(self.dir, "check", "--all", "--json")

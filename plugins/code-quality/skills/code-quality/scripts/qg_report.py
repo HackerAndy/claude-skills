@@ -15,7 +15,6 @@ REPORT_JSON = ".quality/report.json"
 REPORT_HTML = ".quality/report.html"
 YELLOW = 70  # APPROVED (95) and up is green, 70-94 yellow, below 70 red
 TARGETS = 10
-FILE_SOURCES = {"lizard", "ruff", "biome"}
 
 
 def band(score):
@@ -43,13 +42,13 @@ def file_entries(root, conf, run):
     return {name: qx.add_code(root, name, entry, qc.APPROVED) for name, entry in out.items()}
 
 
-def merge(old, entries, full):
+def merge(old, entries, full, sources):
     """old report files with the checked files replaced. Without --full, a checked file keeps its
     type and duplication findings from the last full run, and files that no longer exist drop out."""
     files = dict(old)
     for name, entry in entries.items():
         kept = [] if full else [f for f in files.get(name, {}).get("findings", [])
-                                if qc.source_of(f["rule"]) not in FILE_SOURCES]
+                                if qc.source_of(f["rule"]) not in sources]
         files[name] = {**entry, "findings": entry["findings"] + kept}
     return files
 
@@ -136,7 +135,7 @@ def update(ctx, run, full, fresh=False):
     if old is None and not fresh:
         return None
     before = {} if fresh else old  # a fresh report keeps only the rule docs fetched before
-    merged = merge(before.get("files", {}), file_entries(root, conf, run), full)
+    merged = merge(before.get("files", {}), file_entries(root, conf, run), full, qc.file_sources(conf))
     merged = {name: e for name, e in merged.items() if (root / name).is_file()}
     was_full = full or before.get("full", False)
     rules = qx.rules(ctx, merged, (old or {}).get("rules", {}))
