@@ -10,7 +10,7 @@ A deterministic complexity and code-smell gate for Python, JavaScript and TypeSc
 | Type errors | the package's mypy if configured, else pyright; the package's tsc | `check --full` (CI) |
 | Duplicated code | jscpd | `check --full` (CI) |
 
-Each function gets a score from 0 to 100%, set by its worst metric (90% exactly at a limit) less 5 points per lint finding inside it. A function at 90% or more is approved. File and project averages are shown for reading; nothing acts on them.
+Each function gets a score from 0 to 100%, set by its worst metric (95% exactly at a limit) less 5 points per lint finding inside it. A function at 95% or more is approved. The scores are also shown as **Code Health** on a 1–10 scale (score ÷ 10), modelled on CodeScene's, whose 9.5 is the level it recommends for code that AI agents work in. Each file's and the project's figure weights functions by lines of code, so one large bad function outweighs many small good ones; the report also shows a hotspot figure (files changed in the last 180 days) and the worst file. CodeScene's own formula and thresholds aren't published, so these numbers are comparable in spirit, not identical. Nothing acts on averages.
 
 All tools are free and permissively licensed (MIT / Apache-2.0); nothing needs a subscription or a server.
 
@@ -30,13 +30,13 @@ Without Claude: `bin/quality-gate init`, `bin/quality-gate check [--all] [--full
 
 ## The report
 
-`/code-quality report` (or `bin/quality-gate report --open`) writes `.quality/report.html`: one page, no server, light and dark. At the top, the share of functions approved and how many are green (90% and up), yellow (70–89%) and red (below 70%); then the 10 functions to fix first; then a drill-down from folder to file to function. A function below 90% opens to how its score was worked out, one card per problem (what it means, why it matters, how to fix it, and for lint rules the rule's own docs with a bad/good example), and its code: each place that adds a path to the cyclomatic count is marked with its `+1`, and each lint finding is underlined at the exact characters the tool reported. Click a card to jump to its lines. Every check after that keeps the page and `.quality/report.json` up to date, and both are git-ignored.
+`/code-quality report` (or `bin/quality-gate report --open`) writes `.quality/report.html`: one page, no server, light and dark. At the top, the share of functions approved and how many are green (95% and up), yellow (70–94%) and red (below 70%); then the 10 functions to fix first; then a drill-down from folder to file to function. A function below 95% opens to how its score was worked out, one card per problem (what it means, why it matters, how to fix it, and for lint rules the rule's own docs with a bad/good example), and its code: each place that adds a path to the cyclomatic count is marked with its `+1`, and each lint finding is underlined at the exact characters the tool reported. Click a card to jump to its lines. Every check after that keeps the page and `.quality/report.json` up to date, and both are git-ignored.
 
 In Claude Code, the `code-quality-live` mod shows the same in a pane beside the chat (`/quality-live`), with the approved share in the status line. Press a folder, a file, then a function to see its issues and the lines causing them, highlighted; `‹` goes back. It refreshes after each edit.
 
 ## Refactoring existing code
 
-`/code-quality:quality-refactor` takes functions below 90%, worst and most-changed first (`quality-gate targets`), and refactors each one until `quality-gate score <file> --symbol <name>` approves it, with the project's tests green before and after. Each function gets at most 3 attempts; one that still isn't approved is left for a person, with the reason. Untested functions get a characterization test first. The baseline lowers to lock in what improved.
+`/code-quality:quality-refactor` takes functions below 95%, worst and most-changed first (`quality-gate targets`), and refactors each one until `quality-gate score <file> --symbol <name>` approves it, with the project's tests green before and after. Each function gets at most 3 attempts; one that still isn't approved is left for a person, with the reason. Untested functions get a characterization test first. The baseline lowers to lock in what improved.
 
 ## Monorepos
 

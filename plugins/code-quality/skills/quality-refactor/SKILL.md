@@ -1,18 +1,18 @@
 ---
 name: quality-refactor
-description: Refactor existing code until each target function scores at least 90% on the code-quality gate, with the project's tests passing and at most 3 attempts per function. Use when the user asks to "refactor for quality", "fix the worst functions", "raise the code-quality scores", "pay down complexity", "refactor the hotspots", or runs /code-quality:quality-refactor, in a project that has a .quality/ folder.
+description: Refactor existing code until each target function scores at least 95% on the code-quality gate, with the project's tests passing and at most 3 attempts per function. Use when the user asks to "refactor for quality", "fix the worst functions", "raise the code-quality scores", "pay down complexity", "refactor the hotspots", or runs /code-quality:quality-refactor, in a project that has a .quality/ folder.
 ---
 
 # quality-refactor
 
-Takes functions the code-quality gate scores below 90% and restructures them, one at a time, until each one is approved (90% or more) while behavior stays the same. The gate decides what "done" means, so the result doesn't depend on taste.
+Takes functions the code-quality gate scores below 95% and restructures them, one at a time, until each one is approved (95% or more) while behavior stays the same. The gate decides what "done" means, so the result doesn't depend on taste.
 
 Script: `../code-quality/scripts/quality_gate.py` from this skill's base directory (call it `$QG`). The project must have `.quality/config.toml`; if it doesn't, offer `/code-quality init` first.
 
 ## 1. Pick the targets
 
 - The user named files, folders or functions: `python3 $QG targets <paths>`.
-- Otherwise: `python3 $QG targets --limit 10`. It lists functions below 90%, ordered by `(100 - score) x (1 + commits to the file in the last 180 days)`, so code that is both bad and often changed comes first.
+- Otherwise: `python3 $QG targets --limit 10`. It lists functions below 95%, ordered by `(100 - score) x (1 + commits to the file in the last 180 days)`, so code that is both bad and often changed comes first.
 
 Show the list (score, file:line, function, why) and say how many you'll take. Don't ask for confirmation unless the list is longer than 10 or the user only asked for a report.
 
@@ -28,7 +28,7 @@ For each target, check that some test exercises it (grep the test folders for it
 
 One attempt is: restructure, then `python3 $QG score <file> --symbol <name>`, then the tests.
 
-- `score` exits 0 when that function is at 90% or more and the file has no new findings (helpers you extract count: each must also be inside the limits). Exit 1 prints every function in the file with its score and why.
+- `score` exits 0 when that function is at 95% or more and the file has no new findings (helpers you extract count: each must also be inside the limits). Exit 1 prints every function in the file with its score and why.
 - An anonymous target (`(anonymous)`, `(anonymous)#7`): give it a name as part of the refactor (extract the callback into a named function or component), then score that name.
 - Approved and tests pass: done. Move on; don't polish further.
 - Otherwise, read what `score` and the test output say and make another attempt. Each attempt has to change the approach in response to them, not repeat it.

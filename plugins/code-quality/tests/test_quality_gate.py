@@ -67,7 +67,7 @@ class GateTest(unittest.TestCase):
             f.write(NEW_PY)
         r = self.hook("app/orders.py")
         self.assertEqual(r.returncode, 2)
-        self.assertIn("shipping (81%): cognitive complexity 17 > 15", r.stderr)
+        self.assertIn("shipping (86%): cognitive complexity 17 > 15", r.stderr)
         self.assertIn("ruff B006", r.stderr)
         self.assertNotIn("legacy_price", r.stderr)
 
@@ -78,8 +78,8 @@ class GateTest(unittest.TestCase):
     def test_functions_are_scored(self):
         r = gate(self.dir, "check", "--all", "--json")
         scores = {fn["symbol"]: fn for fn in json.loads(r.stdout)["functions"]}
-        # cognitive 21 against 15 is the worst metric: 90 - 30 * (21/15 - 1) = 78
-        self.assertEqual(scores["legacy_price"]["score"], 78)
+        # cognitive 21 against 15 is the worst metric: 95 - 30 * (21/15 - 1) = 83
+        self.assertEqual(scores["legacy_price"]["score"], 83)
         self.assertFalse(scores["legacy_price"]["approved"])
         self.assertTrue(scores["subtotal"]["approved"])
 
@@ -105,7 +105,7 @@ class GateTest(unittest.TestCase):
         entries = json.loads((self.dir / ".quality" / "baseline.json").read_text())["entries"]
         self.assertNotIn("app/orders.py::params::legacy_price", entries)
 
-    def test_targets_lists_functions_below_90(self):
+    def test_targets_lists_functions_below_95(self):
         r = gate(self.dir, "targets", "--json")
         rows = json.loads(r.stdout)
         self.assertEqual([row["symbol"] for row in rows], ["legacy_price"])
@@ -121,7 +121,7 @@ class GateTest(unittest.TestCase):
     def test_report_page_and_json_follow_each_check(self):
         page = self.dir / ".quality" / "report.html"
         self.assertTrue(page.is_file())
-        self.assertNotIn("/*__REPORT__*/null", page.read_text())
+        self.assertNotIn("/*__REPORT__*/null", page.read_text(encoding="utf-8"))
         with open(self.dir / "app" / "orders.py", "a") as f:
             f.write(NEW_PY)
         self.hook("app/orders.py")

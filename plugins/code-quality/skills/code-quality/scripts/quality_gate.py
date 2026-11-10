@@ -14,7 +14,7 @@ Usage:
   quality_gate.py baseline [--full]            accept today's findings; checks then report only new or
                                                worse ones, and lower the baseline as code improves
   quality_gate.py targets [PATHS...] [--limit N] [--json]
-                                               functions below 90%, highest refactoring priority first:
+                                               functions below 95%, highest refactoring priority first:
                                                (100 - score) x (1 + commits to the file, last 180 days)
   quality_gate.py score FILE [--symbol NAME] [--json]
                                                every function's score in FILE, and new findings; exit 0
@@ -184,7 +184,7 @@ def report_text(result):
     s = result["scores"]
     if s["functions"]:
         lines.append(f"scores: {s['approved']}/{s['functions']} functions approved (>= {qc.APPROVED}%),"
-                     f" average {s['average']}%")
+                     f" average {s['average']}%, Code Health {s['health']}/10")
     if result["missing_tools"]:
         lines.append(f"(not run, tool not found: {', '.join(result['missing_tools'])}; see `quality_gate.py doctor`)")
     return "\n".join(lines)
@@ -239,7 +239,7 @@ def cmd_report(root, opts):
                      fresh=True)
     s = qc.score_summary(functions)
     print(f"report: {page}\n{s['approved']}/{s['functions']} functions approved (>= {qc.APPROVED}%),"
-          f" average {s['average']}%, {len(new)} new finding(s)")
+          f" average {s['average']}%, Code Health {s['health']}/10, {len(new)} new finding(s)")
     if "--open" in opts["flags"]:
         webbrowser.open(page.as_uri())
     return 0

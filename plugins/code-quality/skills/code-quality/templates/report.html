@@ -186,7 +186,7 @@ const R = /*__REPORT__*/null
 const $ = (s, el = document) => el.querySelector(s)
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c])
 const fmt = n => (n ?? 0).toLocaleString()
-const T = R ? R.thresholds : { green: 90, yellow: 70 }
+const T = R ? R.thresholds : { green: 95, yellow: 70 }
 const band = s => (s == null ? 'none' : s >= T.green ? 'green' : s >= T.yellow ? 'yellow' : 'red')
 const chip = s => `<span class="chip ${band(s)}">${s == null ? '–' : s + '%'}</span>`
 const pct = (a, b) => (b ? Math.round((100 * a) / b) : null)
@@ -194,6 +194,10 @@ const METRIC = { ccn: 'Branches (cyclomatic)', cognitive: 'Cognitive complexity'
 const LABEL = { green: `${T.green}% and up`, yellow: `${T.yellow}–${T.green - 1}%`, red: `below ${T.yellow}%` }
 
 const state = { show: 'work', query: '', open: new Set(), all: new Set() }
+
+const metricScore = (v, limit) => { const r = v / limit; return r <= 1 ? 100 - (100 - T.green) * r : T.green - 30 * (r - 1) }
+const tenBand = h => (h == null ? 'none' : band(h * 10))
+const ten = h => (h == null ? '–' : h.toFixed(1))
 
 function stack(b, cls = 'stack') {
   const total = b.green + b.yellow + b.red
@@ -204,6 +208,7 @@ function stack(b, cls = 'stack') {
 
 function hero() {
   const s = R.summary
+  const H = R.health
   const share = pct(s.approved, s.functions)
   const words = []
   if (s.bands.red) words.push(`<b class="txt red">${fmt(s.bands.red)}</b> need real work`)
@@ -222,7 +227,10 @@ function hero() {
       </div>
     </div>
     <div class="tiles">
-      <div class="tile"><div class="n txt ${band(s.average)}">${s.average ?? '–'}%</div><div class="l">average score (for reading only)</div></div>
+      <div class="tile"><div class="n txt ${tenBand(H.average)}">${ten(H.average)}</div><div class="l">Code Health, 1–10 (weighted by lines of code)</div></div>
+      <div class="tile"><div class="n txt ${tenBand(H.hotspot)}">${ten(H.hotspot)}</div><div class="l">hotspot Code Health (files changed in 180 days)</div></div>
+      <div class="tile"><div class="n txt ${tenBand(H.worst?.score)}">${ten(H.worst?.score)}</div><div class="l" title="${esc(H.worst?.file ?? '')}">worst file${H.worst ? ': ' + esc(H.worst.file.split('/').pop()) : ''}</div></div>
+      <div class="tile"><div class="n txt ${band(s.average)}">${s.average ?? '–'}%</div><div class="l">average function score (for reading only)</div></div>
       <div class="tile"><div class="n">${fmt(s.files)}</div><div class="l">files, in ${fmt(R.folders.length)} folders</div></div>
       <div class="tile"><div class="n">${fmt(s.findings)}</div><div class="l">findings, all kinds</div></div>
       <div class="tile"><div class="n ${s.new ? 'txt red' : ''}">${fmt(s.new)}</div><div class="l">new since the baseline</div></div>
@@ -280,7 +288,7 @@ function metricBars(fn) {
   return '<div class="metrics">' + Object.entries(fn.values).map(([m, v]) => {
     const limit = R.limits[m]
     const r = v / limit
-    const score = r <= 1 ? 100 - 10 * r : 90 - 30 * (r - 1)
+    const score = metricScore(v, limit)
     const scale = Math.max(limit * 2, v)
     return `<div class="metric"><div class="t"><span>${METRIC[m] ?? m}</span><b class="txt ${band(score)}">${v} / ${limit}</b></div>
       <div class="bar"><span class="${band(score)}" style="width:${(100 * v) / scale}%"></span><i style="left:${(100 * limit) / scale}%" title="limit"></i></div></div>`
@@ -288,7 +296,6 @@ function metricBars(fn) {
 }
 
 const LINT_COST = 5
-const metricScore = (v, limit) => { const r = v / limit; return r <= 1 ? 100 - 10 * r : 90 - 30 * (r - 1) }
 const inRange = (f, fn) => f.line >= fn.line && f.line <= fn.end
 // The function a lint finding counts against: the smallest one around it, as the gate scores it.
 const owner = (f, e) => e.functions.filter(fn => inRange(f, fn)).sort((a, b) => (a.end - a.line) - (b.end - b.line))[0]
@@ -465,8 +472,9 @@ function explorerPanel() {
 function how() {
   const l = R.limits
   return `<section class="panel"><details class="how"><summary>How scores work</summary><div>
-    Each function gets the score of its worst metric: 100 at zero, 90 exactly at the limit, then 30 points lower for every 100% over it,
+    Each function gets the score of its worst metric: 100 at zero, ${T.green} exactly at the limit, then 30 points lower for every 100% over it,
     minus 5 for each lint finding inside it. A function is approved at ${T.green}% or more.
+    <b>Code Health</b> puts the same scores on CodeScene’s 1–10 scale (score ÷ 10), weighting each function by its lines of code and each file likewise; 9.5 is the level CodeScene recommends for code AI agents work in. The hotspot figure counts only files changed in the last 180 days; the worst file is the lowest single score.
     Limits: branches <code>${l.ccn}</code>, cognitive complexity <code>${l.cognitive}</code>, lines <code>${l.nloc}</code>,
     parameters <code>${l.params}</code>, file length <code>${l.file_nloc}</code> lines.
     Colors: <span class="txt green">green</span> ${LABEL.green}, <span class="txt yellow">yellow</span> ${LABEL.yellow}, <span class="txt red">red</span> ${LABEL.red}.

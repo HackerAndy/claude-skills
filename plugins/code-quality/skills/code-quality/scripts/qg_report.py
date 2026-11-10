@@ -13,7 +13,7 @@ HERE = Path(__file__).resolve()
 TEMPLATE = HERE.parent.parent / "templates" / "report.html"
 REPORT_JSON = ".quality/report.json"
 REPORT_HTML = ".quality/report.html"
-YELLOW = 70  # 90 and up is green (approved), 70-89 yellow, below 70 red
+YELLOW = 70  # APPROVED (95) and up is green, 70-94 yellow, below 70 red
 TARGETS = 10
 FILE_SOURCES = {"lizard", "ruff", "biome"}
 
@@ -33,6 +33,9 @@ def file_entries(root, conf, run):
         out.setdefault(fn["file"], {"functions": [], "findings": []})["functions"].append(
             {k: fn[k] for k in ("symbol", "line", "end", "score", "values", "smells")}
             | {"why": qc.reasons(conf, fn)})
+    for entry in out.values():
+        entry["health"] = qc.health(entry["functions"])
+        entry["nloc"] = sum(fn["values"].get("nloc", 0) for fn in entry["functions"])
     for f in run["findings"]:
         out.setdefault(f["file"], {"functions": [], "findings": []})["findings"].append(
             {k: f[k] for k in ("line", "rule", "message", "symbol")} | {"new": id(f) in fresh}
@@ -56,6 +59,21 @@ def tally(fns):
     bands = {b: sum(band(s) == b for s in scores) for b in ("green", "yellow", "red")}
     return {"functions": len(scores), "approved": bands["green"], "bands": bands,
             "average": qc.mean(scores), "worst": min(scores, default=None)}
+
+
+def code_health(root, files):
+    """CodeScene-style Code Health on a 1-10 scale. Per file: its functions' scores weighted by
+    lines of code. Overall: files weighted by lines of code; the hotspot figure counts only files
+    changed in the last CHURN_DAYS days; the worst file is the lowest single score."""
+    rows = [(name, e["health"], max(e["nloc"], 1)) for name, e in files.items() if e["health"] is not None]
+    commits = qc.churn(root)
+
+    def weighted(rs):
+        return qc.ten(sum(h * w for _, h, w in rs) / sum(w for _, _, w in rs)) if rs else None
+    worst = min(rows, key=lambda r: r[1], default=None)
+    return {"average": weighted(rows), "hotspot": weighted([r for r in rows if commits.get(r[0])]),
+            "worst": {"file": worst[0], "score": qc.ten(worst[1])} if worst else None,
+            "files": {name: qc.ten(h) for name, h, _ in rows}}
 
 
 def folders(files):
@@ -83,6 +101,7 @@ def build(root, conf, files, full, rules):
     return {"version": 1, "generated": datetime.now().isoformat(timespec="seconds"),
             "project": root.name, "full": full,
             "thresholds": {"green": qc.APPROVED, "yellow": YELLOW}, "limits": conf["limits"],
+            "health": code_health(root, files),
             "summary": {**tally(fns), "files": len(files), "findings": len(findings),
                         "new": sum(f["new"] for f in findings)},
             "folders": folders(files), "targets": targets(root, files),

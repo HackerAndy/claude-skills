@@ -17,7 +17,7 @@ const LINT_COST = 5
 const dir = (file: string) => (file.includes('/') ? file.slice(0, file.lastIndexOf('/')) : '.')
 const base = (file: string) => file.slice(file.lastIndexOf('/') + 1)
 const inFn = (f: Finding, fn: Fn) => f.line >= fn.line && f.line <= fn.end
-const metricScore = (v: number, limit: number) => (v / limit <= 1 ? 100 - (10 * v) / limit : 90 - 30 * (v / limit - 1))
+const metricScore = (v: number, limit: number) => (v / limit <= 1 ? 100 - (5 * v) / limit : 95 - 30 * (v / limit - 1))
 
 // Keeps what the pane draws from the report the code-quality gate writes (and each check refreshes).
 function snapshot(r: any, page: string): Snapshot {

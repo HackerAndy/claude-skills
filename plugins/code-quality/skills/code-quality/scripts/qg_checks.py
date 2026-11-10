@@ -36,7 +36,8 @@ METRICS = {  # rule -> how the message reads
     "nloc": "{v} lines of code > {limit}",
     "params": "{v} parameters > {limit}",
 }
-APPROVED = 90    # a function scoring at least this is approved
+APPROVED = 95    # a function scoring at least this is approved: 9.5 on CodeScene's 1-10 Code Health scale,
+                 # the level it recommends for code that AI agents will work in
 SMELL_COST = 5   # points per lint finding inside the function
 CHURN_DAYS = 180  # how far back a file's commits count toward refactoring priority
 
@@ -158,6 +159,7 @@ def tool(ctx, name, pkg=None):
 
 
 def run(cmd, cwd, timeout=600):
+    cmd = [shutil.which(cmd[0]) or cmd[0], *cmd[1:]]  # Windows: npx is npx.cmd, which subprocess can't find by name
     return subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=timeout, check=False)
 
 
@@ -343,9 +345,9 @@ def check_duplication(ctx):
 # ---------------------------------------------------------------- scores
 
 def metric_score(value, limit):
-    """100 at zero, 90 exactly at the limit, then 30 points lost per 100% over it."""
+    """100 at zero, APPROVED exactly at the limit, then 30 points lost per 100% over it."""
     r = value / limit
-    return 100 - 10 * r if r <= 1 else 90 - 30 * (r - 1)
+    return 100 - (100 - APPROVED) * r if r <= 1 else APPROVED - 30 * (r - 1)
 
 
 def innermost(functions, f):
@@ -395,13 +397,29 @@ def mean(xs):
     return round(sum(xs) / len(xs)) if xs else None
 
 
+def health(fns):
+    """Code Health of a set of functions: their scores averaged, weighted by lines of code, so one
+    large bad function outweighs many small good ones (as CodeScene weights files)."""
+    weights = [max(fn["values"].get("nloc", 1), 1) for fn in fns]
+    return round(sum(w * fn["score"] for w, fn in zip(weights, fns)) / sum(weights), 1) if fns else None
+
+
+def ten(score):
+    """A 0-100 score on CodeScene's 1-10 scale, one decimal."""
+    return None if score is None else max(1.0, round(score / 10, 1))
+
+
 def score_summary(functions):
     files = {}
     for fn in functions:
-        files.setdefault(fn["file"], []).append(fn["score"])
+        files.setdefault(fn["file"], []).append(fn)
+    by_file = {file: health(fns) for file, fns in sorted(files.items())}
+    worst = min(by_file, key=by_file.get, default=None)
     return {"approved": sum(fn["approved"] for fn in functions), "functions": len(functions),
             "average": mean([fn["score"] for fn in functions]),
-            "files": {file: mean(scores) for file, scores in sorted(files.items())}}
+            "health": ten(health(functions)), "worst_file": worst,
+            "worst_file_health": ten(by_file[worst]) if worst else None,
+            "files": {file: mean([fn["score"] for fn in fns]) for file, fns in sorted(files.items())}}
 
 
 # ---------------------------------------------------------------- a run
