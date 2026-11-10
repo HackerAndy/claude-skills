@@ -1,6 +1,6 @@
 {
   "name": "ux-usability-review",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "First-time-user usability review of a web page or flow: drafts test flows from your code, lets you record or refine them with clicks, then scores wording clarity, screen complexity, next-step obviousness and flow coherence with confidence ratings.",
   "author": { "name": "Andy Kaminski" },
   "keywords": ["ux", "usability", "review", "playwright", "onboarding"],
