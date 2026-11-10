@@ -48,7 +48,7 @@ BASELINE = ".quality/baseline.json"
 FILE_SOURCES = {"lizard", "ruff", "biome"}  # the checks that run per file, on every check
 
 DEFAULTS = {
-    "limits": {"ccn": 10, "cognitive": 15, "nloc": 60, "params": 5, "file_nloc": 500},
+    "limits": {"ccn": 10, "cognitive": 15, "nloc": 60, "params": 5, "nesting": 3, "file_nloc": 500},
     "scope": {"exclude": []},
     "lint": {"ruff_extend_select": ["B", "SIM", "C4", "UP"], "biome": True},
     "full": {"types": True, "duplication": True, "min_tokens": 70},

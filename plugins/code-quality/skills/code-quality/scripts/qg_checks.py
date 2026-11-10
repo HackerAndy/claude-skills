@@ -35,6 +35,7 @@ METRICS = {  # rule -> how the message reads
     "cognitive": "cognitive complexity {v} > {limit}",
     "nloc": "{v} lines of code > {limit}",
     "params": "{v} parameters > {limit}",
+    "nesting": "nested {v} levels deep > {limit}",
 }
 APPROVED = 95    # a function scoring at least this is approved: 9.5 on CodeScene's 1-10 Code Health scale,
                  # the level it recommends for code that AI agents will work in
@@ -196,16 +197,17 @@ def lizard_functions(ctx, files):
     cmd = tool(ctx, "lizard") if files else None
     if not cmd:
         return []
-    r = run([*cmd, "--csv", "-Ecognitive", *map(str, files)], ctx["root"])
+    r = run([*cmd, "--csv", "-Ecognitive", "-ENS", *map(str, files)], ctx["root"])
     seen, out = {}, []
     for row in csv.reader(io.StringIO(r.stdout)):
         if len(row) < 12:
             continue
-        # nloc, ccn, tokens, params, length, location, file, name, long name, start, end, cognitive
+        # nloc, ccn, tokens, params, length, location, file, name, long name, start, end, cognitive, nesting
         file, name = rel(ctx["root"], row[6]), row[7]
         seen[(file, name)] = seen.get((file, name), 0) + 1
         symbol = name if seen[(file, name)] == 1 else f"{name}#{seen[(file, name)]}"
-        values = {"ccn": int(row[1]), "cognitive": int(row[11]), "nloc": int(row[0]), "params": int(row[3])}
+        values = {"ccn": int(row[1]), "cognitive": int(row[11]), "nloc": int(row[0]), "params": int(row[3]),
+                  "nesting": int(row[12]) if len(row) > 12 else 0}
         out.append({"file": file, "symbol": symbol, "line": int(row[9]), "end": int(row[10]), "values": values})
     return out
 

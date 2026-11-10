@@ -7,6 +7,7 @@ ccn = 10          # cyclomatic complexity: independent paths through a function
 cognitive = 15    # cognitive complexity: how hard the function is to read (nesting costs more)
 nloc = 60         # lines of code per function, blank lines and comments excluded
 params = 5        # parameters per function
+nesting = 3       # deepest if / loop / try inside another one (CodeScene's Nested Complexity)
 file_nloc = 500   # lines of code per file
 
 [scope]

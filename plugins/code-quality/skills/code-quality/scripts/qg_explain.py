@@ -33,6 +33,14 @@ METRIC_HELP = {
         "why": "A long function usually does several jobs, which makes each one harder to find, test and change.",
         "fix": "Split it into steps with names that say what they do; in UI code, extract sub-components and hooks.",
     },
+    "nesting": {
+        "title": "Nested too deeply",
+        "what": "The function puts an if, loop or try inside another one more levels deep than the limit "
+                "(CodeScene's Nested Complexity).",
+        "why": "Each level adds a condition the reader must hold in mind, and the inner code is the hardest "
+               "to reach in a test.",
+        "fix": "Use guard clauses (return or continue early), and move the inner block into a named helper.",
+    },
     "params": {
         "title": "Too many parameters",
         "what": "The function takes more parameters than the limit.",

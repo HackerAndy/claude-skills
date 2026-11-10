@@ -4,7 +4,7 @@ A deterministic complexity and code-smell gate for Python, JavaScript and TypeSc
 
 | Check | Tool | When |
 |---|---|---|
-| Cyclomatic and cognitive complexity, function length, parameters (per function) | lizard | every edit, `check` |
+| Cyclomatic and cognitive complexity, nesting depth (CodeScene's Nested Complexity), function length, parameters (per function) | lizard | every edit, `check` |
 | File length | built in | every edit, `check` |
 | Lint and smells (project's config + bugbear, simplify, comprehensions, pyupgrade) | ruff, biome | every edit, `check` |
 | Type errors | the package's mypy if configured, else pyright; the package's tsc | `check --full` (CI) |

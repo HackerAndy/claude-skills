@@ -190,7 +190,7 @@ const T = R ? R.thresholds : { green: 95, yellow: 70 }
 const band = s => (s == null ? 'none' : s >= T.green ? 'green' : s >= T.yellow ? 'yellow' : 'red')
 const chip = s => `<span class="chip ${band(s)}">${s == null ? '–' : s + '%'}</span>`
 const pct = (a, b) => (b ? Math.round((100 * a) / b) : null)
-const METRIC = { ccn: 'Branches (cyclomatic)', cognitive: 'Cognitive complexity', nloc: 'Lines of code', params: 'Parameters' }
+const METRIC = { ccn: 'Branches (cyclomatic)', cognitive: 'Cognitive complexity', nloc: 'Lines of code', params: 'Parameters', nesting: 'Nesting depth' }
 const LABEL = { green: `${T.green}% and up`, yellow: `${T.yellow}–${T.green - 1}%`, red: `below ${T.yellow}%` }
 
 const state = { show: 'work', query: '', open: new Set(), all: new Set() }
@@ -476,7 +476,7 @@ function how() {
     minus 5 for each lint finding inside it. A function is approved at ${T.green}% or more.
     <b>Code Health</b> puts the same scores on CodeScene’s 1–10 scale (score ÷ 10), weighting each function by its lines of code and each file likewise; 9.5 is the level CodeScene recommends for code AI agents work in. The hotspot figure counts only files changed in the last 180 days; the worst file is the lowest single score.
     Limits: branches <code>${l.ccn}</code>, cognitive complexity <code>${l.cognitive}</code>, lines <code>${l.nloc}</code>,
-    parameters <code>${l.params}</code>, file length <code>${l.file_nloc}</code> lines.
+    parameters <code>${l.params}</code>, nesting depth <code>${l.nesting}</code>, file length <code>${l.file_nloc}</code> lines.
     Colors: <span class="txt green">green</span> ${LABEL.green}, <span class="txt yellow">yellow</span> ${LABEL.yellow}, <span class="txt red">red</span> ${LABEL.red}.
     ${R.full ? '' : 'Type checking and duplication aren’t included: run <code>report --full</code> for them.'}
   </div></details></section>`

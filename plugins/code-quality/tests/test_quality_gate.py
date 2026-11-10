@@ -83,6 +83,16 @@ class GateTest(unittest.TestCase):
         self.assertFalse(scores["legacy_price"]["approved"])
         self.assertTrue(scores["subtotal"]["approved"])
 
+    def test_deep_nesting_is_a_finding(self):
+        lines = ["def deep(a):", "    if a:", "        for x in a:", "            if x:",
+                 "                while x:", "                    x -= 1", "    return a"]
+        src = "\n".join(lines) + "\n"
+        (self.dir / "app" / "deep.py").write_text(src)
+        r = gate(self.dir, "check", "--all", "--json")
+        fn = {f["symbol"]: f for f in json.loads(r.stdout)["functions"]}["deep"]
+        self.assertEqual(fn["values"]["nesting"], 4)
+        self.assertFalse(fn["approved"])  # limit 3: 95 - 30 * (4/3 - 1) = 85
+
     def test_minified_and_ignored_files_are_skipped(self):
         (self.dir / "web" / "bundle.js").write_text("function a(b){" + "if(b){b++}" * 200 + "}\n")
         r = gate(self.dir, "check", "--all", "--json")
