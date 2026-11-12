@@ -35,7 +35,7 @@ METRIC_HELP = {
     },
     "nesting": {
         "title": "Nested too deeply",
-        "what": "The function puts an if, loop or try inside another one more levels deep than the limit "
+        "what": "The function puts an if, loop or switch inside another one more levels deep than the limit "
                 "(CodeScene's Nested Complexity).",
         "why": "Each level adds a condition the reader must hold in mind, and the inner code is the hardest "
                "to reach in a test.",
@@ -80,12 +80,13 @@ METRIC_HELP = {
     },
 }
 
-# What lizard counts toward cyclomatic complexity, found again so the page can mark it. Measured on
-# lizard 1.25: in JS/TS `?.` doesn't count but `??` does, and so does each default value in the
-# parameter list; in Python `finally`, comprehension `for`/`if` and f-string `if`s count, defaults don't.
+# What CodeScene counts toward cyclomatic complexity (qg_smells.ccn_fix), found again so the page can
+# mark it. In Python a statement `if`, `elif` and `else` count, and so does `raise`; a ternary or
+# comprehension `if` and `finally` don't, and comprehension `for`s do. In JS/TS `?.`, `?:` and `throw`
+# count, `??` and default values don't. A loop's or try's `else` is marked too, though it doesn't count; it's rare.
 BRANCHES = {
-    "py": re.compile(r"\b(?:if|elif|for|while|except|finally|and|or|case)\b"),
-    "js": re.compile(r"(?<!\.)\b(?:if|for|while|case|catch)\b|&&|\|\||\?\?|(?<![?.])\?(?![.?:])"),
+    "py": re.compile(r"^\s*(?:if|elif|else)\b|\b(?:for|while|except|and|or|case|raise)\b"),
+    "js": re.compile(r"(?<!\.)\b(?:if|for|while|case|catch|throw)\b|&&|\|\||\?\.(?!\d)|(?<![?.])\?(?![.?:])"),
 }
 QUOTED = re.compile(r"""(["'])(?:\\.|(?!\1).)*\1""")
 TRIPLE = re.compile(r'("""|\'\'\')[\s\S]*?\1')
@@ -118,24 +119,6 @@ def code_only(lines, lang):
     return [COMMENT[lang].sub(blank, QUOTED.sub(blank, line)) for line in text.split("\n")]
 
 
-# A default value: `name = ...` or `name: Type = ...` right after `(` or `,`, or after `{` on the same
-# line (a `{` ending its line opens a block of statements), so in a parameter list or a destructuring
-# pattern. A type doesn't start with `<` (that's JSX) or cross a line.
-DEFAULT = re.compile(r"(?:(?<=[(,])\s*|(?<=\{)[ \t]*)[\w$]+\s*(?::(?![ \t]*<)[^=;{}()\n]+?)?\s*=(?![=>])")
-
-
-def defaults(code):
-    """[line, start col, end col, "default"] of each default value in JS/TS: lizard counts each as a path."""
-    text = "\n".join(code)
-    out = []
-    for m in DEFAULT.finditer(text):
-        j = m.end() - 1
-        line = text.count("\n", 0, j)
-        col = j - (text.rfind("\n", 0, j) + 1) + 1
-        out.append([line, col, col + 1, "default"])
-    return out
-
-
 def arrow_body(text):
     """(start, end) of a one-line arrow function's body: from its `=>` to the bracket that closes
     around it, or the end of the line."""
@@ -157,12 +140,12 @@ def counted(i, col, nested, owned):
 
 def branch_spans(lines, lang, nested=()):
     """[[line index, start col, end col, kind], ...] (1-based columns) of each decision point, skipping
-    strings, comments and the lines of functions nested inside (lizard scores those on their own)."""
+    strings, comments and the lines of any function still scored on its own inside this one."""
     code = code_only(lines, lang)
     owned = {a: arrow_body(code[a]) for a, b in nested if a == b and 0 <= a < len(code) and "=>" in code[a]}
     out = [[i, m.start() + 1, m.end() + 1, "branch"] for i, text in enumerate(code)
            for m in BRANCHES[lang].finditer(text) if counted(i, m.start(), nested, owned)]
-    return sorted((defaults(code) if lang == "js" else []) + out)
+    return sorted(out)
 
 
 def lang_of(name):

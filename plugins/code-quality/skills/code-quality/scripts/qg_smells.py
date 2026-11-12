@@ -1,14 +1,18 @@
 """Structure smells that lizard doesn't measure, read from tree-sitter syntax trees so Python, JavaScript
 and TypeScript are scored by one definition. Modelled on CodeScene's smells of the same names:
 
-  nesting      deepest chain of if / loop / try / switch inside one another (Nested Complexity)
+  nesting      deepest chain of if / loop / switch inside one another; try and with don't count (Nested Complexity)
   conditional  most && / || (and / or) operators in any single condition (Complex Conditional)
   bumps        chunks of nested logic in the function, counted the way CodeScene counts them (Bumpy Road):
                each branch of a top-level if / switch / match / try that holds a nested branch, loop or
                ternary is a bump; a top-level loop is one bump if it holds branches, or the bumps inside it
 
+It also gives `ccn_fix`, what turns lizard's cyclomatic count into CodeScene's: CodeScene counts each
+`raise` / `throw`, a Python `else` and a JS / TS `?.`, and not a Python ternary, comprehension `if` or
+`finally`, nor a JS / TS `??` or default parameter value, all of which lizard counts the other way.
+
 Runs on its own, `python qg_smells.py FILE...`, printing JSON {file: [{line, end, nesting, conditional,
-bumps}, ...]} with one entry per function; qg_checks.py runs it in-process when tree-sitter is
+bumps, ccn_fix}, ...]} with one entry per function; qg_checks.py runs it in-process when tree-sitter is
 installed and through `uvx --with tree-sitter-language-pack` otherwise. Needs tree-sitter-language-pack."""
 import json
 import sys
@@ -49,10 +53,12 @@ def own_children(node):
 
 
 def nesting(node, depth=0):
-    """Deepest chain of branches below node, counting `else if` as the same level as its `if`."""
+    """Deepest chain of branches below node, counting `else if` as the same level as its `if`. As in
+    CodeScene, a try is not a level: it doesn't choose a path."""
     best = depth
     for child in own_children(node):
-        level = depth + (child.type in BRANCHES and not (child.type == "if_statement" and node.type == "else_clause"))
+        level = depth + (child.type in BRANCHES and child.type != "try_statement"
+                         and not (child.type == "if_statement" and node.type == "else_clause"))
         best = max(best, nesting(child, level))
     return best
 
@@ -116,12 +122,40 @@ def bumps(block):
     return n
 
 
+def ccn_fix(fn):
+    """CodeScene's cyclomatic count less lizard's, for this function's own code (see the module docstring)."""
+    fix = 0
+    for node in own_nodes(fn):
+        if node.type == "else_clause" and node.parent is not None and node.parent.type == "if_statement" \
+                and fn.type == "function_definition":  # Python; a JS else isn't counted by either
+            fix += 1
+        elif node.type in ("optional_chain", "raise_statement", "throw_statement"):
+            fix += 1
+        elif node.type in ("conditional_expression", "if_clause", "finally_clause"):
+            fix -= 1
+        elif node.type == "binary_expression" and (op := node.child_by_field_name("operator")) and op.type == "??":
+            fix -= 1
+    params = fn.child_by_field_name("parameters")
+    if params is not None and fn.type != "function_definition":  # JS / TS default values; lizard skips Python's
+        fix -= sum(1 for p in params.named_children
+                   if p.type == "assignment_pattern" or p.child_by_field_name("value") is not None)
+    return fix
+
+
+def own_nodes(node):
+    """Every node inside node that belongs to its own function, not to a nested one."""
+    for c in own_children(node):
+        yield c
+        yield from own_nodes(c)
+
+
 def measure_function(fn):
     body = fn.child_by_field_name("body")
     conds = conditions(fn)
     return {"line": fn.start_point[0] + 1, "end": fn.end_point[0] + 1, "nesting": nesting(fn),
             "conditional": max((operators(c) + _self(c) for c in conds), default=0),
-            "bumps": bumps(body) if body is not None and body.type in {"block", "statement_block"} else 0}
+            "bumps": bumps(body) if body is not None and body.type in {"block", "statement_block"} else 0,
+            "ccn_fix": ccn_fix(fn)}
 
 
 def _self(cond):

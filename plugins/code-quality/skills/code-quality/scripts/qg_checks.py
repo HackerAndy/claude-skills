@@ -53,6 +53,8 @@ COSTS = {
     "cognitive": lambda v: max(0.32, 0.026 * v + 0.03),  # not a CodeScene smell; charged only without ccn
 }
 ONCE_PER_FILE = {"nesting", "params", "bumps", "duplicate"}  # CodeScene charges these once per file, at the worst
+OVERALL_COST = 0.62  # CodeScene's Overall Code Complexity: mean cyclomatic complexity over 4 in a file of 7+ functions
+OVERALL_MEAN, OVERALL_MIN_FUNCTIONS = 4, 7
 DUPLICATE_COST = 0.62  # a function holding duplicated code, however many copies. Lint findings block but cost
                        # nothing, as in CodeScene, which doesn't score style.
 FILE_SOURCES = {"lizard", "ruff", "biome"}  # the checks that run per file, on every check
@@ -237,7 +239,7 @@ def lizard_functions(ctx, files):
         values = {"ccn": int(row[1]), "cognitive": int(row[11]), "nloc": int(row[0]),
                   "params": int(row[3]) - is_method(file, row[8])}
         out.append({"file": file, "symbol": symbol, "line": int(row[9]), "end": int(row[10]), "values": values})
-    return add_smells(ctx, files, out)
+    return fold_nested(add_smells(ctx, files, out))
 
 
 def is_method(file, long_name):
@@ -269,7 +271,45 @@ def add_smells(ctx, files, functions):
         around = [m for m in measures.get(fn["file"], []) if m["line"] <= fn["line"] and fn["end"] <= m["end"]]
         if m := min(around, key=lambda m: m["end"] - m["line"], default=None):
             fn["values"].update({k: m[k] for k in ("nesting", "conditional", "bumps")})
+            fn["values"]["ccn"] = max(1, fn["values"]["ccn"] + m.get("ccn_fix", 0))  # count as CodeScene does
     return functions
+
+
+JS_OWN_FUNCTION_NLOC = 25  # CodeScene scores a nested JS / TS function this long on its own
+
+
+def fold_nested(functions):
+    """Fold each nested function (a def, lambda or callback inside another function) into the function
+    around it, as CodeScene does: its paths, lines and bumps add to the parent's, the deepest nesting
+    and the most complex condition carry over, and its parameters don't count. Python folds them all;
+    in JS / TS one of JS_OWN_FUNCTION_NLOC lines or more stays a function of its own. Innermost first."""
+    by_file = {}
+    for fn in functions:
+        by_file.setdefault(fn["file"], []).append(fn)
+    out = []
+    for fns in by_file.values():
+        for child in sorted(fns, key=lambda fn: fn["end"] - fn["line"]):
+            parent = min((p for p in fns if p is not child and p["line"] <= child["line"] and child["end"] <= p["end"]
+                          and (p["line"], p["end"]) != (child["line"], child["end"])),
+                         key=lambda p: p["end"] - p["line"], default=None)
+            stays = Path(child["file"]).suffix.lower() in JS_EXT and child["values"]["nloc"] >= JS_OWN_FUNCTION_NLOC
+            if parent and not stays:
+                fold_into(parent["values"], child["values"])
+                child["folded"] = True
+        out += [fn for fn in fns if not fn.get("folded")]
+    return out
+
+
+def fold_into(parent, child):
+    """Add a nested function's measures to its parent's; lizard counts each of them on its own."""
+    for m in ("ccn", "nloc"):
+        parent[m] += child[m] - 1  # the child's own entry path, and its def line, which lizard counts twice
+    for m in ("cognitive", "bumps"):
+        if m in child:
+            parent[m] = parent.get(m, 0) + child[m]
+    for m in ("nesting", "conditional"):
+        if m in child:
+            parent[m] = max(parent.get(m, 0), child[m])
 
 
 def check_functions(conf, functions):
@@ -494,8 +534,9 @@ def mean(xs):
 
 def health(fns):
     """Code Health of one file's functions, 0-100. As in CodeScene, every function's smells count,
-    except ONCE_PER_FILE smells, which count once at their worst. A function from a report written
-    before costs were stored counts by its score."""
+    except ONCE_PER_FILE smells, which count once at their worst, and the file pays OVERALL_COST when
+    its functions are complex on average. A function from a report written before costs were stored
+    counts by its score."""
     if not fns:
         return None
     out, worst = 1.0, {}
@@ -507,7 +548,14 @@ def health(fns):
             if m in ONCE_PER_FILE:
                 worst[m] = max(worst.get(m, 0), c)
         out *= factor(c for m, c in fn["costs"].items() if m not in ONCE_PER_FILE)
-    return round(100 * out * factor(worst.values()), 1)
+    return round(100 * out * factor([*worst.values(), *file_costs(fns)]), 1)
+
+
+def file_costs(fns):
+    """Costs of the whole file: Overall Code Complexity."""
+    ccn = [fn["values"]["ccn"] for fn in fns if "ccn" in fn.get("values", {})]
+    complex_overall = len(ccn) >= OVERALL_MIN_FUNCTIONS and sum(ccn) / len(ccn) > OVERALL_MEAN
+    return [OVERALL_COST] if complex_overall else []
 
 
 def weighted_health(by_file, nloc):

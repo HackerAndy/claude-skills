@@ -3,24 +3,24 @@
  "summary": {
   "files": 21,
   "scored": 21,
-  "mean_abs_gap": 0.15,
+  "mean_abs_gap": 0.09,
   "within_0_5": 19,
-  "spearman": 0.74,
+  "spearman": 0.79,
   "smells": {
    "Bumpy Road Ahead": {
-    "hit": 17,
-    "miss": 2,
+    "hit": 19,
+    "miss": 1,
     "extra": 1
    },
    "Complex Conditional": {
-    "hit": 11,
-    "miss": 1,
-    "extra": 3
+    "hit": 12,
+    "miss": 0,
+    "extra": 0
    },
    "Complex Method": {
-    "hit": 20,
+    "hit": 21,
     "miss": 0,
-    "extra": 7
+    "extra": 0
    },
    "Deep, Nested Complexity": {
     "hit": 8,
@@ -33,8 +33,8 @@
     "extra": 0
    },
    "Large Method": {
-    "hit": 5,
-    "miss": 1,
+    "hit": 6,
+    "miss": 0,
     "extra": 0
    },
    "Lines of Code in a Single File": {
@@ -60,32 +60,20 @@
   },
   "worst": [
    {
-    "file": "fixtures/py/dry_violation.py",
-    "gap": -1.2
-   },
-   {
     "file": "fixtures/ts/primitiveObsession.ts",
     "gap": 0.62
    },
    {
-    "file": "real/qg_checks.py",
-    "gap": -0.35
-   },
-   {
-    "file": "real/backend_map.py",
-    "gap": -0.29
+    "file": "fixtures/py/dry_violation.py",
+    "gap": -0.6
    },
    {
     "file": "real/quality_gate.py",
-    "gap": 0.23
+    "gap": -0.27
    },
    {
-    "file": "fixtures/py/brain_method.py",
-    "gap": 0.13
-   },
-   {
-    "file": "real/orders.py",
-    "gap": 0.09
+    "file": "real/backend_map.py",
+    "gap": -0.09
    },
    {
     "file": "fixtures/py/large_method.py",
@@ -98,6 +86,10 @@
    {
     "file": "fixtures/ts/bumpyRoad.ts",
     "gap": -0.04
+   },
+   {
+    "file": "fixtures/py/brain_method.py",
+    "gap": 0.03
    },
    {
     "file": "fixtures/py/complex_conditional.py",
@@ -118,6 +110,14 @@
    {
     "file": "fixtures/ts/excessArguments.ts",
     "gap": 0.02
+   },
+   {
+    "file": "fixtures/ts/nestedComplexity.ts",
+    "gap": 0.02
+   },
+   {
+    "file": "real/qg_checks.py",
+    "gap": 0.02
    }
   ]
  },
@@ -125,12 +125,12 @@
   {
    "file": "fixtures/py/brain_method.py",
    "gate": {
-    "health": 8.1,
+    "health": 8.0,
     "functions": {
      "process_batch": {
-      "score": 81,
+      "score": 80,
       "values": {
-       "ccn": 28,
+       "ccn": 36,
        "cognitive": 71,
        "nloc": 82,
        "params": 3,
@@ -328,12 +328,12 @@
   {
    "file": "fixtures/py/dry_violation.py",
    "gate": {
-    "health": 8.8,
+    "health": 9.4,
     "functions": {
      "summarise_orders": {
-      "score": 91,
+      "score": 94,
       "values": {
-       "ccn": 9,
+       "ccn": 7,
        "cognitive": 12,
        "nloc": 20,
        "params": 2,
@@ -342,14 +342,12 @@
        "bumps": 1
       },
       "smells": 1,
-      "smells_over_limit": [
-       "Complex Method"
-      ]
+      "smells_over_limit": []
      },
      "summarise_refunds": {
-      "score": 91,
+      "score": 94,
       "values": {
-       "ccn": 9,
+       "ccn": 7,
        "cognitive": 12,
        "nloc": 20,
        "params": 2,
@@ -358,9 +356,7 @@
        "bumps": 1
       },
       "smells": 1,
-      "smells_over_limit": [
-       "Complex Method"
-      ]
+      "smells_over_limit": []
      }
     }
    },
@@ -727,23 +723,9 @@
      "linePrice": {
       "score": 100,
       "values": {
-       "ccn": 2,
-       "cognitive": 0,
-       "nloc": 3,
-       "params": 2,
-       "nesting": 0,
-       "conditional": 0,
-       "bumps": 0
-      },
-      "smells": 0,
-      "smells_over_limit": []
-     },
-     "(anonymous)": {
-      "score": 100,
-      "values": {
        "ccn": 1,
        "cognitive": 0,
-       "nloc": 1,
+       "nloc": 3,
        "params": 2,
        "nesting": 0,
        "conditional": 0,
@@ -1131,12 +1113,12 @@
   {
    "file": "real/backend_map.py",
    "gate": {
-    "health": 1.8,
+    "health": 2.0,
     "functions": {
      "load_struct": {
       "score": 94,
       "values": {
-       "ccn": 4,
+       "ccn": 5,
        "cognitive": 3,
        "nloc": 9,
        "params": 1,
@@ -1178,7 +1160,7 @@
      "join_paths": {
       "score": 100,
       "values": {
-       "ccn": 5,
+       "ccn": 3,
        "cognitive": 2,
        "nloc": 3,
        "params": 1,
@@ -1192,7 +1174,7 @@
      "iter_source_files": {
       "score": 94,
       "values": {
-       "ccn": 9,
+       "ccn": 8,
        "cognitive": 9,
        "nloc": 7,
        "params": 1,
@@ -1202,8 +1184,7 @@
       },
       "smells": 0,
       "smells_over_limit": [
-       "Complex Conditional",
-       "Complex Method"
+       "Complex Conditional"
       ]
      },
      "rel": {
@@ -1221,9 +1202,9 @@
       "smells_over_limit": []
      },
      "load_design": {
-      "score": 88,
+      "score": 89,
       "values": {
-       "ccn": 22,
+       "ccn": 18,
        "cognitive": 25,
        "nloc": 28,
        "params": 1,
@@ -1255,7 +1236,7 @@
      "resolve_py": {
       "score": 92,
       "values": {
-       "ccn": 12,
+       "ccn": 10,
        "cognitive": 20,
        "nloc": 23,
        "params": 5,
@@ -1271,30 +1252,37 @@
        "Excess Number of Function Arguments"
       ]
      },
-     "scan_python.expr_key": {
-      "score": 100,
-      "values": {
-       "ccn": 5,
-       "cognitive": 5,
-       "nloc": 7,
-       "params": 1,
-       "nesting": 1,
-       "conditional": 1,
-       "bumps": 1
-      },
-      "smells": 0,
-      "smells_over_limit": []
-     },
      "scan_python": {
-      "score": 74,
+      "score": 72,
       "values": {
-       "ccn": 59,
-       "cognitive": 108,
-       "nloc": 68,
+       "ccn": 54,
+       "cognitive": 113,
+       "nloc": 74,
        "params": 3,
        "nesting": 6,
        "conditional": 3,
-       "bumps": 5
+       "bumps": 6
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "(cognitive)",
+       "Bumpy Road Ahead",
+       "Complex Conditional",
+       "Complex Method",
+       "Deep, Nested Complexity",
+       "Large Method"
+      ]
+     },
+     "scan_py_functions": {
+      "score": 83,
+      "values": {
+       "ccn": 22,
+       "cognitive": 32,
+       "nloc": 28,
+       "params": 3,
+       "nesting": 4,
+       "conditional": 3,
+       "bumps": 3
       },
       "smells": 0,
       "smells_over_limit": [
@@ -1305,61 +1293,10 @@
        "Deep, Nested Complexity"
       ]
      },
-     "scan_py_functions.is_traced": {
-      "score": 94,
-      "values": {
-       "ccn": 7,
-       "cognitive": 8,
-       "nloc": 6,
-       "params": 1,
-       "nesting": 2,
-       "conditional": 3,
-       "bumps": 1
-      },
-      "smells": 0,
-      "smells_over_limit": [
-       "Complex Conditional"
-      ]
-     },
-     "scan_py_functions.is_protocol": {
-      "score": 94,
-      "values": {
-       "ccn": 7,
-       "cognitive": 8,
-       "nloc": 6,
-       "params": 0,
-       "nesting": 2,
-       "conditional": 3,
-       "bumps": 1
-      },
-      "smells": 0,
-      "smells_over_limit": [
-       "Complex Conditional"
-      ]
-     },
-     "scan_py_functions": {
-      "score": 88,
-      "values": {
-       "ccn": 12,
-       "cognitive": 16,
-       "nloc": 18,
-       "params": 3,
-       "nesting": 4,
-       "conditional": 2,
-       "bumps": 1
-      },
-      "smells": 0,
-      "smells_over_limit": [
-       "(cognitive)",
-       "Complex Conditional",
-       "Complex Method",
-       "Deep, Nested Complexity"
-      ]
-     },
      "load_traces": {
-      "score": 85,
+      "score": 86,
       "values": {
-       "ccn": 42,
+       "ccn": 35,
        "cognitive": 46,
        "nloc": 57,
        "params": 4,
@@ -1392,9 +1329,9 @@
       ]
      },
      "scan_js": {
-      "score": 93,
+      "score": 94,
       "values": {
-       "ccn": 19,
+       "ccn": 15,
        "cognitive": 28,
        "nloc": 34,
        "params": 3,
@@ -1409,51 +1346,22 @@
        "Complex Method"
       ]
      },
-     "analyze.mount_prefix": {
-      "score": 94,
-      "values": {
-       "ccn": 6,
-       "cognitive": 6,
-       "nloc": 8,
-       "params": 2,
-       "nesting": 2,
-       "conditional": 2,
-       "bumps": 1
-      },
-      "smells": 0,
-      "smells_over_limit": [
-       "Complex Conditional"
-      ]
-     },
-     "analyze.layer_of": {
-      "score": 100,
-      "values": {
-       "ccn": 5,
-       "cognitive": 4,
-       "nloc": 5,
-       "params": 1,
-       "nesting": 2,
-       "conditional": 1,
-       "bumps": 1
-      },
-      "smells": 0,
-      "smells_over_limit": []
-     },
      "analyze": {
-      "score": 76,
+      "score": 77,
       "values": {
-       "ccn": 65,
-       "cognitive": 63,
-       "nloc": 111,
+       "ccn": 52,
+       "cognitive": 73,
+       "nloc": 122,
        "params": 1,
        "nesting": 3,
-       "conditional": 1,
-       "bumps": 6
+       "conditional": 2,
+       "bumps": 8
       },
       "smells": 0,
       "smells_over_limit": [
        "(cognitive)",
        "Bumpy Road Ahead",
+       "Complex Conditional",
        "Complex Method",
        "Large Method"
       ]
@@ -1475,7 +1383,7 @@
      "feedback": {
       "score": 91,
       "values": {
-       "ccn": 15,
+       "ccn": 14,
        "cognitive": 15,
        "nloc": 25,
        "params": 1,
@@ -1490,74 +1398,31 @@
        "Complex Method"
       ]
      },
-     "traces_text.walk": {
-      "score": 94,
-      "values": {
-       "ccn": 10,
-       "cognitive": 7,
-       "nloc": 9,
-       "params": 2,
-       "nesting": 1,
-       "conditional": 0,
-       "bumps": 0
-      },
-      "smells": 1,
-      "smells_over_limit": [
-       "Complex Method"
-      ]
-     },
      "traces_text": {
       "score": 94,
       "values": {
-       "ccn": 10,
-       "cognitive": 9,
-       "nloc": 13,
+       "ccn": 15,
+       "cognitive": 16,
+       "nloc": 21,
        "params": 2,
        "nesting": 2,
        "conditional": 0,
        "bumps": 1
       },
-      "smells": 0,
+      "smells": 1,
       "smells_over_limit": [
+       "(cognitive)",
        "Complex Method"
       ]
-     },
-     "serve.log_message": {
-      "score": 100,
-      "values": {
-       "ccn": 1,
-       "cognitive": 0,
-       "nloc": 2,
-       "params": 1,
-       "nesting": 0,
-       "conditional": 0,
-       "bumps": 0
-      },
-      "smells": 0,
-      "smells_over_limit": []
-     },
-     "serve.do_GET": {
-      "score": 100,
-      "values": {
-       "ccn": 3,
-       "cognitive": 3,
-       "nloc": 18,
-       "params": 0,
-       "nesting": 1,
-       "conditional": 0,
-       "bumps": 0
-      },
-      "smells": 0,
-      "smells_over_limit": []
      },
      "serve": {
       "score": 100,
       "values": {
-       "ccn": 1,
-       "cognitive": 0,
-       "nloc": 7,
+       "ccn": 4,
+       "cognitive": 3,
+       "nloc": 25,
        "params": 2,
-       "nesting": 0,
+       "nesting": 1,
        "conditional": 0,
        "bumps": 0
       },
@@ -1567,7 +1432,7 @@
      "detect_stack": {
       "score": 94,
       "values": {
-       "ccn": 6,
+       "ccn": 5,
        "cognitive": 3,
        "nloc": 4,
        "params": 1,
@@ -1595,9 +1460,9 @@
       "smells_over_limit": []
      },
      "setup": {
-      "score": 78,
+      "score": 80,
       "values": {
-       "ccn": 42,
+       "ccn": 33,
        "cognitive": 88,
        "nloc": 87,
        "params": 1,
@@ -1617,11 +1482,11 @@
      "link_subfolder_skills": {
       "score": 94,
       "values": {
-       "ccn": 7,
+       "ccn": 6,
        "cognitive": 8,
        "nloc": 12,
        "params": 1,
-       "nesting": 3,
+       "nesting": 2,
        "conditional": 2,
        "bumps": 1
       },
@@ -1633,7 +1498,7 @@
      "init": {
       "score": 94,
       "values": {
-       "ccn": 7,
+       "ccn": 6,
        "cognitive": 8,
        "nloc": 12,
        "params": 3,
@@ -1647,9 +1512,9 @@
       ]
      },
      "main": {
-      "score": 75,
+      "score": 77,
       "values": {
-       "ccn": 51,
+       "ccn": 44,
        "cognitive": 72,
        "nloc": 98,
        "params": 0,
@@ -1775,12 +1640,12 @@
   {
    "file": "real/orders.py",
    "gate": {
-    "health": 9.2,
+    "health": 9.1,
     "functions": {
      "legacy_price": {
-      "score": 92,
+      "score": 91,
       "values": {
-       "ccn": 13,
+       "ccn": 16,
        "cognitive": 21,
        "nloc": 25,
        "params": 6,
@@ -1849,7 +1714,7 @@
        "cognitive": 1,
        "nloc": 7,
        "params": 1,
-       "nesting": 1,
+       "nesting": 0,
        "conditional": 0,
        "bumps": 0
       },
@@ -1873,7 +1738,7 @@
      "git": {
       "score": 100,
       "values": {
-       "ccn": 2,
+       "ccn": 1,
        "cognitive": 1,
        "nloc": 4,
        "params": 2,
@@ -1887,7 +1752,7 @@
      "walk_files": {
       "score": 100,
       "values": {
-       "ccn": 6,
+       "ccn": 5,
        "cognitive": 2,
        "nloc": 4,
        "params": 1,
@@ -1901,7 +1766,7 @@
      "all_files": {
       "score": 100,
       "values": {
-       "ccn": 6,
+       "ccn": 4,
        "cognitive": 2,
        "nloc": 4,
        "params": 2,
@@ -1913,9 +1778,9 @@
       "smells_over_limit": []
      },
      "changed_files": {
-      "score": 94,
+      "score": 100,
       "values": {
-       "ccn": 10,
+       "ccn": 8,
        "cognitive": 6,
        "nloc": 9,
        "params": 3,
@@ -1924,9 +1789,7 @@
        "bumps": 0
       },
       "smells": 0,
-      "smells_over_limit": [
-       "Complex Method"
-      ]
+      "smells_over_limit": []
      },
      "package_of": {
       "score": 100,
@@ -1959,7 +1822,7 @@
      "installed": {
       "score": 100,
       "values": {
-       "ccn": 7,
+       "ccn": 5,
        "cognitive": 0,
        "nloc": 4,
        "params": 3,
@@ -1973,7 +1836,7 @@
      "locate": {
       "score": 94,
       "values": {
-       "ccn": 12,
+       "ccn": 11,
        "cognitive": 14,
        "nloc": 18,
        "params": 4,
@@ -1990,7 +1853,7 @@
      "tool": {
       "score": 100,
       "values": {
-       "ccn": 5,
+       "ccn": 4,
        "cognitive": 4,
        "nloc": 6,
        "params": 3,
@@ -2022,7 +1885,7 @@
        "cognitive": 3,
        "nloc": 5,
        "params": 3,
-       "nesting": 1,
+       "nesting": 0,
        "conditional": 0,
        "bumps": 0
       },
@@ -2048,7 +1911,7 @@
      "code_lines": {
       "score": 100,
       "values": {
-       "ccn": 4,
+       "ccn": 3,
        "cognitive": 1,
        "nloc": 3,
        "params": 1,
@@ -2062,7 +1925,7 @@
      "file_limit": {
       "score": 100,
       "values": {
-       "ccn": 2,
+       "ccn": 1,
        "cognitive": 1,
        "nloc": 2,
        "params": 2,
@@ -2076,7 +1939,7 @@
      "check_file_size": {
       "score": 100,
       "values": {
-       "ccn": 4,
+       "ccn": 3,
        "cognitive": 0,
        "nloc": 6,
        "params": 2,
@@ -2090,7 +1953,7 @@
      "lizard_functions": {
       "score": 100,
       "values": {
-       "ccn": 6,
+       "ccn": 4,
        "cognitive": 7,
        "nloc": 16,
        "params": 2,
@@ -2118,7 +1981,7 @@
      "smell_measures": {
       "score": 100,
       "values": {
-       "ccn": 6,
+       "ccn": 5,
        "cognitive": 4,
        "nloc": 10,
        "params": 2,
@@ -2130,14 +1993,28 @@
       "smells_over_limit": []
      },
      "add_smells": {
-      "score": 94,
+      "score": 100,
       "values": {
-       "ccn": 9,
+       "ccn": 7,
        "cognitive": 4,
-       "nloc": 7,
+       "nloc": 8,
        "params": 3,
        "nesting": 2,
        "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "fold_nested": {
+      "score": 94,
+      "values": {
+       "ccn": 12,
+       "cognitive": 10,
+       "nloc": 16,
+       "params": 1,
+       "nesting": 3,
+       "conditional": 1,
        "bumps": 1
       },
       "smells": 0,
@@ -2145,10 +2022,26 @@
        "Complex Method"
       ]
      },
+     "fold_into": {
+      "score": 94,
+      "values": {
+       "ccn": 6,
+       "cognitive": 7,
+       "nloc": 9,
+       "params": 2,
+       "nesting": 2,
+       "conditional": 0,
+       "bumps": 2
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Bumpy Road Ahead"
+      ]
+     },
      "check_functions": {
       "score": 100,
       "values": {
-       "ccn": 4,
+       "ccn": 3,
        "cognitive": 0,
        "nloc": 5,
        "params": 2,
@@ -2162,7 +2055,7 @@
      "check_ruff": {
       "score": 100,
       "values": {
-       "ccn": 6,
+       "ccn": 5,
        "cognitive": 6,
        "nloc": 13,
        "params": 2,
@@ -2204,7 +2097,7 @@
      "check_biome": {
       "score": 100,
       "values": {
-       "ccn": 7,
+       "ccn": 6,
        "cognitive": 4,
        "nloc": 12,
        "params": 2,
@@ -2230,9 +2123,9 @@
       "smells_over_limit": []
      },
      "check_mypy": {
-      "score": 94,
+      "score": 100,
       "values": {
-       "ccn": 9,
+       "ccn": 7,
        "cognitive": 10,
        "nloc": 17,
        "params": 2,
@@ -2241,14 +2134,12 @@
        "bumps": 1
       },
       "smells": 0,
-      "smells_over_limit": [
-       "Complex Method"
-      ]
+      "smells_over_limit": []
      },
      "check_pyright": {
       "score": 100,
       "values": {
-       "ccn": 6,
+       "ccn": 4,
        "cognitive": 3,
        "nloc": 10,
        "params": 2,
@@ -2262,7 +2153,7 @@
      "check_tsc": {
       "score": 100,
       "values": {
-       "ccn": 6,
+       "ccn": 5,
        "cognitive": 2,
        "nloc": 8,
        "params": 2,
@@ -2276,7 +2167,7 @@
      "check_types": {
       "score": 94,
       "values": {
-       "ccn": 5,
+       "ccn": 3,
        "cognitive": 6,
        "nloc": 8,
        "params": 2,
@@ -2292,7 +2183,7 @@
      "check_duplication": {
       "score": 94,
       "values": {
-       "ccn": 10,
+       "ccn": 9,
        "cognitive": 11,
        "nloc": 26,
        "params": 3,
@@ -2309,7 +2200,7 @@
      "innermost": {
       "score": 100,
       "values": {
-       "ccn": 4,
+       "ccn": 3,
        "cognitive": 1,
        "nloc": 3,
        "params": 2,
@@ -2323,7 +2214,7 @@
      "file_sources": {
       "score": 100,
       "values": {
-       "ccn": 2,
+       "ccn": 1,
        "cognitive": 1,
        "nloc": 2,
        "params": 1,
@@ -2337,7 +2228,7 @@
      "source_of": {
       "score": 100,
       "values": {
-       "ccn": 3,
+       "ccn": 1,
        "cognitive": 3,
        "nloc": 2,
        "params": 1,
@@ -2351,7 +2242,7 @@
      "smell_costs": {
       "score": 100,
       "values": {
-       "ccn": 6,
+       "ccn": 4,
        "cognitive": 2,
        "nloc": 6,
        "params": 3,
@@ -2379,7 +2270,7 @@
      "score_functions": {
       "score": 94,
       "values": {
-       "ccn": 8,
+       "ccn": 7,
        "cognitive": 9,
        "nloc": 15,
        "params": 3,
@@ -2395,7 +2286,7 @@
      "reasons": {
       "score": 100,
       "values": {
-       "ccn": 4,
+       "ccn": 2,
        "cognitive": 1,
        "nloc": 4,
        "params": 2,
@@ -2423,7 +2314,7 @@
      "mean": {
       "score": 100,
       "values": {
-       "ccn": 2,
+       "ccn": 1,
        "cognitive": 1,
        "nloc": 2,
        "params": 1,
@@ -2437,7 +2328,7 @@
      "health": {
       "score": 100,
       "values": {
-       "ccn": 8,
+       "ccn": 7,
        "cognitive": 9,
        "nloc": 13,
        "params": 1,
@@ -2448,10 +2339,24 @@
       "smells": 0,
       "smells_over_limit": []
      },
+     "file_costs": {
+      "score": 100,
+      "values": {
+       "ccn": 3,
+       "cognitive": 2,
+       "nloc": 4,
+       "params": 1,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
      "weighted_health": {
       "score": 100,
       "values": {
-       "ccn": 6,
+       "ccn": 4,
        "cognitive": 1,
        "nloc": 3,
        "params": 2,
@@ -2465,7 +2370,7 @@
      "ten": {
       "score": 100,
       "values": {
-       "ccn": 2,
+       "ccn": 1,
        "cognitive": 1,
        "nloc": 2,
        "params": 1,
@@ -2479,7 +2384,7 @@
      "score_summary": {
       "score": 94,
       "values": {
-       "ccn": 10,
+       "ccn": 9,
        "cognitive": 2,
        "nloc": 12,
        "params": 1,
@@ -2495,7 +2400,7 @@
      "analyze": {
       "score": 100,
       "values": {
-       "ccn": 7,
+       "ccn": 5,
        "cognitive": 7,
        "nloc": 12,
        "params": 3,
@@ -2509,11 +2414,14 @@
     }
    },
    "codescene": {
-    "score": 7.95,
+    "score": 7.58,
     "functions": {
      "locate": [
       "Bumpy Road Ahead (bumps = 2)",
       "Complex Method (cc = 11)"
+     ],
+     "fold_into": [
+      "Bumpy Road Ahead (bumps = 2)"
      ],
      "score_functions": [
       "Bumpy Road Ahead (bumps = 2)"
@@ -2524,13 +2432,16 @@
      "(file)": [
       "Overall Code Complexity"
      ],
+     "fold_nested": [
+      "Complex Method (cc = 12)"
+     ],
      "score_summary": [
       "Complex Method (cc = 9)"
      ],
      "check_duplication": [
       "Complex Method (cc = 9)"
      ],
-     "check_duplication:413": [
+     "check_duplication:453": [
       "Complex Conditional (2 complex conditional expressions)"
      ],
      "finding": [
@@ -2542,12 +2453,12 @@
   {
    "file": "real/quality_gate.py",
    "gate": {
-    "health": 8.9,
+    "health": 8.4,
     "functions": {
      "find_root": {
       "score": 100,
       "values": {
-       "ccn": 4,
+       "ccn": 3,
        "cognitive": 5,
        "nloc": 6,
        "params": 1,
@@ -2589,7 +2500,7 @@
      "key": {
       "score": 100,
       "values": {
-       "ccn": 2,
+       "ccn": 1,
        "cognitive": 1,
        "nloc": 2,
        "params": 1,
@@ -2603,7 +2514,7 @@
      "measure": {
       "score": 100,
       "values": {
-       "ccn": 3,
+       "ccn": 2,
        "cognitive": 3,
        "nloc": 6,
        "params": 1,
@@ -2617,7 +2528,7 @@
      "load_baseline": {
       "score": 100,
       "values": {
-       "ccn": 2,
+       "ccn": 1,
        "cognitive": 1,
        "nloc": 3,
        "params": 1,
@@ -2645,7 +2556,7 @@
      "compare": {
       "score": 100,
       "values": {
-       "ccn": 5,
+       "ccn": 3,
        "cognitive": 0,
        "nloc": 5,
        "params": 2,
@@ -2673,7 +2584,7 @@
      "with_scores": {
       "score": 100,
       "values": {
-       "ccn": 4,
+       "ccn": 3,
        "cognitive": 1,
        "nloc": 4,
        "params": 2,
@@ -2687,7 +2598,7 @@
      "check": {
       "score": 100,
       "values": {
-       "ccn": 5,
+       "ccn": 4,
        "cognitive": 2,
        "nloc": 13,
        "params": 3,
@@ -2718,7 +2629,7 @@
      "report_text": {
       "score": 100,
       "values": {
-       "ccn": 7,
+       "ccn": 8,
        "cognitive": 4,
        "nloc": 15,
        "params": 1,
@@ -2746,7 +2657,7 @@
      "cmd_baseline": {
       "score": 100,
       "values": {
-       "ccn": 5,
+       "ccn": 3,
        "cognitive": 2,
        "nloc": 16,
        "params": 2,
@@ -2774,7 +2685,7 @@
      "tool_line": {
       "score": 100,
       "values": {
-       "ccn": 2,
+       "ccn": 1,
        "cognitive": 1,
        "nloc": 3,
        "params": 4,
@@ -2788,7 +2699,7 @@
      "cmd_doctor": {
       "score": 100,
       "values": {
-       "ccn": 8,
+       "ccn": 7,
        "cognitive": 8,
        "nloc": 13,
        "params": 2,
@@ -2802,7 +2713,7 @@
      "cmd_check": {
       "score": 100,
       "values": {
-       "ccn": 7,
+       "ccn": 5,
        "cognitive": 5,
        "nloc": 11,
        "params": 2,
@@ -2816,7 +2727,7 @@
      "under": {
       "score": 100,
       "values": {
-       "ccn": 7,
+       "ccn": 6,
        "cognitive": 1,
        "nloc": 4,
        "params": 3,
@@ -2830,7 +2741,7 @@
      "target_rows": {
       "score": 100,
       "values": {
-       "ccn": 3,
+       "ccn": 2,
        "cognitive": 0,
        "nloc": 6,
        "params": 3,
@@ -2844,7 +2755,7 @@
      "cmd_targets": {
       "score": 100,
       "values": {
-       "ccn": 6,
+       "ccn": 3,
        "cognitive": 5,
        "nloc": 12,
        "params": 2,
@@ -2872,7 +2783,7 @@
      "score_text": {
       "score": 100,
       "values": {
-       "ccn": 7,
+       "ccn": 6,
        "cognitive": 4,
        "nloc": 9,
        "params": 3,
@@ -2886,7 +2797,7 @@
      "cmd_score": {
       "score": 100,
       "values": {
-       "ccn": 6,
+       "ccn": 5,
        "cognitive": 4,
        "nloc": 12,
        "params": 2,

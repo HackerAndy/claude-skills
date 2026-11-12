@@ -59,7 +59,7 @@ class GateTest(unittest.TestCase):
 
     def test_existing_code_is_baselined(self):
         entries = json.loads((self.dir / ".quality" / "baseline.json").read_text())["entries"]
-        self.assertEqual(entries["app/orders.py::ccn::legacy_price"], 13)
+        self.assertEqual(entries["app/orders.py::ccn::legacy_price"], 16)  # CodeScene's count: lizard's 13 + 3 elses
         self.assertEqual(gate(self.dir, "check", "--all").returncode, 0)
 
     def test_hook_reports_new_findings(self):
@@ -68,7 +68,7 @@ class GateTest(unittest.TestCase):
         r = self.hook("app/orders.py")
         self.assertEqual(r.returncode, 2)
         # its costs leave 95%, but a function with findings stops at 94%
-        self.assertIn("shipping (94%): 2 separate blocks of nested logic > 1, cyclomatic complexity 10 > 8, "
+        self.assertIn("shipping (94%): 2 separate blocks of nested logic > 1, cyclomatic complexity 13 > 8, "
                       "cognitive complexity 17 > 15", r.stderr)
         self.assertIn("ruff B006", r.stderr)
         self.assertNotIn("legacy_price", r.stderr)
@@ -80,9 +80,10 @@ class GateTest(unittest.TestCase):
     def test_functions_are_scored(self):
         r = gate(self.dir, "check", "--all", "--json")
         scores = {fn["symbol"]: fn for fn in json.loads(r.stdout)["functions"]}
-        # CodeScene's costs, multiplied: cc 13 (0.368), 6 parameters (0.32), 3 bumps (0.16);
-        # cognitive isn't charged alongside cc. 100 * 0.9632 * 0.968 * 0.984 = 92 (CodeScene: 9.11 for the file)
-        self.assertEqual(scores["legacy_price"]["score"], 92)
+        # CodeScene's costs, multiplied: cc 16 (0.446), 6 parameters (0.32), 3 bumps (0.16);
+        # cognitive isn't charged alongside cc. 100 * 0.9554 * 0.968 * 0.984 = 91 (CodeScene: 9.11 for the file)
+        self.assertEqual(scores["legacy_price"]["score"], 91)
+        self.assertEqual(scores["legacy_price"]["values"]["ccn"], 16)  # CodeScene: cc = 16
         self.assertEqual(scores["legacy_price"]["values"]["bumps"], 3)
         self.assertFalse(scores["legacy_price"]["approved"])
         self.assertTrue(scores["subtotal"]["approved"])
@@ -126,6 +127,19 @@ class GateTest(unittest.TestCase):
         r = gate(self.dir, "check", "--all", "--json")
         bumps = {f["symbol"]: f["values"]["bumps"] for f in json.loads(r.stdout)["functions"] if f["file"] == "app/bumps.py"}
         self.assertEqual(bumps, {"loop": 1, "chain": 3, "tern": 2})
+
+    def test_nested_functions_fold_into_their_parent(self):
+        # CodeScene (cs 1.0.58) reports only outer: cc 15 (8 + 8 - 1) and 2 bumps (1 + 1); inner's 6 parameters don't count.
+        src = ["def outer(x):", *[f"    if x == {i}:\n        x += 1" for i in range(5)],
+               "    if x:", "        if x > 1:", "            x = 1",
+               "    def inner(a, b, c, d, e, f):", *[f"        if a == {i}:\n            a += 1" for i in range(5)],
+               "        if b:", "            if c:", "                b = c",
+               "        return a", "    return inner(x, x, x, x, x, x)"]
+        (self.dir / "app" / "nested.py").write_text("\n".join(src) + "\n")
+        r = gate(self.dir, "check", "--all", "--json")
+        fns = {f["symbol"]: f["values"] for f in json.loads(r.stdout)["functions"] if f["file"] == "app/nested.py"}
+        self.assertEqual(list(fns), ["outer"])
+        self.assertEqual((fns["outer"]["ccn"], fns["outer"]["bumps"], fns["outer"]["params"]), (15, 2, 1))
 
     def test_scores_match_codescene(self):
         # File scores CodeScene (cs 1.0.58) gives these files: one cc 15 function 9.58; two functions
@@ -192,7 +206,8 @@ class GateTest(unittest.TestCase):
         self.hook("app/orders.py")
         report = json.loads((self.dir / ".quality" / "report.json").read_text())
         self.assertEqual(report["summary"]["new"], 4)  # shipping's bumps, cc and cognitive, and ruff B006
-        self.assertEqual(report["summary"]["bands"], {"green": 3, "yellow": 2, "red": 0})
+        # cart.ts's reduce callback is folded into cartTotal, so 4 functions, not 5
+        self.assertEqual(report["summary"]["bands"], {"green": 2, "yellow": 2, "red": 0})
         self.assertEqual(report["folders"][0]["path"], "app")
         self.assertEqual(report["targets"][0]["symbol"], "legacy_price")
         self.assertIn("web/cart.ts", report["files"])
