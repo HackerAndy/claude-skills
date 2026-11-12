@@ -68,7 +68,7 @@ class GateTest(unittest.TestCase):
         r = self.hook("app/orders.py")
         self.assertEqual(r.returncode, 2)
         # its costs leave 95%, but a function with findings stops at 94%
-        self.assertIn("shipping (94%): 2 separate blocks of nested logic > 1, cyclomatic complexity 13 > 8, "
+        self.assertIn("shipping (94%): 3 separate blocks of nested logic > 1, cyclomatic complexity 13 > 8, "
                       "cognitive complexity 17 > 15", r.stderr)
         self.assertIn("ruff B006", r.stderr)
         self.assertNotIn("legacy_price", r.stderr)
@@ -141,17 +141,28 @@ class GateTest(unittest.TestCase):
         self.assertEqual(list(fns), ["outer"])
         self.assertEqual((fns["outer"]["ccn"], fns["outer"]["bumps"], fns["outer"]["params"]), (15, 2, 1))
 
+    def test_near_copies_in_one_file_cost_the_file(self):
+        # CodeScene's Code Duplication: functions of 10+ lines with a near copy in the same file, 0.62 once per file.
+        body = "".join(f"    total += row.get('f{i}', 0) * {i}\n" for i in range(10))
+        src = (f"def orders(row):\n    total = 0\n{body}    return total\n\n\n"
+               f"def refunds(row):\n    total = 0\n{body}    return -total\n")
+        (self.dir / "app" / "copies.py").write_text(src)
+        r = gate(self.dir, "score", "app/copies.py", "--json")
+        out = json.loads(r.stdout)
+        self.assertTrue(all(fn["similar"] for fn in out["functions"]))
+        self.assertAlmostEqual(out["scores"]["health"], 9.38, delta=0.01)
+
     def test_scores_match_codescene(self):
         # File scores CodeScene (cs 1.0.58) gives these files: one cc 15 function 9.58; two functions
         # with 6 parameters 9.68 (charged once per file); cc 15 plus 6 parameters 9.27.
         cc15 = "def f(code):\n" + "".join(f"    {'if' if i == 0 else 'elif'} code == {i}:\n        return {i}\n"
                                           for i in range(14)) + "    return -1\n"
         args6 = "\n\ndef g{n}(a, b, c, d, e, f):\n    return [a, b, c, d, e, f]\n"
-        for name, src, want in (("one.py", cc15, 9.6), ("two.py", args6.format(n=1) + args6.format(n=2), 9.7),
-                                ("both.py", cc15 + args6.format(n=1), 9.3)):
+        for name, src, want in (("one.py", cc15, 9.58), ("two.py", args6.format(n=1) + args6.format(n=2), 9.68),
+                                ("both.py", cc15 + args6.format(n=1), 9.28)):
             (self.dir / "app" / name).write_text(src)
             r = gate(self.dir, "score", f"app/{name}", "--json")
-            self.assertEqual(json.loads(r.stdout)["scores"]["health"], want, name)
+            self.assertAlmostEqual(json.loads(r.stdout)["scores"]["health"], want, delta=0.015, msg=name)
             (self.dir / "app" / name).unlink()  # the next sample reuses this code, which would be a duplicate
 
     def test_copied_code_is_flagged_when_a_file_is_checked(self):

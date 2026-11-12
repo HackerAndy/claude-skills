@@ -52,11 +52,12 @@ COSTS = {
     "bumps": lambda v: 0.16,
     "cognitive": lambda v: max(0.32, 0.026 * v + 0.03),  # not a CodeScene smell; charged only without ccn
 }
-ONCE_PER_FILE = {"nesting", "params", "bumps", "duplicate"}  # CodeScene charges these once per file, at the worst
+ONCE_PER_FILE = {"nesting", "params", "bumps"}  # CodeScene charges these once per file, at the worst
 OVERALL_COST = 0.62  # CodeScene's Overall Code Complexity: mean cyclomatic complexity over 4 in a file of 7+ functions
 OVERALL_MEAN, OVERALL_MIN_FUNCTIONS = 4, 7
-DUPLICATE_COST = 0.62  # a function holding duplicated code, however many copies. Lint findings block but cost
-                       # nothing, as in CodeScene, which doesn't score style.
+SIMILAR_COST = 0.62  # CodeScene's Code Duplication: a function with a near copy in the same file, once per file
+# Lint and duplication findings block but cost nothing. CodeScene doesn't score style, and its duplication check
+# (similar functions within one file) isn't what jscpd finds (copies, mostly across files); see docs/codescene-parity.md.
 FILE_SOURCES = {"lizard", "ruff", "biome"}  # the checks that run per file, on every check
 EDIT_DUPLICATION_SECONDS = 60  # a check on edit skips the duplication scan when it takes longer than this
 CHURN_DAYS = 180  # how far back a file's commits count toward refactoring priority
@@ -272,6 +273,7 @@ def add_smells(ctx, files, functions):
         if m := min(around, key=lambda m: m["end"] - m["line"], default=None):
             fn["values"].update({k: m[k] for k in ("nesting", "conditional", "bumps")})
             fn["values"]["ccn"] = max(1, fn["values"]["ccn"] + m.get("ccn_fix", 0))  # count as CodeScene does
+            fn["similar"] = m.get("similar", False)
     return functions
 
 
@@ -474,13 +476,12 @@ def source_of(rule):
     return rule.split(":")[0] if ":" in rule else ("jscpd" if rule == "duplicate" else "lizard")
 
 
-def smell_costs(limits, values, duplicates):
-    """{metric: cost} for each metric over its limit, and duplicated code; cognitive only counts when ccn doesn't."""
+def smell_costs(limits, values):
+    """{metric: cost} for each metric over its limit; cognitive only counts when ccn doesn't."""
     over = {m: v for m, v in values.items() if v > limits[m]}
     if "ccn" in over:
         over.pop("cognitive", None)
-    costs = {m: round(COSTS[m](v), 3) for m, v in over.items()}
-    return costs | ({"duplicate": DUPLICATE_COST} if duplicates else {})
+    return {m: round(COSTS[m](v), 3) for m, v in over.items()}
 
 
 def factor(costs):
@@ -496,14 +497,13 @@ def score_functions(conf, functions, findings):
     over its limit costs what it costs CodeScene. fn["smells"] counts the lint and duplication findings in it.
     A function with any finding stops at APPROVED - 1, so approved still means inside every limit with no
     findings. File and project health come from the costs, uncapped (health() and score_summary())."""
-    smells, duplicates = {}, {}
+    smells = {}
     for f in findings:
         fn = innermost(functions, f) if source_of(f["rule"]) in ("ruff", "biome", "jscpd") else None
         if fn:
             smells[id(fn)] = smells.get(id(fn), 0) + 1
-            duplicates[id(fn)] = duplicates.get(id(fn), 0) + (f["rule"] == "duplicate")
     for fn in functions:
-        fn["costs"] = smell_costs(conf["limits"], fn["values"], duplicates.get(id(fn), 0))
+        fn["costs"] = smell_costs(conf["limits"], fn["values"])
         fn["smells"] = smells.get(id(fn), 0)
         fn["score"] = round(100 * factor(fn["costs"].values()))
         if fn["smells"] or any(v > conf["limits"][m] for m, v in fn["values"].items()):
@@ -548,14 +548,14 @@ def health(fns):
             if m in ONCE_PER_FILE:
                 worst[m] = max(worst.get(m, 0), c)
         out *= factor(c for m, c in fn["costs"].items() if m not in ONCE_PER_FILE)
-    return round(100 * out * factor([*worst.values(), *file_costs(fns)]), 1)
+    return round(100 * out * factor([*worst.values(), *file_costs(fns)]), 2)
 
 
 def file_costs(fns):
-    """Costs of the whole file: Overall Code Complexity."""
+    """Costs of the whole file: Overall Code Complexity and Code Duplication."""
     ccn = [fn["values"]["ccn"] for fn in fns if "ccn" in fn.get("values", {})]
     complex_overall = len(ccn) >= OVERALL_MIN_FUNCTIONS and sum(ccn) / len(ccn) > OVERALL_MEAN
-    return [OVERALL_COST] if complex_overall else []
+    return [OVERALL_COST] * complex_overall + [SIMILAR_COST] * any(fn.get("similar") for fn in fns)
 
 
 def weighted_health(by_file, nloc):
@@ -565,8 +565,8 @@ def weighted_health(by_file, nloc):
 
 
 def ten(score):
-    """A 0-100 score on CodeScene's 1-10 scale, one decimal."""
-    return None if score is None else max(1.0, round(score / 10, 1))
+    """A 0-100 score on CodeScene's 1-10 scale, two decimals as CodeScene gives them, so a 9.46 isn't read as 9.5."""
+    return None if score is None else max(1.0, round(score / 10, 2))
 
 
 def score_summary(functions):

@@ -3,13 +3,13 @@
  "summary": {
   "files": 21,
   "scored": 21,
-  "mean_abs_gap": 0.09,
+  "mean_abs_gap": 0.08,
   "within_0_5": 19,
   "spearman": 0.79,
   "smells": {
    "Bumpy Road Ahead": {
-    "hit": 19,
-    "miss": 1,
+    "hit": 20,
+    "miss": 0,
     "extra": 1
    },
    "Complex Conditional": {
@@ -60,64 +60,64 @@
   },
   "worst": [
    {
+    "file": "fixtures/py/dry_violation.py",
+    "gap": -0.62
+   },
+   {
     "file": "fixtures/ts/primitiveObsession.ts",
     "gap": 0.62
    },
    {
-    "file": "fixtures/py/dry_violation.py",
-    "gap": -0.6
-   },
-   {
     "file": "real/quality_gate.py",
-    "gap": -0.27
+    "gap": -0.3
    },
    {
     "file": "real/backend_map.py",
-    "gap": -0.09
-   },
-   {
-    "file": "fixtures/py/large_method.py",
-    "gap": 0.05
-   },
-   {
-    "file": "fixtures/py/bumpy_road.py",
-    "gap": -0.04
-   },
-   {
-    "file": "fixtures/ts/bumpyRoad.ts",
-    "gap": -0.04
+    "gap": -0.06
    },
    {
     "file": "fixtures/py/brain_method.py",
-    "gap": 0.03
+    "gap": -0.02
+   },
+   {
+    "file": "fixtures/py/complex_method.py",
+    "gap": 0.01
+   },
+   {
+    "file": "fixtures/ts/complexMethod.ts",
+    "gap": 0.01
+   },
+   {
+    "file": "real/orders.py",
+    "gap": -0.01
+   },
+   {
+    "file": "fixtures/py/bumpy_road.py",
+    "gap": 0.0
+   },
+   {
+    "file": "fixtures/py/clean.py",
+    "gap": 0.0
    },
    {
     "file": "fixtures/py/complex_conditional.py",
-    "gap": -0.03
-   },
-   {
-    "file": "fixtures/ts/complexConditional.ts",
-    "gap": -0.03
+    "gap": 0.0
    },
    {
     "file": "fixtures/py/excess_arguments.py",
-    "gap": 0.02
+    "gap": 0.0
+   },
+   {
+    "file": "fixtures/py/large_method.py",
+    "gap": 0.0
    },
    {
     "file": "fixtures/py/nested_complexity.py",
-    "gap": 0.02
+    "gap": 0.0
    },
    {
-    "file": "fixtures/ts/excessArguments.ts",
-    "gap": 0.02
-   },
-   {
-    "file": "fixtures/ts/nestedComplexity.ts",
-    "gap": 0.02
-   },
-   {
-    "file": "real/qg_checks.py",
-    "gap": 0.02
+    "file": "fixtures/py/primitive_obsession.py",
+    "gap": 0.0
    }
   ]
  },
@@ -125,7 +125,7 @@
   {
    "file": "fixtures/py/brain_method.py",
    "gate": {
-    "health": 8.0,
+    "health": 7.95,
     "functions": {
      "process_batch": {
       "score": 80,
@@ -136,7 +136,7 @@
        "params": 3,
        "nesting": 6,
        "conditional": 1,
-       "bumps": 5
+       "bumps": 6
       },
       "smells": 1,
       "smells_over_limit": [
@@ -178,7 +178,7 @@
   {
    "file": "fixtures/py/bumpy_road.py",
    "gate": {
-    "health": 9.8,
+    "health": 9.84,
     "functions": {
      "normalise": {
       "score": 94,
@@ -264,7 +264,7 @@
   {
    "file": "fixtures/py/complex_conditional.py",
    "gate": {
-    "health": 9.5,
+    "health": 9.53,
     "functions": {
      "can_ship": {
       "score": 94,
@@ -296,7 +296,7 @@
   {
    "file": "fixtures/py/complex_method.py",
    "gate": {
-    "health": 9.6,
+    "health": 9.61,
     "functions": {
      "status_label": {
       "score": 94,
@@ -328,7 +328,7 @@
   {
    "file": "fixtures/py/dry_violation.py",
    "gate": {
-    "health": 9.4,
+    "health": 9.38,
     "functions": {
      "summarise_orders": {
       "score": 94,
@@ -368,7 +368,7 @@
   {
    "file": "fixtures/py/excess_arguments.py",
    "gate": {
-    "health": 9.7,
+    "health": 9.68,
     "functions": {
      "create_user": {
       "score": 94,
@@ -400,7 +400,7 @@
   {
    "file": "fixtures/py/large_method.py",
    "gate": {
-    "health": 9.6,
+    "health": 9.55,
     "functions": {
      "build_report": {
       "score": 94,
@@ -432,7 +432,7 @@
   {
    "file": "fixtures/py/nested_complexity.py",
    "gate": {
-    "health": 9.4,
+    "health": 9.38,
     "functions": {
      "find_overdue": {
       "score": 94,
@@ -686,7 +686,7 @@
   {
    "file": "fixtures/ts/bumpyRoad.ts",
    "gate": {
-    "health": 9.8,
+    "health": 9.84,
     "functions": {
      "normalise": {
       "score": 94,
@@ -758,7 +758,7 @@
   {
    "file": "fixtures/ts/complexConditional.ts",
    "gate": {
-    "health": 9.5,
+    "health": 9.53,
     "functions": {
      "canShip": {
       "score": 94,
@@ -790,7 +790,7 @@
   {
    "file": "fixtures/ts/complexMethod.ts",
    "gate": {
-    "health": 9.6,
+    "health": 9.61,
     "functions": {
      "statusLabel": {
       "score": 94,
@@ -822,7 +822,7 @@
   {
    "file": "fixtures/ts/excessArguments.ts",
    "gate": {
-    "health": 9.7,
+    "health": 9.68,
     "functions": {
      "createUser": {
       "score": 94,
@@ -854,7 +854,7 @@
   {
    "file": "fixtures/ts/nestedComplexity.ts",
    "gate": {
-    "health": 9.4,
+    "health": 9.38,
     "functions": {
      "findOverdue": {
       "score": 94,
@@ -1113,7 +1113,7 @@
   {
    "file": "real/backend_map.py",
    "gate": {
-    "health": 2.0,
+    "health": 2.03,
     "functions": {
      "load_struct": {
       "score": 94,
@@ -1242,7 +1242,7 @@
        "params": 5,
        "nesting": 3,
        "conditional": 1,
-       "bumps": 2
+       "bumps": 3
       },
       "smells": 1,
       "smells_over_limit": [
@@ -1261,7 +1261,7 @@
        "params": 3,
        "nesting": 6,
        "conditional": 3,
-       "bumps": 6
+       "bumps": 5
       },
       "smells": 0,
       "smells_over_limit": [
@@ -1282,7 +1282,7 @@
        "params": 3,
        "nesting": 4,
        "conditional": 3,
-       "bumps": 3
+       "bumps": 4
       },
       "smells": 0,
       "smells_over_limit": [
@@ -1520,7 +1520,7 @@
        "params": 0,
        "nesting": 4,
        "conditional": 1,
-       "bumps": 10
+       "bumps": 9
       },
       "smells": 0,
       "smells_over_limit": [
@@ -1691,7 +1691,7 @@
   {
    "file": "real/qg_checks.py",
    "gate": {
-    "health": 7.6,
+    "health": 7.58,
     "functions": {
      "rel": {
       "score": 100,
@@ -1997,7 +1997,7 @@
       "values": {
        "ccn": 7,
        "cognitive": 4,
-       "nloc": 8,
+       "nloc": 9,
        "params": 3,
        "nesting": 2,
        "conditional": 0,
@@ -2243,9 +2243,9 @@
       "score": 100,
       "values": {
        "ccn": 4,
-       "cognitive": 2,
-       "nloc": 6,
-       "params": 3,
+       "cognitive": 1,
+       "nloc": 5,
+       "params": 2,
        "nesting": 1,
        "conditional": 0,
        "bumps": 0
@@ -2272,7 +2272,7 @@
       "values": {
        "ccn": 7,
        "cognitive": 9,
-       "nloc": 15,
+       "nloc": 14,
        "params": 3,
        "nesting": 2,
        "conditional": 1,
@@ -2326,7 +2326,7 @@
       "smells_over_limit": []
      },
      "health": {
-      "score": 100,
+      "score": 94,
       "values": {
        "ccn": 7,
        "cognitive": 9,
@@ -2334,16 +2334,18 @@
        "params": 1,
        "nesting": 3,
        "conditional": 0,
-       "bumps": 1
+       "bumps": 2
       },
       "smells": 0,
-      "smells_over_limit": []
+      "smells_over_limit": [
+       "Bumpy Road Ahead"
+      ]
      },
      "file_costs": {
       "score": 100,
       "values": {
-       "ccn": 3,
-       "cognitive": 2,
+       "ccn": 4,
+       "cognitive": 1,
        "nloc": 4,
        "params": 1,
        "nesting": 0,
@@ -2441,7 +2443,7 @@
      "check_duplication": [
       "Complex Method (cc = 9)"
      ],
-     "check_duplication:453": [
+     "check_duplication:455": [
       "Complex Conditional (2 complex conditional expressions)"
      ],
      "finding": [
@@ -2453,7 +2455,7 @@
   {
    "file": "real/quality_gate.py",
    "gate": {
-    "health": 8.4,
+    "health": 8.37,
     "functions": {
      "find_root": {
       "score": 100,

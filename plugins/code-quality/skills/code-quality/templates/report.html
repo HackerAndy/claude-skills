@@ -198,7 +198,7 @@ const state = { show: 'work', query: '', open: new Set(), all: new Set() }
 // How far over its limit a measure is, as a 0-100 figure, only to color its bar.
 const metricScore = (v, limit) => { const r = v / limit; return r <= 1 ? 100 - (100 - T.green) * r : T.green - 30 * (r - 1) }
 const tenBand = h => (h == null ? 'none' : band(h * 10))
-const ten = h => (h == null ? '–' : h.toFixed(1))
+const ten = h => (h == null ? '–' : h.toFixed(2))
 
 function stack(b, cls = 'stack') {
   const total = b.green + b.yellow + b.red

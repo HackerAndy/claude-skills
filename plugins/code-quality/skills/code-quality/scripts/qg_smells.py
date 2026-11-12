@@ -3,16 +3,23 @@ and TypeScript are scored by one definition. Modelled on CodeScene's smells of t
 
   nesting      deepest chain of if / loop / switch inside one another; try and with don't count (Nested Complexity)
   conditional  most && / || (and / or) operators in any single condition (Complex Conditional)
-  bumps        chunks of nested logic in the function, counted the way CodeScene counts them (Bumpy Road):
-               each branch of a top-level if / switch / match / try that holds a nested branch, loop or
-               ternary is a bump; a top-level loop is one bump if it holds branches, or the bumps inside it
+  bumps        chunks of nested logic in the function, counted the way CodeScene counts them (Bumpy Road),
+               fitted to its flags on 2,391 functions: each path of an if / switch / match that holds a
+               nested branch or loop (or in Python, assigns a ternary) is a bump; a loop is one bump if it holds branches, or else the bumps
+               inside it plus one if it also has a plain conditional path; try and with are looked inside
 
 It also gives `ccn_fix`, what turns lizard's cyclomatic count into CodeScene's: CodeScene counts each
 `raise` / `throw`, a Python `else` and a JS / TS `?.`, and not a Python ternary, comprehension `if` or
 `finally`, nor a JS / TS `??` or default parameter value, all of which lizard counts the other way.
 
+And `similar`: whether the function has a near copy in the same file, standing in for CodeScene's Code
+Duplication (similar functions within one file). CodeScene doesn't publish how it compares them; this
+compares functions of SIMILAR_MIN_LINES lines or more (nested ones folded in, as CodeScene folds them) by
+the share of 5-token runs they have in common (Jaccard), with the threshold fitted to its flags on one
+project. See docs/codescene-parity.md.
+
 Runs on its own, `python qg_smells.py FILE...`, printing JSON {file: [{line, end, nesting, conditional,
-bumps, ccn_fix}, ...]} with one entry per function; qg_checks.py runs it in-process when tree-sitter is
+bumps, ccn_fix, similar}, ...]} with one entry per function; qg_checks.py runs it in-process when tree-sitter is
 installed and through `uvx --with tree-sitter-language-pack` otherwise. Needs tree-sitter-language-pack."""
 import json
 import sys
@@ -29,8 +36,8 @@ CONDITION_OWNERS = {"if_statement", "elif_clause", "while_statement", "do_statem
                     "ternary_expression"}
 LOGICAL = {"&&", "||"}
 LOOPS = {"for_statement", "for_in_statement", "while_statement", "do_statement"}
-FORKS = {"if_statement", "switch_statement", "match_statement", "try_statement"}  # code that takes one of several paths
-TERNARIES = {"conditional_expression", "ternary_expression"}
+FORKS = {"if_statement", "switch_statement", "match_statement"}  # code that takes one of several paths
+CONDITIONED = {"elif_clause", "case_clause", "switch_case"}  # a path with a condition of its own
 CLAUSES = {"elif_clause", "else_clause", "except_clause", "finally_clause", "case_clause", "switch_case",
            "switch_default", "catch_clause"}
 
@@ -88,8 +95,21 @@ def conditions(node):
 
 
 def has_logic(node):
-    """Whether node is, or holds, a branch, loop or ternary of its own function."""
-    return node.type in BRANCHES or node.type in TERNARIES or any(has_logic(c) for c in own_children(node))
+    """Whether node is, or holds, a branch or loop of its own function. A ternary isn't one for CodeScene,
+    except in Python where a statement assigns it straight to a name."""
+    return node.type in BRANCHES or assigns_ternary(node) or any(has_logic(c) for c in own_children(node))
+
+
+def assigns_ternary(node):
+    """Whether node is a Python block with a statement like `x = a if c else b`."""
+    if node.type != "block":  # Python's block; JS / TS have statement_block
+        return False
+    for st in node.named_children:
+        e = st.named_children[0] if st.type == "expression_statement" and st.named_children else st  # a one-line block holds it bare
+        right = e.child_by_field_name("right") if e.type in ("assignment", "augmented_assignment") else None
+        if right is not None and right.type == "conditional_expression":
+            return True
+    return False
 
 
 def paths(fork):
@@ -108,6 +128,29 @@ def paths(fork):
     return out
 
 
+def plain_path(block):
+    """Whether block has an if / elif / case path with a condition and no nested logic in it."""
+    for st in block.named_children:
+        if st.type in FORKS:
+            for p in paths(st):
+                if (p.type in CONDITIONED or p == st.child_by_field_name("consequence")) and not has_logic(p):
+                    return True
+    return False
+
+
+def blocks_of(st):
+    """The blocks of a try (body, except / catch, else, finally), a with, or a bare block."""
+    if st.type == "statement_block":
+        return [st]
+    out = []
+    for c in st.named_children:
+        if c.type in ("block", "statement_block"):
+            out.append(c)
+        else:
+            out += [x for x in c.named_children if x.type in ("block", "statement_block")]
+    return out
+
+
 def bumps(block):
     """Chunks of nested logic among block's statements (see the module docstring)."""
     n = 0
@@ -116,9 +159,10 @@ def bumps(block):
         if st.type in FORKS:
             n += sum(has_logic(p) for p in paths(st))
         elif st.type in LOOPS and body is not None:
-            n += bumps(body) or int(has_logic(body))
-        elif st.type in ("with_statement", "statement_block"):  # no choice of path: look inside
-            n += bumps(body if body is not None else st)
+            inner = bumps(body)
+            n += inner + plain_path(body) if inner else int(has_logic(body))
+        elif st.type in ("try_statement", "with_statement", "statement_block"):  # no choice of path: look inside
+            n += sum(bumps(b) for b in blocks_of(st))
     return n
 
 
@@ -172,6 +216,59 @@ def functions_in(node):
         yield from functions_in(c)
 
 
+SIMILAR_MIN_LINES = 10  # CodeScene's function_duplication_min_lines_of_code_for_check
+SIMILAR_SHARE = 0.6     # fitted: CodeScene's own setting says 75%, but its measure isn't this one
+SHINGLE = 5             # tokens per run compared
+OWN_FUNCTION_LINES = 25  # a nested JS / TS function this long is a function of its own for CodeScene
+
+
+def is_folded(fn):
+    """Whether CodeScene counts fn as part of the function around it."""
+    p = fn.parent
+    while p is not None and not is_function(p):
+        p = p.parent
+    return p is not None and (fn.type == "function_definition" or code_lines(fn) < OWN_FUNCTION_LINES)
+
+
+def tokens(node, out):
+    """The source text of each leaf below node, comments left out."""
+    if node.child_count == 0:
+        if "comment" not in node.type:
+            out.append(node.text)
+    for c in node.children:
+        tokens(c, out)
+    return out
+
+
+def code_lines(node):
+    """Lines of node that hold code."""
+    lines = set()
+
+    def walk(n):
+        if n.child_count == 0 and "comment" not in n.type:
+            lines.add(n.start_point[0])
+        for c in n.children:
+            walk(c)
+    walk(node)
+    return len(lines)
+
+
+def similar(fns):
+    """The indexes of functions with a near copy among fns (see the module docstring)."""
+    runs = {}
+    for i, fn in enumerate(fns):
+        if not is_folded(fn) and code_lines(fn) >= SIMILAR_MIN_LINES:
+            t = tokens(fn, [])
+            runs[i] = {tuple(t[k:k + SHINGLE]) for k in range(max(1, len(t) - SHINGLE + 1))}
+    out = set()
+    keys = sorted(runs)
+    for a, i in enumerate(keys):
+        for j in keys[a + 1:]:
+            if len(runs[i] & runs[j]) >= SIMILAR_SHARE * len(runs[i] | runs[j]):
+                out |= {i, j}
+    return out
+
+
 def measure(paths):
     """{path: [per-function measures]} for the source files that tree-sitter can read."""
     parsers, out = {}, {}
@@ -179,7 +276,9 @@ def measure(paths):
         parser = parser_for(path, parsers)
         if parser:
             tree = parser.parse(Path(path).read_bytes())
-            out[str(path)] = [measure_function(fn) for fn in functions_in(tree.root_node)]
+            fns = list(functions_in(tree.root_node))
+            near = similar(fns)
+            out[str(path)] = [measure_function(fn) | {"similar": i in near} for i, fn in enumerate(fns)]
     return out
 
 

@@ -30,7 +30,7 @@ def file_entries(root, conf, run):
     out = {qc.rel(root, f): {"functions": [], "findings": []} for f in run["files"]}
     for fn in run["functions"]:
         out.setdefault(fn["file"], {"functions": [], "findings": []})["functions"].append(
-            {k: fn[k] for k in ("symbol", "line", "end", "score", "values", "smells", "costs")}
+            {k: fn[k] for k in ("symbol", "line", "end", "score", "values", "smells", "costs")} | {"similar": fn.get("similar", False)}
             | {"why": qc.reasons(conf, fn)})
     for entry in out.values():
         entry["health"] = qc.health(entry["functions"])

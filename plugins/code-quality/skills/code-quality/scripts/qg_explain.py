@@ -52,8 +52,8 @@ METRIC_HELP = {
     },
     "bumps": {
         "title": "Bumpy road",
-        "what": "Several separate chunks of the function hold nested logic: branches of an if / switch / "
-                "try with an if, loop or ternary inside, or loops around branches (CodeScene's Bumpy Road).",
+        "what": "Several separate chunks of the function hold nested logic: branches of an if / switch "
+                "with an if or loop inside, or loops around branches (CodeScene's Bumpy Road).",
         "why": "Each bump is a chunk of logic that deserves a name; stacked together they make the function "
                "read as several jobs, and the bumps hide behavior from tests.",
         "fix": "Extract each bump into a helper named for what it does, leaving the function as a short "
