@@ -32,11 +32,13 @@ Findings so far:
   - Primitive Obsession needs about 15 primitive-argument functions in a file before it fires.
   - Step 4 checks whether `cs delta` reports duplication and Brain Method.
 
-## Step 4: run both and compare
-- Run `cs review` and `cs rules-config list-thresholds --language Python --format json` to get the real default thresholds.
-- Run `quality-gate score FILE --symbol NAME` and `quality-gate check --json` on the same files.
-- Compare per-file score (1-10), per-function smell set (hits, misses, extras) and score ordering across files.
-- Write the findings as a table in the repo, for example `plugins/code-quality/docs/codescene-parity.md`.
+## Step 4: run both and compare (done 2026-11-12)
+- `plugins/code-quality/tests/parity/run_parity.py` runs both tools on the corpus in a temporary git repo and writes `results/parity.json`.
+- Findings are in `plugins/code-quality/docs/codescene-parity.md`:
+  - 71% of CodeScene's function smells match ours, but the scores are 1.96 points apart on average, with rank correlation 0.42.
+  - We're much harsher on single smells, and softer on files with many medium smells.
+  - 13 of the 21 misses come from thresholds: CodeScene warns when a value reaches its threshold, we only above our limit.
+  - `cs delta` doesn't report duplication or Brain Method either.
 
 ## Step 5: turn the gaps into changes
 Likely areas, to be confirmed by the data:
