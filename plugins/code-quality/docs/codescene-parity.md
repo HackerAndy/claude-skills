@@ -102,8 +102,32 @@ Found with generated samples and applied in 0.12.0. Each was confirmed on CodeSc
 ## Held-out check: the 9.5 decision
 
 CodeScene recommends 9.5 for code AI agents work in, so what matters most is whether the gate puts a
-file on the same side of 9.5. The gate was compared on a private project of 151 files (139 scored)
-that it wasn't tuned on:
+file on the same side of 9.5. "Risky" below means the gate passes a file (9.5 or more) that CodeScene
+fails; "stricter" is the other way round.
+
+### Three projects (0.13.0)
+
+| Project | Files scored | Same side of 9.5 | Risky | Stricter | Mean gap | Spearman |
+|---|---|---|---|---|---|---|
+| A: Python, 151 files (0.11.1-0.13.0 were fitted on it) | 139 | 135 (97%) | 1 | 3 | 0.12 | 0.97 |
+| B: Python + 93 TypeScript files, held out | 128 | 122 (95%) | 0 | 6 | 0.13 | 0.82 |
+| C: Python + JS, a separate domain, held out | 77 | 73 (95%) | 0 | 4 | 0.15 | 0.94 |
+| **All** | **344** | **330 (96%)** | **1** | **13** | | |
+
+Of 316 files the gate scores 9.5 or more, CodeScene agrees on 315. Projects B and C have 20 and 27
+files CodeScene scores between 8.5 and 10, so the boundary is well exercised. Files with no functions
+(`__init__.py`, config modules) are scored by neither tool and left out.
+
+- **Where the gate is stricter:** mostly React components (`.tsx` / `.jsx`). It finds Large Method in
+  7 TSX functions CodeScene doesn't (CodeScene counts JSX lines differently), and more Complex Method and
+  Complex Conditional in TSX (JSX `&&` and ternaries).
+- **What it misses:** Overall Code Complexity (10 and 16 files), CodeScene-style duplication (12
+  functions in C), and Large Method in Python (9 in C). These lower CodeScene's score on files already
+  below 9.5, so they don't change a decision in these projects.
+
+### Project A, version by version
+
+Project A was the first held-out check and was then used to fit 0.11.1 to 0.13.0:
 
 | | 0.11.0 | 0.11.1 | 0.12.0 | 0.13.0 |
 |---|---|---|---|---|
