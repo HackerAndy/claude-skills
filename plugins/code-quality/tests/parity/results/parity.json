@@ -1,2824 +1,2967 @@
-[
- {
-  "file": "fixtures/py/brain_method.py",
-  "gate": {
-   "health": 8.1,
-   "functions": {
-    "process_batch": {
-     "score": 81,
-     "values": {
-      "ccn": 28,
-      "cognitive": 71,
-      "nloc": 82,
-      "params": 3,
-      "nesting": 6,
-      "conditional": 1,
-      "bumps": 5
-     },
-     "smells": 1,
-     "smells_over_limit": [
-      "(cognitive)",
-      "Bumpy Road Ahead",
-      "Complex Method",
-      "Deep, Nested Complexity",
-      "Large Method"
-     ]
-    },
-    "empty_ledger": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 0,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    }
+{
+ "source": "parity corpus",
+ "summary": {
+  "files": 21,
+  "scored": 21,
+  "mean_abs_gap": 0.15,
+  "within_0_5": 19,
+  "spearman": 0.74,
+  "smells": {
+   "Bumpy Road Ahead": {
+    "hit": 17,
+    "miss": 2,
+    "extra": 1
+   },
+   "Complex Conditional": {
+    "hit": 11,
+    "miss": 1,
+    "extra": 3
+   },
+   "Complex Method": {
+    "hit": 20,
+    "miss": 0,
+    "extra": 7
+   },
+   "Deep, Nested Complexity": {
+    "hit": 8,
+    "miss": 0,
+    "extra": 0
+   },
+   "Excess Number of Function Arguments": {
+    "hit": 5,
+    "miss": 0,
+    "extra": 0
+   },
+   "Large Method": {
+    "hit": 5,
+    "miss": 1,
+    "extra": 0
+   },
+   "Lines of Code in a Single File": {
+    "hit": 0,
+    "miss": 1,
+    "extra": 0
+   },
+   "Overall Code Complexity": {
+    "hit": 0,
+    "miss": 3,
+    "extra": 0
+   },
+   "Primitive Obsession": {
+    "hit": 0,
+    "miss": 1,
+    "extra": 0
+   },
+   "String Heavy Function Arguments": {
+    "hit": 0,
+    "miss": 1,
+    "extra": 0
    }
   },
-  "codescene": {
-   "score": 7.97,
-   "functions": {
-    "process_batch": [
-     "Bumpy Road Ahead (bumps = 6)",
-     "Deep, Nested Complexity (Nesting depth = 6 conditionals)",
-     "Complex Method (cc = 36)",
-     "Large Method (LoC = 82 lines)"
-    ]
+  "worst": [
+   {
+    "file": "fixtures/py/dry_violation.py",
+    "gap": -1.2
+   },
+   {
+    "file": "fixtures/ts/primitiveObsession.ts",
+    "gap": 0.62
+   },
+   {
+    "file": "real/qg_checks.py",
+    "gap": -0.35
+   },
+   {
+    "file": "real/backend_map.py",
+    "gap": -0.29
+   },
+   {
+    "file": "real/quality_gate.py",
+    "gap": 0.23
+   },
+   {
+    "file": "fixtures/py/brain_method.py",
+    "gap": 0.13
+   },
+   {
+    "file": "real/orders.py",
+    "gap": 0.09
+   },
+   {
+    "file": "fixtures/py/large_method.py",
+    "gap": 0.05
+   },
+   {
+    "file": "fixtures/py/bumpy_road.py",
+    "gap": -0.04
+   },
+   {
+    "file": "fixtures/ts/bumpyRoad.ts",
+    "gap": -0.04
+   },
+   {
+    "file": "fixtures/py/complex_conditional.py",
+    "gap": -0.03
+   },
+   {
+    "file": "fixtures/ts/complexConditional.ts",
+    "gap": -0.03
+   },
+   {
+    "file": "fixtures/py/excess_arguments.py",
+    "gap": 0.02
+   },
+   {
+    "file": "fixtures/py/nested_complexity.py",
+    "gap": 0.02
+   },
+   {
+    "file": "fixtures/ts/excessArguments.ts",
+    "gap": 0.02
    }
-  }
+  ]
  },
- {
-  "file": "fixtures/py/bumpy_road.py",
-  "gate": {
-   "health": 9.8,
-   "functions": {
-    "normalise": {
-     "score": 98,
-     "values": {
-      "ccn": 7,
-      "cognitive": 9,
-      "nloc": 13,
-      "params": 1,
-      "nesting": 2,
-      "conditional": 0,
-      "bumps": 3
+ "files": [
+  {
+   "file": "fixtures/py/brain_method.py",
+   "gate": {
+    "health": 8.1,
+    "functions": {
+     "process_batch": {
+      "score": 81,
+      "values": {
+       "ccn": 28,
+       "cognitive": 71,
+       "nloc": 82,
+       "params": 3,
+       "nesting": 6,
+       "conditional": 1,
+       "bumps": 5
+      },
+      "smells": 1,
+      "smells_over_limit": [
+       "(cognitive)",
+       "Bumpy Road Ahead",
+       "Complex Method",
+       "Deep, Nested Complexity",
+       "Large Method"
+      ]
      },
-     "smells": 3,
-     "smells_over_limit": [
-      "Bumpy Road Ahead"
+     "empty_ledger": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 0,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     }
+    }
+   },
+   "codescene": {
+    "score": 7.97,
+    "functions": {
+     "process_batch": [
+      "Bumpy Road Ahead (bumps = 6)",
+      "Deep, Nested Complexity (Nesting depth = 6 conditionals)",
+      "Complex Method (cc = 36)",
+      "Large Method (LoC = 82 lines)"
      ]
     }
    }
   },
-  "codescene": {
-   "score": 9.84,
-   "functions": {
-    "normalise": [
-     "Bumpy Road Ahead (bumps = 3)"
-    ]
-   }
-  }
- },
- {
-  "file": "fixtures/py/clean.py",
-  "gate": {
-   "health": 10.0,
-   "functions": {
-    "line_price": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "order_total": {
-     "score": 100,
-     "values": {
-      "ccn": 2,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "apply_coupon": {
-     "score": 100,
-     "values": {
-      "ccn": 2,
-      "cognitive": 1,
-      "nloc": 4,
-      "params": 2,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
+  {
+   "file": "fixtures/py/bumpy_road.py",
+   "gate": {
+    "health": 9.8,
+    "functions": {
+     "normalise": {
+      "score": 94,
+      "values": {
+       "ccn": 7,
+       "cognitive": 9,
+       "nloc": 13,
+       "params": 1,
+       "nesting": 2,
+       "conditional": 0,
+       "bumps": 3
+      },
+      "smells": 3,
+      "smells_over_limit": [
+       "Bumpy Road Ahead"
+      ]
+     }
     }
-   }
-  },
-  "codescene": {
-   "score": 10.0,
-   "functions": {}
-  }
- },
- {
-  "file": "fixtures/py/complex_conditional.py",
-  "gate": {
-   "health": 9.5,
-   "functions": {
-    "can_ship": {
-     "score": 95,
-     "values": {
-      "ccn": 5,
-      "cognitive": 3,
-      "nloc": 4,
-      "params": 1,
-      "nesting": 1,
-      "conditional": 3,
-      "bumps": 0
-     },
-     "smells": 1,
-     "smells_over_limit": [
-      "Complex Conditional"
+   },
+   "codescene": {
+    "score": 9.84,
+    "functions": {
+     "normalise": [
+      "Bumpy Road Ahead (bumps = 3)"
      ]
     }
    }
   },
-  "codescene": {
-   "score": 9.53,
-   "functions": {
-    "can_ship:5": [
-     "Complex Conditional (3 complex conditional expressions)"
-    ]
-   }
-  }
- },
- {
-  "file": "fixtures/py/complex_method.py",
-  "gate": {
-   "health": 9.6,
-   "functions": {
-    "status_label": {
-     "score": 96,
-     "values": {
-      "ccn": 14,
-      "cognitive": 13,
-      "nloc": 28,
-      "params": 1,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
+  {
+   "file": "fixtures/py/clean.py",
+   "gate": {
+    "health": 10.0,
+    "functions": {
+     "line_price": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
      },
-     "smells": 1,
-     "smells_over_limit": [
-      "Complex Method"
+     "order_total": {
+      "score": 100,
+      "values": {
+       "ccn": 2,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "apply_coupon": {
+      "score": 100,
+      "values": {
+       "ccn": 2,
+       "cognitive": 1,
+       "nloc": 4,
+       "params": 2,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     }
+    }
+   },
+   "codescene": {
+    "score": 10.0,
+    "functions": {}
+   }
+  },
+  {
+   "file": "fixtures/py/complex_conditional.py",
+   "gate": {
+    "health": 9.5,
+    "functions": {
+     "can_ship": {
+      "score": 94,
+      "values": {
+       "ccn": 5,
+       "cognitive": 3,
+       "nloc": 4,
+       "params": 1,
+       "nesting": 1,
+       "conditional": 3,
+       "bumps": 0
+      },
+      "smells": 1,
+      "smells_over_limit": [
+       "Complex Conditional"
+      ]
+     }
+    }
+   },
+   "codescene": {
+    "score": 9.53,
+    "functions": {
+     "can_ship:5": [
+      "Complex Conditional (3 complex conditional expressions)"
      ]
     }
    }
   },
-  "codescene": {
-   "score": 9.6,
-   "functions": {
-    "status_label": [
-     "Complex Method (cc = 14)"
-    ]
-   }
-  }
- },
- {
-  "file": "fixtures/py/dry_violation.py",
-  "gate": {
-   "health": 8.5,
-   "functions": {
-    "summarise_orders": {
-     "score": 92,
-     "values": {
-      "ccn": 9,
-      "cognitive": 12,
-      "nloc": 20,
-      "params": 2,
-      "nesting": 2,
-      "conditional": 1,
-      "bumps": 1
-     },
-     "smells": 1,
-     "smells_over_limit": [
-      "Complex Method"
-     ]
-    },
-    "summarise_refunds": {
-     "score": 92,
-     "values": {
-      "ccn": 9,
-      "cognitive": 12,
-      "nloc": 20,
-      "params": 2,
-      "nesting": 2,
-      "conditional": 1,
-      "bumps": 1
-     },
-     "smells": 1,
-     "smells_over_limit": [
-      "Complex Method"
+  {
+   "file": "fixtures/py/complex_method.py",
+   "gate": {
+    "health": 9.6,
+    "functions": {
+     "status_label": {
+      "score": 94,
+      "values": {
+       "ccn": 14,
+       "cognitive": 13,
+       "nloc": 28,
+       "params": 1,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 1,
+      "smells_over_limit": [
+       "Complex Method"
+      ]
+     }
+    }
+   },
+   "codescene": {
+    "score": 9.6,
+    "functions": {
+     "status_label": [
+      "Complex Method (cc = 14)"
      ]
     }
    }
   },
-  "codescene": {
-   "score": 10.0,
-   "functions": {}
-  }
- },
- {
-  "file": "fixtures/py/excess_arguments.py",
-  "gate": {
-   "health": 9.7,
-   "functions": {
-    "create_user": {
-     "score": 97,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 6,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
+  {
+   "file": "fixtures/py/dry_violation.py",
+   "gate": {
+    "health": 8.8,
+    "functions": {
+     "summarise_orders": {
+      "score": 91,
+      "values": {
+       "ccn": 9,
+       "cognitive": 12,
+       "nloc": 20,
+       "params": 2,
+       "nesting": 2,
+       "conditional": 1,
+       "bumps": 1
+      },
+      "smells": 1,
+      "smells_over_limit": [
+       "Complex Method"
+      ]
      },
-     "smells": 0,
-     "smells_over_limit": [
-      "Excess Number of Function Arguments"
+     "summarise_refunds": {
+      "score": 91,
+      "values": {
+       "ccn": 9,
+       "cognitive": 12,
+       "nloc": 20,
+       "params": 2,
+       "nesting": 2,
+       "conditional": 1,
+       "bumps": 1
+      },
+      "smells": 1,
+      "smells_over_limit": [
+       "Complex Method"
+      ]
+     }
+    }
+   },
+   "codescene": {
+    "score": 10.0,
+    "functions": {}
+   }
+  },
+  {
+   "file": "fixtures/py/excess_arguments.py",
+   "gate": {
+    "health": 9.7,
+    "functions": {
+     "create_user": {
+      "score": 94,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 6,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Excess Number of Function Arguments"
+      ]
+     }
+    }
+   },
+   "codescene": {
+    "score": 9.68,
+    "functions": {
+     "create_user": [
+      "Excess Number of Function Arguments (Arguments = 6)"
      ]
     }
    }
   },
-  "codescene": {
-   "score": 9.68,
-   "functions": {
-    "create_user": [
-     "Excess Number of Function Arguments (Arguments = 6)"
-    ]
-   }
-  }
- },
- {
-  "file": "fixtures/py/large_method.py",
-  "gate": {
-   "health": 9.6,
-   "functions": {
-    "build_report": {
-     "score": 96,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 79,
-      "params": 1,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Large Method"
+  {
+   "file": "fixtures/py/large_method.py",
+   "gate": {
+    "health": 9.6,
+    "functions": {
+     "build_report": {
+      "score": 94,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 79,
+       "params": 1,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Large Method"
+      ]
+     }
+    }
+   },
+   "codescene": {
+    "score": 9.55,
+    "functions": {
+     "build_report": [
+      "Large Method (LoC = 79 lines)"
      ]
     }
    }
   },
-  "codescene": {
-   "score": 9.55,
-   "functions": {
-    "build_report": [
-     "Large Method (LoC = 79 lines)"
-    ]
-   }
-  }
- },
- {
-  "file": "fixtures/py/nested_complexity.py",
-  "gate": {
-   "health": 9.4,
-   "functions": {
-    "find_overdue": {
-     "score": 94,
-     "values": {
-      "ccn": 6,
-      "cognitive": 15,
-      "nloc": 9,
-      "params": 2,
-      "nesting": 5,
-      "conditional": 0,
-      "bumps": 1
-     },
-     "smells": 1,
-     "smells_over_limit": [
-      "Deep, Nested Complexity"
+  {
+   "file": "fixtures/py/nested_complexity.py",
+   "gate": {
+    "health": 9.4,
+    "functions": {
+     "find_overdue": {
+      "score": 94,
+      "values": {
+       "ccn": 6,
+       "cognitive": 15,
+       "nloc": 9,
+       "params": 2,
+       "nesting": 5,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 1,
+      "smells_over_limit": [
+       "Deep, Nested Complexity"
+      ]
+     }
+    }
+   },
+   "codescene": {
+    "score": 9.38,
+    "functions": {
+     "find_overdue": [
+      "Deep, Nested Complexity (Nesting depth = 5 conditionals)"
      ]
     }
    }
   },
-  "codescene": {
-   "score": 9.38,
-   "functions": {
-    "find_overdue": [
-     "Deep, Nested Complexity (Nesting depth = 5 conditionals)"
-    ]
-   }
-  }
- },
- {
-  "file": "fixtures/py/primitive_obsession.py",
-  "gate": {
-   "health": 10.0,
-   "functions": {
-    "price_with_tax": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
+  {
+   "file": "fixtures/py/primitive_obsession.py",
+   "gate": {
+    "health": 10.0,
+    "functions": {
+     "price_with_tax": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
      },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "discount": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
+     "discount": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
      },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "convert": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
+     "convert": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
      },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "round_to": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
+     "round_to": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
      },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "clamp": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
+     "clamp": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
      },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "format_money": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
+     "format_money": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
      },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "percent": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
+     "percent": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
      },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "margin": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
+     "margin": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
      },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "markup": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
+     "markup": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
      },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "split_cost": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
+     "split_cost": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
      },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "weight_band": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
+     "weight_band": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
      },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "zone_for": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
+     "zone_for": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
      },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "eta_days": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
+     "eta_days": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
      },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "slug": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
+     "slug": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
      },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "initials": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
+     "initials": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     }
     }
+   },
+   "codescene": {
+    "score": 10.0,
+    "functions": {}
    }
   },
-  "codescene": {
-   "score": 10.0,
-   "functions": {}
-  }
- },
- {
-  "file": "fixtures/ts/bumpyRoad.ts",
-  "gate": {
-   "health": 9.8,
-   "functions": {
-    "normalise": {
-     "score": 98,
-     "values": {
-      "ccn": 7,
-      "cognitive": 9,
-      "nloc": 20,
-      "params": 1,
-      "nesting": 2,
-      "conditional": 0,
-      "bumps": 3
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Bumpy Road Ahead"
-     ]
+  {
+   "file": "fixtures/ts/bumpyRoad.ts",
+   "gate": {
+    "health": 9.8,
+    "functions": {
+     "normalise": {
+      "score": 94,
+      "values": {
+       "ccn": 7,
+       "cognitive": 9,
+       "nloc": 20,
+       "params": 1,
+       "nesting": 2,
+       "conditional": 0,
+       "bumps": 3
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Bumpy Road Ahead"
+      ]
+     }
     }
-   }
-  },
-  "codescene": {
-   "score": 9.84,
-   "functions": {
-    "normalise": [
-     "Bumpy Road Ahead (bumps = 3)"
-    ]
-   }
-  }
- },
- {
-  "file": "fixtures/ts/clean.ts",
-  "gate": {
-   "health": 10.0,
-   "functions": {
-    "linePrice": {
-     "score": 100,
-     "values": {
-      "ccn": 2,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "(anonymous)": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 1,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "orderTotal": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    }
-   }
-  },
-  "codescene": {
-   "score": 10.0,
-   "functions": {}
-  }
- },
- {
-  "file": "fixtures/ts/complexConditional.ts",
-  "gate": {
-   "health": 9.5,
-   "functions": {
-    "canShip": {
-     "score": 95,
-     "values": {
-      "ccn": 5,
-      "cognitive": 3,
-      "nloc": 6,
-      "params": 1,
-      "nesting": 1,
-      "conditional": 3,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Complex Conditional"
+   },
+   "codescene": {
+    "score": 9.84,
+    "functions": {
+     "normalise": [
+      "Bumpy Road Ahead (bumps = 3)"
      ]
     }
    }
   },
-  "codescene": {
-   "score": 9.53,
-   "functions": {
-    "canShip:5": [
-     "Complex Conditional (3 complex conditional expressions)"
-    ]
-   }
-  }
- },
- {
-  "file": "fixtures/ts/complexMethod.ts",
-  "gate": {
-   "health": 9.6,
-   "functions": {
-    "statusLabel": {
-     "score": 96,
-     "values": {
-      "ccn": 14,
-      "cognitive": 13,
-      "nloc": 16,
-      "params": 1,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
+  {
+   "file": "fixtures/ts/clean.ts",
+   "gate": {
+    "health": 10.0,
+    "functions": {
+     "linePrice": {
+      "score": 100,
+      "values": {
+       "ccn": 2,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
      },
-     "smells": 0,
-     "smells_over_limit": [
-      "Complex Method"
+     "(anonymous)": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 1,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "orderTotal": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     }
+    }
+   },
+   "codescene": {
+    "score": 10.0,
+    "functions": {}
+   }
+  },
+  {
+   "file": "fixtures/ts/complexConditional.ts",
+   "gate": {
+    "health": 9.5,
+    "functions": {
+     "canShip": {
+      "score": 94,
+      "values": {
+       "ccn": 5,
+       "cognitive": 3,
+       "nloc": 6,
+       "params": 1,
+       "nesting": 1,
+       "conditional": 3,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Complex Conditional"
+      ]
+     }
+    }
+   },
+   "codescene": {
+    "score": 9.53,
+    "functions": {
+     "canShip:5": [
+      "Complex Conditional (3 complex conditional expressions)"
      ]
     }
    }
   },
-  "codescene": {
-   "score": 9.6,
-   "functions": {
-    "statusLabel": [
-     "Complex Method (cc = 14)"
-    ]
-   }
-  }
- },
- {
-  "file": "fixtures/ts/excessArguments.ts",
-  "gate": {
-   "health": 9.7,
-   "functions": {
-    "createUser": {
-     "score": 97,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 6,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Excess Number of Function Arguments"
+  {
+   "file": "fixtures/ts/complexMethod.ts",
+   "gate": {
+    "health": 9.6,
+    "functions": {
+     "statusLabel": {
+      "score": 94,
+      "values": {
+       "ccn": 14,
+       "cognitive": 13,
+       "nloc": 16,
+       "params": 1,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Complex Method"
+      ]
+     }
+    }
+   },
+   "codescene": {
+    "score": 9.6,
+    "functions": {
+     "statusLabel": [
+      "Complex Method (cc = 14)"
      ]
     }
    }
   },
-  "codescene": {
-   "score": 9.68,
-   "functions": {
-    "createUser": [
-     "Excess Number of Function Arguments (Arguments = 6)"
-    ]
-   }
-  }
- },
- {
-  "file": "fixtures/ts/nestedComplexity.ts",
-  "gate": {
-   "health": 9.4,
-   "functions": {
-    "findOverdue": {
-     "score": 94,
-     "values": {
-      "ccn": 6,
-      "cognitive": 15,
-      "nloc": 15,
-      "params": 2,
-      "nesting": 5,
-      "conditional": 0,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Deep, Nested Complexity"
+  {
+   "file": "fixtures/ts/excessArguments.ts",
+   "gate": {
+    "health": 9.7,
+    "functions": {
+     "createUser": {
+      "score": 94,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 6,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Excess Number of Function Arguments"
+      ]
+     }
+    }
+   },
+   "codescene": {
+    "score": 9.68,
+    "functions": {
+     "createUser": [
+      "Excess Number of Function Arguments (Arguments = 6)"
      ]
     }
    }
   },
-  "codescene": {
-   "score": 9.38,
-   "functions": {
-    "findOverdue": [
-     "Deep, Nested Complexity (Nesting depth = 5 conditionals)"
-    ]
-   }
-  }
- },
- {
-  "file": "fixtures/ts/primitiveObsession.ts",
-  "gate": {
-   "health": 10.0,
-   "functions": {
-    "priceWithTax": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "discount": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "convert": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "roundTo": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "clamp": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "formatMoney": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "percent": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "margin": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "markup": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "splitCost": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "weightBand": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "zoneFor": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "etaDays": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "slug": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "initials": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
+  {
+   "file": "fixtures/ts/nestedComplexity.ts",
+   "gate": {
+    "health": 9.4,
+    "functions": {
+     "findOverdue": {
+      "score": 94,
+      "values": {
+       "ccn": 6,
+       "cognitive": 15,
+       "nloc": 15,
+       "params": 2,
+       "nesting": 5,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Deep, Nested Complexity"
+      ]
+     }
     }
-   }
-  },
-  "codescene": {
-   "score": 9.38,
-   "functions": {
-    "(file)": [
-     "Primitive Obsession",
-     "String Heavy Function Arguments"
-    ]
-   }
-  }
- },
- {
-  "file": "real/orders.py",
-  "gate": {
-   "health": 9.2,
-   "functions": {
-    "legacy_price": {
-     "score": 92,
-     "values": {
-      "ccn": 13,
-      "cognitive": 21,
-      "nloc": 25,
-      "params": 6,
-      "nesting": 3,
-      "conditional": 1,
-      "bumps": 3
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "(cognitive)",
-      "Bumpy Road Ahead",
-      "Complex Method",
-      "Excess Number of Function Arguments"
-     ]
-    },
-    "subtotal": {
-     "score": 100,
-     "values": {
-      "ccn": 2,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 1,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    }
-   }
-  },
-  "codescene": {
-   "score": 9.11,
-   "functions": {
-    "legacy_price": [
-     "Bumpy Road Ahead (bumps = 3)",
-     "Complex Method (cc = 16)",
-     "Excess Number of Function Arguments (Arguments = 6)"
-    ]
-   }
-  }
- },
- {
-  "file": "real/qg_checks.py",
-  "gate": {
-   "health": 7.6,
-   "functions": {
-    "rel": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "looks_generated": {
-     "score": 100,
-     "values": {
-      "ccn": 3,
-      "cognitive": 1,
-      "nloc": 7,
-      "params": 1,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "in_scope": {
-     "score": 100,
-     "values": {
-      "ccn": 7,
-      "cognitive": 4,
-      "nloc": 9,
-      "params": 3,
-      "nesting": 1,
-      "conditional": 1,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "git": {
-     "score": 100,
-     "values": {
-      "ccn": 2,
-      "cognitive": 1,
-      "nloc": 4,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "walk_files": {
-     "score": 100,
-     "values": {
-      "ccn": 6,
-      "cognitive": 2,
-      "nloc": 4,
-      "params": 1,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "all_files": {
-     "score": 100,
-     "values": {
-      "ccn": 6,
-      "cognitive": 2,
-      "nloc": 4,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "changed_files": {
-     "score": 97,
-     "values": {
-      "ccn": 10,
-      "cognitive": 6,
-      "nloc": 9,
-      "params": 3,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Complex Method"
-     ]
-    },
-    "package_of": {
-     "score": 100,
-     "values": {
-      "ccn": 6,
-      "cognitive": 6,
-      "nloc": 7,
-      "params": 3,
-      "nesting": 2,
-      "conditional": 1,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "by_package": {
-     "score": 100,
-     "values": {
-      "ccn": 3,
-      "cognitive": 3,
-      "nloc": 6,
-      "params": 4,
-      "nesting": 2,
-      "conditional": 0,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "installed": {
-     "score": 100,
-     "values": {
-      "ccn": 7,
-      "cognitive": 0,
-      "nloc": 4,
-      "params": 3,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "locate": {
-     "score": 95,
-     "values": {
-      "ccn": 12,
-      "cognitive": 14,
-      "nloc": 18,
-      "params": 4,
-      "nesting": 2,
-      "conditional": 1,
-      "bumps": 2
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Bumpy Road Ahead",
-      "Complex Method"
-     ]
-    },
-    "tool": {
-     "score": 100,
-     "values": {
-      "ccn": 5,
-      "cognitive": 4,
-      "nloc": 6,
-      "params": 3,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "run": {
-     "score": 100,
-     "values": {
-      "ccn": 2,
-      "cognitive": 1,
-      "nloc": 3,
-      "params": 3,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "run_json": {
-     "score": 100,
-     "values": {
-      "ccn": 4,
-      "cognitive": 3,
-      "nloc": 5,
-      "params": 3,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "finding": {
-     "score": 97,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 5,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Excess Number of Function Arguments"
-     ]
-    },
-    "code_lines": {
-     "score": 100,
-     "values": {
-      "ccn": 4,
-      "cognitive": 1,
-      "nloc": 3,
-      "params": 1,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "file_limit": {
-     "score": 100,
-     "values": {
-      "ccn": 2,
-      "cognitive": 1,
-      "nloc": 2,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "check_file_size": {
-     "score": 100,
-     "values": {
-      "ccn": 4,
-      "cognitive": 0,
-      "nloc": 6,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "lizard_functions": {
-     "score": 100,
-     "values": {
-      "ccn": 6,
-      "cognitive": 7,
-      "nloc": 15,
-      "params": 2,
-      "nesting": 2,
-      "conditional": 0,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "smell_measures": {
-     "score": 100,
-     "values": {
-      "ccn": 6,
-      "cognitive": 4,
-      "nloc": 10,
-      "params": 2,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "add_smells": {
-     "score": 97,
-     "values": {
-      "ccn": 9,
-      "cognitive": 4,
-      "nloc": 7,
-      "params": 3,
-      "nesting": 2,
-      "conditional": 0,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Complex Method"
-     ]
-    },
-    "check_functions": {
-     "score": 100,
-     "values": {
-      "ccn": 4,
-      "cognitive": 0,
-      "nloc": 5,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "check_ruff": {
-     "score": 100,
-     "values": {
-      "ccn": 6,
-      "cognitive": 6,
-      "nloc": 13,
-      "params": 2,
-      "nesting": 2,
-      "conditional": 0,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "span": {
-     "score": 100,
-     "values": {
-      "ccn": 2,
-      "cognitive": 1,
-      "nloc": 3,
-      "params": 3,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "biome_finding": {
-     "score": 100,
-     "values": {
-      "ccn": 4,
-      "cognitive": 3,
-      "nloc": 7,
-      "params": 3,
-      "nesting": 1,
-      "conditional": 1,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "check_biome": {
-     "score": 100,
-     "values": {
-      "ccn": 7,
-      "cognitive": 4,
-      "nloc": 12,
-      "params": 2,
-      "nesting": 2,
-      "conditional": 0,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "uses_mypy": {
-     "score": 100,
-     "values": {
-      "ccn": 4,
-      "cognitive": 3,
-      "nloc": 5,
-      "params": 1,
-      "nesting": 1,
-      "conditional": 1,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "check_mypy": {
-     "score": 97,
-     "values": {
-      "ccn": 9,
-      "cognitive": 10,
-      "nloc": 17,
-      "params": 2,
-      "nesting": 2,
-      "conditional": 1,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Complex Method"
-     ]
-    },
-    "check_pyright": {
-     "score": 100,
-     "values": {
-      "ccn": 6,
-      "cognitive": 3,
-      "nloc": 10,
-      "params": 2,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "check_tsc": {
-     "score": 100,
-     "values": {
-      "ccn": 6,
-      "cognitive": 2,
-      "nloc": 8,
-      "params": 2,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "check_types": {
-     "score": 98,
-     "values": {
-      "ccn": 5,
-      "cognitive": 6,
-      "nloc": 8,
-      "params": 2,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 2
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Bumpy Road Ahead"
-     ]
-    },
-    "check_duplication": {
-     "score": 94,
-     "values": {
-      "ccn": 10,
-      "cognitive": 11,
-      "nloc": 26,
-      "params": 3,
-      "nesting": 3,
-      "conditional": 2,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Complex Conditional",
-      "Complex Method"
-     ]
-    },
-    "innermost": {
-     "score": 100,
-     "values": {
-      "ccn": 4,
-      "cognitive": 1,
-      "nloc": 3,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "file_sources": {
-     "score": 100,
-     "values": {
-      "ccn": 2,
-      "cognitive": 1,
-      "nloc": 2,
-      "params": 1,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "source_of": {
-     "score": 100,
-     "values": {
-      "ccn": 3,
-      "cognitive": 3,
-      "nloc": 2,
-      "params": 1,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "smell_costs": {
-     "score": 100,
-     "values": {
-      "ccn": 6,
-      "cognitive": 2,
-      "nloc": 6,
-      "params": 3,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "factor": {
-     "score": 100,
-     "values": {
-      "ccn": 2,
-      "cognitive": 1,
-      "nloc": 5,
-      "params": 1,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "score_functions": {
-     "score": 100,
-     "values": {
-      "ccn": 5,
-      "cognitive": 6,
-      "nloc": 13,
-      "params": 3,
-      "nesting": 2,
-      "conditional": 0,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "reasons": {
-     "score": 100,
-     "values": {
-      "ccn": 4,
-      "cognitive": 1,
-      "nloc": 4,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "churn": {
-     "score": 100,
-     "values": {
-      "ccn": 4,
-      "cognitive": 4,
-      "nloc": 6,
-      "params": 1,
-      "nesting": 2,
-      "conditional": 0,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "mean": {
-     "score": 100,
-     "values": {
-      "ccn": 2,
-      "cognitive": 1,
-      "nloc": 2,
-      "params": 1,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "health": {
-     "score": 100,
-     "values": {
-      "ccn": 8,
-      "cognitive": 9,
-      "nloc": 13,
-      "params": 1,
-      "nesting": 3,
-      "conditional": 0,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "weighted_health": {
-     "score": 100,
-     "values": {
-      "ccn": 6,
-      "cognitive": 1,
-      "nloc": 3,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "ten": {
-     "score": 100,
-     "values": {
-      "ccn": 2,
-      "cognitive": 1,
-      "nloc": 2,
-      "params": 1,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "score_summary": {
-     "score": 97,
-     "values": {
-      "ccn": 10,
-      "cognitive": 2,
-      "nloc": 12,
-      "params": 1,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Complex Method"
-     ]
-    },
-    "analyze": {
-     "score": 100,
-     "values": {
-      "ccn": 7,
-      "cognitive": 7,
-      "nloc": 12,
-      "params": 3,
-      "nesting": 1,
-      "conditional": 1,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    }
-   }
-  },
-  "codescene": {
-   "score": 8.08,
-   "functions": {
-    "locate": [
-     "Bumpy Road Ahead (bumps = 2)",
-     "Complex Method (cc = 11)"
-    ],
-    "health": [
-     "Bumpy Road Ahead (bumps = 2)"
-    ],
-    "(file)": [
-     "Overall Code Complexity"
-    ],
-    "score_summary": [
-     "Complex Method (cc = 9)"
-    ],
-    "check_duplication": [
-     "Complex Method (cc = 9)"
-    ],
-    "check_duplication:406": [
-     "Complex Conditional (2 complex conditional expressions)"
-    ],
-    "finding": [
-     "Excess Number of Function Arguments (Arguments = 5)"
-    ]
-   }
-  }
- },
- {
-  "file": "real/quality_gate.py",
-  "gate": {
-   "health": 8.9,
-   "functions": {
-    "find_root": {
-     "score": 100,
-     "values": {
-      "ccn": 4,
-      "cognitive": 5,
-      "nloc": 6,
-      "params": 1,
-      "nesting": 2,
-      "conditional": 0,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "load_config": {
-     "score": 100,
-     "values": {
-      "ccn": 4,
-      "cognitive": 3,
-      "nloc": 9,
-      "params": 1,
-      "nesting": 2,
-      "conditional": 0,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "new_context": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "key": {
-     "score": 100,
-     "values": {
-      "ccn": 2,
-      "cognitive": 1,
-      "nloc": 2,
-      "params": 1,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "measure": {
-     "score": 100,
-     "values": {
-      "ccn": 3,
-      "cognitive": 3,
-      "nloc": 6,
-      "params": 1,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "load_baseline": {
-     "score": 100,
-     "values": {
-      "ccn": 2,
-      "cognitive": 1,
-      "nloc": 3,
-      "params": 1,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "save_baseline": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 3,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "compare": {
-     "score": 100,
-     "values": {
-      "ccn": 5,
-      "cognitive": 0,
-      "nloc": 5,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "ratchet": {
-     "score": 100,
-     "values": {
-      "ccn": 5,
-      "cognitive": 5,
-      "nloc": 10,
-      "params": 4,
-      "nesting": 2,
-      "conditional": 1,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "with_scores": {
-     "score": 100,
-     "values": {
-      "ccn": 4,
-      "cognitive": 1,
-      "nloc": 4,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "check": {
-     "score": 100,
-     "values": {
-      "ccn": 5,
-      "cognitive": 2,
-      "nloc": 13,
-      "params": 3,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "file_report": {
-     "score": 95,
-     "values": {
-      "ccn": 10,
-      "cognitive": 12,
-      "nloc": 15,
-      "params": 2,
-      "nesting": 2,
-      "conditional": 1,
-      "bumps": 2
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Bumpy Road Ahead",
-      "Complex Method"
-     ]
-    },
-    "report_text": {
-     "score": 100,
-     "values": {
-      "ccn": 7,
-      "cognitive": 4,
-      "nloc": 15,
-      "params": 1,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "cmd_init": {
-     "score": 100,
-     "values": {
-      "ccn": 5,
-      "cognitive": 4,
-      "nloc": 17,
-      "params": 2,
-      "nesting": 1,
-      "conditional": 1,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "cmd_baseline": {
-     "score": 100,
-     "values": {
-      "ccn": 5,
-      "cognitive": 2,
-      "nloc": 16,
-      "params": 2,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "cmd_report": {
-     "score": 100,
-     "values": {
-      "ccn": 2,
-      "cognitive": 1,
-      "nloc": 14,
-      "params": 2,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "tool_line": {
-     "score": 100,
-     "values": {
-      "ccn": 2,
-      "cognitive": 1,
-      "nloc": 3,
-      "params": 4,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "cmd_doctor": {
-     "score": 100,
-     "values": {
-      "ccn": 8,
-      "cognitive": 8,
-      "nloc": 13,
-      "params": 2,
-      "nesting": 2,
-      "conditional": 0,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "cmd_check": {
-     "score": 100,
-     "values": {
-      "ccn": 7,
-      "cognitive": 5,
-      "nloc": 11,
-      "params": 2,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "under": {
-     "score": 100,
-     "values": {
-      "ccn": 7,
-      "cognitive": 1,
-      "nloc": 4,
-      "params": 3,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "target_rows": {
-     "score": 100,
-     "values": {
-      "ccn": 3,
-      "cognitive": 0,
-      "nloc": 6,
-      "params": 3,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "cmd_targets": {
-     "score": 100,
-     "values": {
-      "ccn": 6,
-      "cognitive": 5,
-      "nloc": 12,
-      "params": 2,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "score_passes": {
-     "score": 100,
-     "values": {
-      "ccn": 6,
-      "cognitive": 3,
-      "nloc": 6,
-      "params": 2,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "score_text": {
-     "score": 100,
-     "values": {
-      "ccn": 7,
-      "cognitive": 4,
-      "nloc": 9,
-      "params": 3,
-      "nesting": 1,
-      "conditional": 1,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "cmd_score": {
-     "score": 100,
-     "values": {
-      "ccn": 6,
-      "cognitive": 4,
-      "nloc": 12,
-      "params": 2,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "cmd_hook": {
-     "score": 94,
-     "values": {
-      "ccn": 9,
-      "cognitive": 7,
-      "nloc": 17,
-      "params": 0,
-      "nesting": 1,
-      "conditional": 2,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Complex Conditional",
-      "Complex Method"
-     ]
-    },
-    "parse_args": {
-     "score": 100,
-     "values": {
-      "ccn": 5,
-      "cognitive": 6,
-      "nloc": 12,
-      "params": 1,
-      "nesting": 2,
-      "conditional": 0,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "main": {
-     "score": 100,
-     "values": {
-      "ccn": 7,
-      "cognitive": 6,
-      "nloc": 16,
-      "params": 1,
-      "nesting": 1,
-      "conditional": 1,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    }
-   }
-  },
-  "codescene": {
-   "score": 8.67,
-   "functions": {
-    "file_report": [
-     "Bumpy Road Ahead (bumps = 2)",
-     "Complex Method (cc = 10)"
-    ],
-    "(file)": [
-     "Overall Code Complexity"
-    ],
-    "cmd_hook": [
-     "Complex Method (cc = 9)"
-    ],
-    "cmd_hook:356": [
-     "Complex Conditional (2 complex conditional expressions)"
-    ]
-   }
-  }
- },
- {
-  "file": "real/backend_map.py",
-  "gate": {
-   "health": 1.8,
-   "functions": {
-    "load_struct": {
-     "score": 100,
-     "values": {
-      "ccn": 4,
-      "cognitive": 3,
-      "nloc": 9,
-      "params": 1,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 1,
-     "smells_over_limit": []
-    },
-    "first_existing": {
-     "score": 100,
-     "values": {
-      "ccn": 3,
-      "cognitive": 3,
-      "nloc": 6,
-      "params": 2,
-      "nesting": 2,
-      "conditional": 0,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "norm_path": {
-     "score": 100,
-     "values": {
-      "ccn": 3,
-      "cognitive": 2,
-      "nloc": 7,
-      "params": 1,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "join_paths": {
-     "score": 100,
-     "values": {
-      "ccn": 5,
-      "cognitive": 2,
-      "nloc": 3,
-      "params": 1,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "iter_source_files": {
-     "score": 94,
-     "values": {
-      "ccn": 9,
-      "cognitive": 9,
-      "nloc": 7,
-      "params": 1,
-      "nesting": 3,
-      "conditional": 2,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Complex Conditional",
-      "Complex Method"
-     ]
-    },
-    "rel": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "load_design": {
-     "score": 88,
-     "values": {
-      "ccn": 22,
-      "cognitive": 25,
-      "nloc": 28,
-      "params": 1,
-      "nesting": 4,
-      "conditional": 0,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "(cognitive)",
-      "Complex Method",
-      "Deep, Nested Complexity"
-     ]
-    },
-    "py_module_parts": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "resolve_py": {
-     "score": 92,
-     "values": {
-      "ccn": 12,
-      "cognitive": 20,
-      "nloc": 23,
-      "params": 5,
-      "nesting": 3,
-      "conditional": 1,
-      "bumps": 2
-     },
-     "smells": 1,
-     "smells_over_limit": [
-      "(cognitive)",
-      "Bumpy Road Ahead",
-      "Complex Method",
-      "Excess Number of Function Arguments"
-     ]
-    },
-    "scan_python.expr_key": {
-     "score": 100,
-     "values": {
-      "ccn": 5,
-      "cognitive": 5,
-      "nloc": 7,
-      "params": 1,
-      "nesting": 1,
-      "conditional": 1,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "scan_python": {
-     "score": 74,
-     "values": {
-      "ccn": 59,
-      "cognitive": 108,
-      "nloc": 68,
-      "params": 3,
-      "nesting": 6,
-      "conditional": 3,
-      "bumps": 5
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "(cognitive)",
-      "Bumpy Road Ahead",
-      "Complex Conditional",
-      "Complex Method",
-      "Deep, Nested Complexity"
-     ]
-    },
-    "scan_py_functions.is_traced": {
-     "score": 95,
-     "values": {
-      "ccn": 7,
-      "cognitive": 8,
-      "nloc": 6,
-      "params": 1,
-      "nesting": 2,
-      "conditional": 3,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Complex Conditional"
-     ]
-    },
-    "scan_py_functions.is_protocol": {
-     "score": 95,
-     "values": {
-      "ccn": 7,
-      "cognitive": 8,
-      "nloc": 6,
-      "params": 1,
-      "nesting": 2,
-      "conditional": 3,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Complex Conditional"
-     ]
-    },
-    "scan_py_functions": {
-     "score": 88,
-     "values": {
-      "ccn": 12,
-      "cognitive": 16,
-      "nloc": 18,
-      "params": 3,
-      "nesting": 4,
-      "conditional": 2,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "(cognitive)",
-      "Complex Conditional",
-      "Complex Method",
-      "Deep, Nested Complexity"
-     ]
-    },
-    "load_traces": {
-     "score": 85,
-     "values": {
-      "ccn": 42,
-      "cognitive": 46,
-      "nloc": 57,
-      "params": 4,
-      "nesting": 3,
-      "conditional": 2,
-      "bumps": 4
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "(cognitive)",
-      "Bumpy Road Ahead",
-      "Complex Conditional",
-      "Complex Method"
-     ]
-    },
-    "resolve_js": {
-     "score": 98,
-     "values": {
-      "ccn": 6,
-      "cognitive": 7,
-      "nloc": 13,
-      "params": 2,
-      "nesting": 2,
-      "conditional": 0,
-      "bumps": 2
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Bumpy Road Ahead"
-     ]
-    },
-    "scan_js": {
-     "score": 93,
-     "values": {
-      "ccn": 19,
-      "cognitive": 28,
-      "nloc": 34,
-      "params": 3,
-      "nesting": 3,
-      "conditional": 0,
-      "bumps": 4
-     },
-     "smells": 2,
-     "smells_over_limit": [
-      "(cognitive)",
-      "Bumpy Road Ahead",
-      "Complex Method"
-     ]
-    },
-    "analyze.mount_prefix": {
-     "score": 97,
-     "values": {
-      "ccn": 6,
-      "cognitive": 6,
-      "nloc": 8,
-      "params": 2,
-      "nesting": 2,
-      "conditional": 2,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Complex Conditional"
-     ]
-    },
-    "analyze.layer_of": {
-     "score": 100,
-     "values": {
-      "ccn": 5,
-      "cognitive": 4,
-      "nloc": 5,
-      "params": 1,
-      "nesting": 2,
-      "conditional": 1,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "analyze": {
-     "score": 76,
-     "values": {
-      "ccn": 65,
-      "cognitive": 63,
-      "nloc": 111,
-      "params": 1,
-      "nesting": 3,
-      "conditional": 1,
-      "bumps": 6
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "(cognitive)",
-      "Bumpy Road Ahead",
-      "Complex Method",
-      "Large Method"
-     ]
-    },
-    "write_outputs": {
-     "score": 100,
-     "values": {
-      "ccn": 2,
-      "cognitive": 1,
-      "nloc": 11,
-      "params": 2,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "feedback": {
-     "score": 91,
-     "values": {
-      "ccn": 15,
-      "cognitive": 15,
-      "nloc": 25,
-      "params": 1,
-      "nesting": 2,
-      "conditional": 2,
-      "bumps": 3
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Bumpy Road Ahead",
-      "Complex Conditional",
-      "Complex Method"
-     ]
-    },
-    "traces_text.walk": {
-     "score": 97,
-     "values": {
-      "ccn": 10,
-      "cognitive": 7,
-      "nloc": 9,
-      "params": 2,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 1,
-     "smells_over_limit": [
-      "Complex Method"
-     ]
-    },
-    "traces_text": {
-     "score": 97,
-     "values": {
-      "ccn": 10,
-      "cognitive": 9,
-      "nloc": 13,
-      "params": 2,
-      "nesting": 2,
-      "conditional": 0,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Complex Method"
-     ]
-    },
-    "serve.log_message": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 2,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "serve.do_GET": {
-     "score": 100,
-     "values": {
-      "ccn": 3,
-      "cognitive": 3,
-      "nloc": 18,
-      "params": 1,
-      "nesting": 1,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "serve": {
-     "score": 100,
-     "values": {
-      "ccn": 1,
-      "cognitive": 0,
-      "nloc": 7,
-      "params": 2,
-      "nesting": 0,
-      "conditional": 0,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": []
-    },
-    "detect_stack": {
-     "score": 95,
-     "values": {
-      "ccn": 6,
-      "cognitive": 3,
-      "nloc": 4,
-      "params": 1,
-      "nesting": 1,
-      "conditional": 3,
-      "bumps": 0
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Complex Conditional"
-     ]
-    },
-    "find_fastapi_main": {
-     "score": 100,
-     "values": {
-      "ccn": 5,
-      "cognitive": 9,
-      "nloc": 10,
-      "params": 1,
-      "nesting": 3,
-      "conditional": 0,
-      "bumps": 1
-     },
-     "smells": 1,
-     "smells_over_limit": []
-    },
-    "setup": {
-     "score": 78,
-     "values": {
-      "ccn": 42,
-      "cognitive": 88,
-      "nloc": 87,
-      "params": 1,
-      "nesting": 4,
-      "conditional": 1,
-      "bumps": 2
-     },
-     "smells": 8,
-     "smells_over_limit": [
-      "(cognitive)",
-      "Bumpy Road Ahead",
-      "Complex Method",
-      "Deep, Nested Complexity",
-      "Large Method"
-     ]
-    },
-    "link_subfolder_skills": {
-     "score": 97,
-     "values": {
-      "ccn": 7,
-      "cognitive": 8,
-      "nloc": 12,
-      "params": 1,
-      "nesting": 3,
-      "conditional": 2,
-      "bumps": 1
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Complex Conditional"
-     ]
-    },
-    "init": {
-     "score": 98,
-     "values": {
-      "ccn": 7,
-      "cognitive": 8,
-      "nloc": 12,
-      "params": 3,
-      "nesting": 2,
-      "conditional": 1,
-      "bumps": 2
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "Bumpy Road Ahead"
-     ]
-    },
-    "main": {
-     "score": 75,
-     "values": {
-      "ccn": 51,
-      "cognitive": 72,
-      "nloc": 98,
-      "params": 0,
-      "nesting": 4,
-      "conditional": 1,
-      "bumps": 10
-     },
-     "smells": 0,
-     "smells_over_limit": [
-      "(cognitive)",
-      "Bumpy Road Ahead",
-      "Complex Method",
-      "Deep, Nested Complexity",
-      "Large Method"
+   },
+   "codescene": {
+    "score": 9.38,
+    "functions": {
+     "findOverdue": [
+      "Deep, Nested Complexity (Nesting depth = 5 conditionals)"
      ]
     }
    }
   },
-  "codescene": {
-   "score": 2.09,
-   "functions": {
-    "(file)": [
-     "Lines of Code in a Single File",
-     "Overall Code Complexity"
-    ],
-    "main": [
-     "Bumpy Road Ahead (bumps = 11)",
-     "Deep, Nested Complexity (Nesting depth = 4 conditionals)",
-     "Complex Method (cc = 44)",
-     "Large Method (LoC = 98 lines)"
-    ],
-    "analyze": [
-     "Bumpy Road Ahead (bumps = 8)",
-     "Complex Method (cc = 51)",
-     "Large Method (LoC = 122 lines)"
-    ],
-    "setup": [
-     "Bumpy Road Ahead (bumps = 8)",
-     "Deep, Nested Complexity (Nesting depth = 5 conditionals)",
-     "Complex Method (cc = 33)",
-     "Large Method (LoC = 88 lines)"
-    ],
-    "scan_python": [
-     "Bumpy Road Ahead (bumps = 7)",
-     "Deep, Nested Complexity (Nesting depth = 6 conditionals)",
-     "Complex Method (cc = 54)",
-     "Large Method (LoC = 74 lines)"
-    ],
-    "load_traces": [
-     "Bumpy Road Ahead (bumps = 5)",
-     "Complex Method (cc = 35)"
-    ],
-    "scan_py_functions": [
-     "Bumpy Road Ahead (bumps = 4)",
-     "Deep, Nested Complexity (Nesting depth = 4 conditionals)",
-     "Complex Method (cc = 22)"
-    ],
-    "scan_js": [
-     "Bumpy Road Ahead (bumps = 4)",
-     "Complex Method (cc = 15)"
-    ],
-    "resolve_py": [
-     "Bumpy Road Ahead (bumps = 3)",
-     "Complex Method (cc = 10)",
-     "Excess Number of Function Arguments (Arguments = 5)"
-    ],
-    "feedback": [
-     "Bumpy Road Ahead (bumps = 3)",
-     "Complex Method (cc = 14)"
-    ],
-    "resolve_js": [
-     "Bumpy Road Ahead (bumps = 2)"
-    ],
-    "init": [
-     "Bumpy Road Ahead (bumps = 2)"
-    ],
-    "load_design": [
-     "Deep, Nested Complexity (Nesting depth = 4 conditionals)",
-     "Complex Method (cc = 18)"
-    ],
-    "traces_text": [
-     "Complex Method (cc = 13)"
-    ],
-    "scan_python:197": [
-     "Complex Conditional (3 complex conditional expressions)"
-    ],
-    "scan_py_functions:240": [
-     "Complex Conditional (3 complex conditional expressions)"
-    ],
-    "scan_py_functions:248": [
-     "Complex Conditional (3 complex conditional expressions)"
-    ],
-    "detect_stack:632": [
-     "Complex Conditional (3 complex conditional expressions)"
-    ],
-    "iter_source_files:80": [
-     "Complex Conditional (2 complex conditional expressions)"
-    ],
-    "scan_python:170": [
-     "Complex Conditional (2 complex conditional expressions)"
-    ],
-    "scan_python:205": [
-     "Complex Conditional (2 complex conditional expressions)"
-    ],
-    "scan_py_functions:256": [
-     "Complex Conditional (2 complex conditional expressions)"
-    ],
-    "load_traces:299": [
-     "Complex Conditional (2 complex conditional expressions)"
-    ],
-    "analyze:432": [
-     "Complex Conditional (2 complex conditional expressions)"
-    ],
-    "feedback:554": [
-     "Complex Conditional (2 complex conditional expressions)"
-    ],
-    "link_subfolder_skills:747": [
-     "Complex Conditional (2 complex conditional expressions)"
-    ]
+  {
+   "file": "fixtures/ts/primitiveObsession.ts",
+   "gate": {
+    "health": 10.0,
+    "functions": {
+     "priceWithTax": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "discount": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "convert": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "roundTo": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "clamp": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "formatMoney": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "percent": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "margin": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "markup": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "splitCost": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "weightBand": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "zoneFor": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "etaDays": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "slug": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "initials": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     }
+    }
+   },
+   "codescene": {
+    "score": 9.38,
+    "functions": {
+     "(file)": [
+      "Primitive Obsession",
+      "String Heavy Function Arguments"
+     ]
+    }
+   }
+  },
+  {
+   "file": "real/backend_map.py",
+   "gate": {
+    "health": 1.8,
+    "functions": {
+     "load_struct": {
+      "score": 94,
+      "values": {
+       "ccn": 4,
+       "cognitive": 3,
+       "nloc": 9,
+       "params": 1,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 1,
+      "smells_over_limit": []
+     },
+     "first_existing": {
+      "score": 100,
+      "values": {
+       "ccn": 3,
+       "cognitive": 3,
+       "nloc": 6,
+       "params": 2,
+       "nesting": 2,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "norm_path": {
+      "score": 100,
+      "values": {
+       "ccn": 3,
+       "cognitive": 2,
+       "nloc": 7,
+       "params": 1,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "join_paths": {
+      "score": 100,
+      "values": {
+       "ccn": 5,
+       "cognitive": 2,
+       "nloc": 3,
+       "params": 1,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "iter_source_files": {
+      "score": 94,
+      "values": {
+       "ccn": 9,
+       "cognitive": 9,
+       "nloc": 7,
+       "params": 1,
+       "nesting": 3,
+       "conditional": 2,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Complex Conditional",
+       "Complex Method"
+      ]
+     },
+     "rel": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "load_design": {
+      "score": 88,
+      "values": {
+       "ccn": 22,
+       "cognitive": 25,
+       "nloc": 28,
+       "params": 1,
+       "nesting": 4,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "(cognitive)",
+       "Complex Method",
+       "Deep, Nested Complexity"
+      ]
+     },
+     "py_module_parts": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "resolve_py": {
+      "score": 92,
+      "values": {
+       "ccn": 12,
+       "cognitive": 20,
+       "nloc": 23,
+       "params": 5,
+       "nesting": 3,
+       "conditional": 1,
+       "bumps": 2
+      },
+      "smells": 1,
+      "smells_over_limit": [
+       "(cognitive)",
+       "Bumpy Road Ahead",
+       "Complex Method",
+       "Excess Number of Function Arguments"
+      ]
+     },
+     "scan_python.expr_key": {
+      "score": 100,
+      "values": {
+       "ccn": 5,
+       "cognitive": 5,
+       "nloc": 7,
+       "params": 1,
+       "nesting": 1,
+       "conditional": 1,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "scan_python": {
+      "score": 74,
+      "values": {
+       "ccn": 59,
+       "cognitive": 108,
+       "nloc": 68,
+       "params": 3,
+       "nesting": 6,
+       "conditional": 3,
+       "bumps": 5
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "(cognitive)",
+       "Bumpy Road Ahead",
+       "Complex Conditional",
+       "Complex Method",
+       "Deep, Nested Complexity"
+      ]
+     },
+     "scan_py_functions.is_traced": {
+      "score": 94,
+      "values": {
+       "ccn": 7,
+       "cognitive": 8,
+       "nloc": 6,
+       "params": 1,
+       "nesting": 2,
+       "conditional": 3,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Complex Conditional"
+      ]
+     },
+     "scan_py_functions.is_protocol": {
+      "score": 94,
+      "values": {
+       "ccn": 7,
+       "cognitive": 8,
+       "nloc": 6,
+       "params": 0,
+       "nesting": 2,
+       "conditional": 3,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Complex Conditional"
+      ]
+     },
+     "scan_py_functions": {
+      "score": 88,
+      "values": {
+       "ccn": 12,
+       "cognitive": 16,
+       "nloc": 18,
+       "params": 3,
+       "nesting": 4,
+       "conditional": 2,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "(cognitive)",
+       "Complex Conditional",
+       "Complex Method",
+       "Deep, Nested Complexity"
+      ]
+     },
+     "load_traces": {
+      "score": 85,
+      "values": {
+       "ccn": 42,
+       "cognitive": 46,
+       "nloc": 57,
+       "params": 4,
+       "nesting": 3,
+       "conditional": 2,
+       "bumps": 4
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "(cognitive)",
+       "Bumpy Road Ahead",
+       "Complex Conditional",
+       "Complex Method"
+      ]
+     },
+     "resolve_js": {
+      "score": 94,
+      "values": {
+       "ccn": 6,
+       "cognitive": 7,
+       "nloc": 13,
+       "params": 2,
+       "nesting": 2,
+       "conditional": 0,
+       "bumps": 2
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Bumpy Road Ahead"
+      ]
+     },
+     "scan_js": {
+      "score": 93,
+      "values": {
+       "ccn": 19,
+       "cognitive": 28,
+       "nloc": 34,
+       "params": 3,
+       "nesting": 3,
+       "conditional": 0,
+       "bumps": 4
+      },
+      "smells": 2,
+      "smells_over_limit": [
+       "(cognitive)",
+       "Bumpy Road Ahead",
+       "Complex Method"
+      ]
+     },
+     "analyze.mount_prefix": {
+      "score": 94,
+      "values": {
+       "ccn": 6,
+       "cognitive": 6,
+       "nloc": 8,
+       "params": 2,
+       "nesting": 2,
+       "conditional": 2,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Complex Conditional"
+      ]
+     },
+     "analyze.layer_of": {
+      "score": 100,
+      "values": {
+       "ccn": 5,
+       "cognitive": 4,
+       "nloc": 5,
+       "params": 1,
+       "nesting": 2,
+       "conditional": 1,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "analyze": {
+      "score": 76,
+      "values": {
+       "ccn": 65,
+       "cognitive": 63,
+       "nloc": 111,
+       "params": 1,
+       "nesting": 3,
+       "conditional": 1,
+       "bumps": 6
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "(cognitive)",
+       "Bumpy Road Ahead",
+       "Complex Method",
+       "Large Method"
+      ]
+     },
+     "write_outputs": {
+      "score": 100,
+      "values": {
+       "ccn": 2,
+       "cognitive": 1,
+       "nloc": 11,
+       "params": 2,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "feedback": {
+      "score": 91,
+      "values": {
+       "ccn": 15,
+       "cognitive": 15,
+       "nloc": 25,
+       "params": 1,
+       "nesting": 2,
+       "conditional": 2,
+       "bumps": 3
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Bumpy Road Ahead",
+       "Complex Conditional",
+       "Complex Method"
+      ]
+     },
+     "traces_text.walk": {
+      "score": 94,
+      "values": {
+       "ccn": 10,
+       "cognitive": 7,
+       "nloc": 9,
+       "params": 2,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 1,
+      "smells_over_limit": [
+       "Complex Method"
+      ]
+     },
+     "traces_text": {
+      "score": 94,
+      "values": {
+       "ccn": 10,
+       "cognitive": 9,
+       "nloc": 13,
+       "params": 2,
+       "nesting": 2,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Complex Method"
+      ]
+     },
+     "serve.log_message": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 1,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "serve.do_GET": {
+      "score": 100,
+      "values": {
+       "ccn": 3,
+       "cognitive": 3,
+       "nloc": 18,
+       "params": 0,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "serve": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 7,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "detect_stack": {
+      "score": 94,
+      "values": {
+       "ccn": 6,
+       "cognitive": 3,
+       "nloc": 4,
+       "params": 1,
+       "nesting": 1,
+       "conditional": 3,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Complex Conditional"
+      ]
+     },
+     "find_fastapi_main": {
+      "score": 94,
+      "values": {
+       "ccn": 5,
+       "cognitive": 9,
+       "nloc": 10,
+       "params": 1,
+       "nesting": 3,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 1,
+      "smells_over_limit": []
+     },
+     "setup": {
+      "score": 78,
+      "values": {
+       "ccn": 42,
+       "cognitive": 88,
+       "nloc": 87,
+       "params": 1,
+       "nesting": 4,
+       "conditional": 1,
+       "bumps": 2
+      },
+      "smells": 8,
+      "smells_over_limit": [
+       "(cognitive)",
+       "Bumpy Road Ahead",
+       "Complex Method",
+       "Deep, Nested Complexity",
+       "Large Method"
+      ]
+     },
+     "link_subfolder_skills": {
+      "score": 94,
+      "values": {
+       "ccn": 7,
+       "cognitive": 8,
+       "nloc": 12,
+       "params": 1,
+       "nesting": 3,
+       "conditional": 2,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Complex Conditional"
+      ]
+     },
+     "init": {
+      "score": 94,
+      "values": {
+       "ccn": 7,
+       "cognitive": 8,
+       "nloc": 12,
+       "params": 3,
+       "nesting": 2,
+       "conditional": 1,
+       "bumps": 2
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Bumpy Road Ahead"
+      ]
+     },
+     "main": {
+      "score": 75,
+      "values": {
+       "ccn": 51,
+       "cognitive": 72,
+       "nloc": 98,
+       "params": 0,
+       "nesting": 4,
+       "conditional": 1,
+       "bumps": 10
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "(cognitive)",
+       "Bumpy Road Ahead",
+       "Complex Method",
+       "Deep, Nested Complexity",
+       "Large Method"
+      ]
+     }
+    }
+   },
+   "codescene": {
+    "score": 2.09,
+    "functions": {
+     "(file)": [
+      "Lines of Code in a Single File",
+      "Overall Code Complexity"
+     ],
+     "main": [
+      "Bumpy Road Ahead (bumps = 11)",
+      "Deep, Nested Complexity (Nesting depth = 4 conditionals)",
+      "Complex Method (cc = 44)",
+      "Large Method (LoC = 98 lines)"
+     ],
+     "analyze": [
+      "Bumpy Road Ahead (bumps = 8)",
+      "Complex Method (cc = 51)",
+      "Large Method (LoC = 122 lines)"
+     ],
+     "setup": [
+      "Bumpy Road Ahead (bumps = 8)",
+      "Deep, Nested Complexity (Nesting depth = 5 conditionals)",
+      "Complex Method (cc = 33)",
+      "Large Method (LoC = 88 lines)"
+     ],
+     "scan_python": [
+      "Bumpy Road Ahead (bumps = 7)",
+      "Deep, Nested Complexity (Nesting depth = 6 conditionals)",
+      "Complex Method (cc = 54)",
+      "Large Method (LoC = 74 lines)"
+     ],
+     "load_traces": [
+      "Bumpy Road Ahead (bumps = 5)",
+      "Complex Method (cc = 35)"
+     ],
+     "scan_py_functions": [
+      "Bumpy Road Ahead (bumps = 4)",
+      "Deep, Nested Complexity (Nesting depth = 4 conditionals)",
+      "Complex Method (cc = 22)"
+     ],
+     "scan_js": [
+      "Bumpy Road Ahead (bumps = 4)",
+      "Complex Method (cc = 15)"
+     ],
+     "resolve_py": [
+      "Bumpy Road Ahead (bumps = 3)",
+      "Complex Method (cc = 10)",
+      "Excess Number of Function Arguments (Arguments = 5)"
+     ],
+     "feedback": [
+      "Bumpy Road Ahead (bumps = 3)",
+      "Complex Method (cc = 14)"
+     ],
+     "resolve_js": [
+      "Bumpy Road Ahead (bumps = 2)"
+     ],
+     "init": [
+      "Bumpy Road Ahead (bumps = 2)"
+     ],
+     "load_design": [
+      "Deep, Nested Complexity (Nesting depth = 4 conditionals)",
+      "Complex Method (cc = 18)"
+     ],
+     "traces_text": [
+      "Complex Method (cc = 13)"
+     ],
+     "scan_python:197": [
+      "Complex Conditional (3 complex conditional expressions)"
+     ],
+     "scan_py_functions:240": [
+      "Complex Conditional (3 complex conditional expressions)"
+     ],
+     "scan_py_functions:248": [
+      "Complex Conditional (3 complex conditional expressions)"
+     ],
+     "detect_stack:632": [
+      "Complex Conditional (3 complex conditional expressions)"
+     ],
+     "iter_source_files:80": [
+      "Complex Conditional (2 complex conditional expressions)"
+     ],
+     "scan_python:170": [
+      "Complex Conditional (2 complex conditional expressions)"
+     ],
+     "scan_python:205": [
+      "Complex Conditional (2 complex conditional expressions)"
+     ],
+     "scan_py_functions:256": [
+      "Complex Conditional (2 complex conditional expressions)"
+     ],
+     "load_traces:299": [
+      "Complex Conditional (2 complex conditional expressions)"
+     ],
+     "analyze:432": [
+      "Complex Conditional (2 complex conditional expressions)"
+     ],
+     "feedback:554": [
+      "Complex Conditional (2 complex conditional expressions)"
+     ],
+     "link_subfolder_skills:747": [
+      "Complex Conditional (2 complex conditional expressions)"
+     ]
+    }
+   }
+  },
+  {
+   "file": "real/orders.py",
+   "gate": {
+    "health": 9.2,
+    "functions": {
+     "legacy_price": {
+      "score": 92,
+      "values": {
+       "ccn": 13,
+       "cognitive": 21,
+       "nloc": 25,
+       "params": 6,
+       "nesting": 3,
+       "conditional": 1,
+       "bumps": 3
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "(cognitive)",
+       "Bumpy Road Ahead",
+       "Complex Method",
+       "Excess Number of Function Arguments"
+      ]
+     },
+     "subtotal": {
+      "score": 100,
+      "values": {
+       "ccn": 2,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 1,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     }
+    }
+   },
+   "codescene": {
+    "score": 9.11,
+    "functions": {
+     "legacy_price": [
+      "Bumpy Road Ahead (bumps = 3)",
+      "Complex Method (cc = 16)",
+      "Excess Number of Function Arguments (Arguments = 6)"
+     ]
+    }
+   }
+  },
+  {
+   "file": "real/qg_checks.py",
+   "gate": {
+    "health": 7.6,
+    "functions": {
+     "rel": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "looks_generated": {
+      "score": 100,
+      "values": {
+       "ccn": 3,
+       "cognitive": 1,
+       "nloc": 7,
+       "params": 1,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "in_scope": {
+      "score": 100,
+      "values": {
+       "ccn": 7,
+       "cognitive": 4,
+       "nloc": 9,
+       "params": 3,
+       "nesting": 1,
+       "conditional": 1,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "git": {
+      "score": 100,
+      "values": {
+       "ccn": 2,
+       "cognitive": 1,
+       "nloc": 4,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "walk_files": {
+      "score": 100,
+      "values": {
+       "ccn": 6,
+       "cognitive": 2,
+       "nloc": 4,
+       "params": 1,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "all_files": {
+      "score": 100,
+      "values": {
+       "ccn": 6,
+       "cognitive": 2,
+       "nloc": 4,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "changed_files": {
+      "score": 94,
+      "values": {
+       "ccn": 10,
+       "cognitive": 6,
+       "nloc": 9,
+       "params": 3,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Complex Method"
+      ]
+     },
+     "package_of": {
+      "score": 100,
+      "values": {
+       "ccn": 6,
+       "cognitive": 6,
+       "nloc": 7,
+       "params": 3,
+       "nesting": 2,
+       "conditional": 1,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "by_package": {
+      "score": 100,
+      "values": {
+       "ccn": 3,
+       "cognitive": 3,
+       "nloc": 6,
+       "params": 4,
+       "nesting": 2,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "installed": {
+      "score": 100,
+      "values": {
+       "ccn": 7,
+       "cognitive": 0,
+       "nloc": 4,
+       "params": 3,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "locate": {
+      "score": 94,
+      "values": {
+       "ccn": 12,
+       "cognitive": 14,
+       "nloc": 18,
+       "params": 4,
+       "nesting": 2,
+       "conditional": 1,
+       "bumps": 2
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Bumpy Road Ahead",
+       "Complex Method"
+      ]
+     },
+     "tool": {
+      "score": 100,
+      "values": {
+       "ccn": 5,
+       "cognitive": 4,
+       "nloc": 6,
+       "params": 3,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "run": {
+      "score": 100,
+      "values": {
+       "ccn": 2,
+       "cognitive": 1,
+       "nloc": 3,
+       "params": 3,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "run_json": {
+      "score": 100,
+      "values": {
+       "ccn": 4,
+       "cognitive": 3,
+       "nloc": 5,
+       "params": 3,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "finding": {
+      "score": 94,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 5,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Excess Number of Function Arguments"
+      ]
+     },
+     "code_lines": {
+      "score": 100,
+      "values": {
+       "ccn": 4,
+       "cognitive": 1,
+       "nloc": 3,
+       "params": 1,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "file_limit": {
+      "score": 100,
+      "values": {
+       "ccn": 2,
+       "cognitive": 1,
+       "nloc": 2,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "check_file_size": {
+      "score": 100,
+      "values": {
+       "ccn": 4,
+       "cognitive": 0,
+       "nloc": 6,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "lizard_functions": {
+      "score": 100,
+      "values": {
+       "ccn": 6,
+       "cognitive": 7,
+       "nloc": 16,
+       "params": 2,
+       "nesting": 2,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "is_method": {
+      "score": 100,
+      "values": {
+       "ccn": 2,
+       "cognitive": 1,
+       "nloc": 3,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "smell_measures": {
+      "score": 100,
+      "values": {
+       "ccn": 6,
+       "cognitive": 4,
+       "nloc": 10,
+       "params": 2,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "add_smells": {
+      "score": 94,
+      "values": {
+       "ccn": 9,
+       "cognitive": 4,
+       "nloc": 7,
+       "params": 3,
+       "nesting": 2,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Complex Method"
+      ]
+     },
+     "check_functions": {
+      "score": 100,
+      "values": {
+       "ccn": 4,
+       "cognitive": 0,
+       "nloc": 5,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "check_ruff": {
+      "score": 100,
+      "values": {
+       "ccn": 6,
+       "cognitive": 6,
+       "nloc": 13,
+       "params": 2,
+       "nesting": 2,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "span": {
+      "score": 100,
+      "values": {
+       "ccn": 2,
+       "cognitive": 1,
+       "nloc": 3,
+       "params": 3,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "biome_finding": {
+      "score": 100,
+      "values": {
+       "ccn": 4,
+       "cognitive": 3,
+       "nloc": 7,
+       "params": 3,
+       "nesting": 1,
+       "conditional": 1,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "check_biome": {
+      "score": 100,
+      "values": {
+       "ccn": 7,
+       "cognitive": 4,
+       "nloc": 12,
+       "params": 2,
+       "nesting": 2,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "uses_mypy": {
+      "score": 100,
+      "values": {
+       "ccn": 4,
+       "cognitive": 3,
+       "nloc": 5,
+       "params": 1,
+       "nesting": 1,
+       "conditional": 1,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "check_mypy": {
+      "score": 94,
+      "values": {
+       "ccn": 9,
+       "cognitive": 10,
+       "nloc": 17,
+       "params": 2,
+       "nesting": 2,
+       "conditional": 1,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Complex Method"
+      ]
+     },
+     "check_pyright": {
+      "score": 100,
+      "values": {
+       "ccn": 6,
+       "cognitive": 3,
+       "nloc": 10,
+       "params": 2,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "check_tsc": {
+      "score": 100,
+      "values": {
+       "ccn": 6,
+       "cognitive": 2,
+       "nloc": 8,
+       "params": 2,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "check_types": {
+      "score": 94,
+      "values": {
+       "ccn": 5,
+       "cognitive": 6,
+       "nloc": 8,
+       "params": 2,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 2
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Bumpy Road Ahead"
+      ]
+     },
+     "check_duplication": {
+      "score": 94,
+      "values": {
+       "ccn": 10,
+       "cognitive": 11,
+       "nloc": 26,
+       "params": 3,
+       "nesting": 3,
+       "conditional": 2,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Complex Conditional",
+       "Complex Method"
+      ]
+     },
+     "innermost": {
+      "score": 100,
+      "values": {
+       "ccn": 4,
+       "cognitive": 1,
+       "nloc": 3,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "file_sources": {
+      "score": 100,
+      "values": {
+       "ccn": 2,
+       "cognitive": 1,
+       "nloc": 2,
+       "params": 1,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "source_of": {
+      "score": 100,
+      "values": {
+       "ccn": 3,
+       "cognitive": 3,
+       "nloc": 2,
+       "params": 1,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "smell_costs": {
+      "score": 100,
+      "values": {
+       "ccn": 6,
+       "cognitive": 2,
+       "nloc": 6,
+       "params": 3,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "factor": {
+      "score": 100,
+      "values": {
+       "ccn": 2,
+       "cognitive": 1,
+       "nloc": 5,
+       "params": 1,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "score_functions": {
+      "score": 94,
+      "values": {
+       "ccn": 8,
+       "cognitive": 9,
+       "nloc": 15,
+       "params": 3,
+       "nesting": 2,
+       "conditional": 1,
+       "bumps": 2
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Bumpy Road Ahead"
+      ]
+     },
+     "reasons": {
+      "score": 100,
+      "values": {
+       "ccn": 4,
+       "cognitive": 1,
+       "nloc": 4,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "churn": {
+      "score": 100,
+      "values": {
+       "ccn": 4,
+       "cognitive": 4,
+       "nloc": 6,
+       "params": 1,
+       "nesting": 2,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "mean": {
+      "score": 100,
+      "values": {
+       "ccn": 2,
+       "cognitive": 1,
+       "nloc": 2,
+       "params": 1,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "health": {
+      "score": 100,
+      "values": {
+       "ccn": 8,
+       "cognitive": 9,
+       "nloc": 13,
+       "params": 1,
+       "nesting": 3,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "weighted_health": {
+      "score": 100,
+      "values": {
+       "ccn": 6,
+       "cognitive": 1,
+       "nloc": 3,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "ten": {
+      "score": 100,
+      "values": {
+       "ccn": 2,
+       "cognitive": 1,
+       "nloc": 2,
+       "params": 1,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "score_summary": {
+      "score": 94,
+      "values": {
+       "ccn": 10,
+       "cognitive": 2,
+       "nloc": 12,
+       "params": 1,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Complex Method"
+      ]
+     },
+     "analyze": {
+      "score": 100,
+      "values": {
+       "ccn": 7,
+       "cognitive": 7,
+       "nloc": 12,
+       "params": 3,
+       "nesting": 1,
+       "conditional": 1,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     }
+    }
+   },
+   "codescene": {
+    "score": 7.95,
+    "functions": {
+     "locate": [
+      "Bumpy Road Ahead (bumps = 2)",
+      "Complex Method (cc = 11)"
+     ],
+     "score_functions": [
+      "Bumpy Road Ahead (bumps = 2)"
+     ],
+     "health": [
+      "Bumpy Road Ahead (bumps = 2)"
+     ],
+     "(file)": [
+      "Overall Code Complexity"
+     ],
+     "score_summary": [
+      "Complex Method (cc = 9)"
+     ],
+     "check_duplication": [
+      "Complex Method (cc = 9)"
+     ],
+     "check_duplication:413": [
+      "Complex Conditional (2 complex conditional expressions)"
+     ],
+     "finding": [
+      "Excess Number of Function Arguments (Arguments = 5)"
+     ]
+    }
+   }
+  },
+  {
+   "file": "real/quality_gate.py",
+   "gate": {
+    "health": 8.9,
+    "functions": {
+     "find_root": {
+      "score": 100,
+      "values": {
+       "ccn": 4,
+       "cognitive": 5,
+       "nloc": 6,
+       "params": 1,
+       "nesting": 2,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "load_config": {
+      "score": 100,
+      "values": {
+       "ccn": 4,
+       "cognitive": 3,
+       "nloc": 9,
+       "params": 1,
+       "nesting": 2,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "new_context": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 2,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "key": {
+      "score": 100,
+      "values": {
+       "ccn": 2,
+       "cognitive": 1,
+       "nloc": 2,
+       "params": 1,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "measure": {
+      "score": 100,
+      "values": {
+       "ccn": 3,
+       "cognitive": 3,
+       "nloc": 6,
+       "params": 1,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "load_baseline": {
+      "score": 100,
+      "values": {
+       "ccn": 2,
+       "cognitive": 1,
+       "nloc": 3,
+       "params": 1,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "save_baseline": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "compare": {
+      "score": 100,
+      "values": {
+       "ccn": 5,
+       "cognitive": 0,
+       "nloc": 5,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "ratchet": {
+      "score": 100,
+      "values": {
+       "ccn": 5,
+       "cognitive": 5,
+       "nloc": 10,
+       "params": 4,
+       "nesting": 2,
+       "conditional": 1,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "with_scores": {
+      "score": 100,
+      "values": {
+       "ccn": 4,
+       "cognitive": 1,
+       "nloc": 4,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "check": {
+      "score": 100,
+      "values": {
+       "ccn": 5,
+       "cognitive": 2,
+       "nloc": 13,
+       "params": 3,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "file_report": {
+      "score": 94,
+      "values": {
+       "ccn": 10,
+       "cognitive": 12,
+       "nloc": 15,
+       "params": 2,
+       "nesting": 2,
+       "conditional": 1,
+       "bumps": 2
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Bumpy Road Ahead",
+       "Complex Method"
+      ]
+     },
+     "report_text": {
+      "score": 100,
+      "values": {
+       "ccn": 7,
+       "cognitive": 4,
+       "nloc": 15,
+       "params": 1,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "cmd_init": {
+      "score": 100,
+      "values": {
+       "ccn": 5,
+       "cognitive": 4,
+       "nloc": 17,
+       "params": 2,
+       "nesting": 1,
+       "conditional": 1,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "cmd_baseline": {
+      "score": 100,
+      "values": {
+       "ccn": 5,
+       "cognitive": 2,
+       "nloc": 16,
+       "params": 2,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "cmd_report": {
+      "score": 100,
+      "values": {
+       "ccn": 2,
+       "cognitive": 1,
+       "nloc": 14,
+       "params": 2,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "tool_line": {
+      "score": 100,
+      "values": {
+       "ccn": 2,
+       "cognitive": 1,
+       "nloc": 3,
+       "params": 4,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "cmd_doctor": {
+      "score": 100,
+      "values": {
+       "ccn": 8,
+       "cognitive": 8,
+       "nloc": 13,
+       "params": 2,
+       "nesting": 2,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "cmd_check": {
+      "score": 100,
+      "values": {
+       "ccn": 7,
+       "cognitive": 5,
+       "nloc": 11,
+       "params": 2,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "under": {
+      "score": 100,
+      "values": {
+       "ccn": 7,
+       "cognitive": 1,
+       "nloc": 4,
+       "params": 3,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "target_rows": {
+      "score": 100,
+      "values": {
+       "ccn": 3,
+       "cognitive": 0,
+       "nloc": 6,
+       "params": 3,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "cmd_targets": {
+      "score": 100,
+      "values": {
+       "ccn": 6,
+       "cognitive": 5,
+       "nloc": 12,
+       "params": 2,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "score_passes": {
+      "score": 100,
+      "values": {
+       "ccn": 6,
+       "cognitive": 3,
+       "nloc": 6,
+       "params": 2,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "score_text": {
+      "score": 100,
+      "values": {
+       "ccn": 7,
+       "cognitive": 4,
+       "nloc": 9,
+       "params": 3,
+       "nesting": 1,
+       "conditional": 1,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "cmd_score": {
+      "score": 100,
+      "values": {
+       "ccn": 6,
+       "cognitive": 4,
+       "nloc": 12,
+       "params": 2,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "cmd_hook": {
+      "score": 94,
+      "values": {
+       "ccn": 9,
+       "cognitive": 7,
+       "nloc": 17,
+       "params": 0,
+       "nesting": 1,
+       "conditional": 2,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Complex Conditional",
+       "Complex Method"
+      ]
+     },
+     "parse_args": {
+      "score": 100,
+      "values": {
+       "ccn": 5,
+       "cognitive": 6,
+       "nloc": 12,
+       "params": 1,
+       "nesting": 2,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "main": {
+      "score": 100,
+      "values": {
+       "ccn": 7,
+       "cognitive": 6,
+       "nloc": 16,
+       "params": 1,
+       "nesting": 1,
+       "conditional": 1,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     }
+    }
+   },
+   "codescene": {
+    "score": 8.67,
+    "functions": {
+     "file_report": [
+      "Bumpy Road Ahead (bumps = 2)",
+      "Complex Method (cc = 10)"
+     ],
+     "(file)": [
+      "Overall Code Complexity"
+     ],
+     "cmd_hook": [
+      "Complex Method (cc = 9)"
+     ],
+     "cmd_hook:356": [
+      "Complex Conditional (2 complex conditional expressions)"
+     ]
+    }
    }
   }
- }
-]
+ ]
+}

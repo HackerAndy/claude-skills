@@ -9,11 +9,11 @@ A deterministic complexity and code-smell gate for Python, JavaScript and TypeSc
 | File length | built in | every edit, `check` |
 | Lint and smells (project's config + bugbear, simplify, comprehensions, pyupgrade) | ruff, biome | every edit, `check` |
 | Type errors | the package's mypy if configured, else pyright; the package's tsc | `check --full` (CI) |
-| Duplicated code (reported in each file that holds a copy; each copy costs the function 0.5 on the 1–10 scale) | jscpd | every edit, `check`; skipped if the scan takes over 60 s. Set `duplication = false` under `[edit]` to turn it off |
+| Duplicated code (reported in each file that holds a copy; it costs 0.62 on the 1–10 scale, once per file, as in CodeScene) | jscpd | every edit, `check`; skipped if the scan takes over 60 s. Set `duplication = false` under `[edit]` to turn it off |
 
 The limits and scores follow CodeScene's Code Health, measured against its CLI ([`docs/codescene-parity.md`](docs/codescene-parity.md)):
 
-- **Limits** are CodeScene's default thresholds, less one because CodeScene warns *at* a threshold: cyclomatic complexity 8, function length 69 lines, 4 parameters, nesting depth 3, 1 `&&` / `||` per condition, 1 bump, 599 lines per Python file and 999 per JS / TS file. Cognitive complexity (15) is our addition; CodeScene has no such smell.
+- **Limits** are CodeScene's default thresholds, less one because CodeScene warns *at* a threshold: cyclomatic complexity 8, function length 69 lines, 4 parameters (not counting `self` / `cls`), nesting depth 3, 1 `&&` / `||` per condition, 1 bump, 599 lines per Python file and 999 per JS / TS file. Cognitive complexity (15) is our addition; CodeScene has no such smell.
 - **Costs.** Each smell over its limit costs what it costs CodeScene on its 1–10 scale, about 0.16 (bumpy road) to 0.6 (nesting), rising with complexity and length. Costs multiply: a score is 10 × the product of (1 − cost ÷ 10). Lint findings cost nothing, as in CodeScene, but they still block.
 - **Functions** are scored 0–100% as a file holding only that function. A function with any finding stops at 94%, so **approved (95% or more) means inside every limit with no findings**.
 - **Code Health** (1–10) is per file. Complex Method, Large Method and Complex Conditional count every function. Nesting, parameters and bumpy road count once per file, at their worst, as in CodeScene. The project figure weights files by lines of code. The report also shows a hotspot figure (files changed in the last 180 days) and the worst file.

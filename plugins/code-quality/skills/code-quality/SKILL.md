@@ -17,7 +17,7 @@ Tools run per package (the nearest folder with `pyproject.toml`, `package.json`,
 
 Every function gets a score from 0 to 100%. **A function is approved at 95% or more**; that is the bar, per function: 9.5 on CodeScene's 1–10 Code Health scale, the level it recommends for code AI agents work in.
 
-- The limits are CodeScene's default thresholds less one (CodeScene warns *at* its threshold): cyclomatic 8, cognitive 15 (ours), 69 lines, 4 parameters, nesting 3, 1 `&&` / `||` per condition, 1 bump.
+- The limits are CodeScene's default thresholds less one (CodeScene warns *at* its threshold): cyclomatic 8, cognitive 15 (ours), 69 lines, 4 parameters (`self` / `cls` don't count), nesting 3, 1 `&&` / `||` per condition, 1 bump.
 - Each smell over a limit costs what it costs CodeScene on its 1–10 scale, and the costs multiply (`fn.costs` in `check --json`). Lint costs nothing but still blocks. **A function with any finding stops at 94%**, so approved means "inside every limit, no findings".
 - Code Health is CodeScene's model per file (nesting, parameters and bumpy road count once per file, at their worst), with files weighted by lines of code for the project, a hotspot figure (files changed in 180 days) and the worst file. `check --json` has `scores.health`, `worst_file`, `worst_file_health`; `report.json` has `health`. Never act on an average; act on the functions below 95%.
 

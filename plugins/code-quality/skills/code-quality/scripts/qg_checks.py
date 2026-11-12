@@ -52,9 +52,9 @@ COSTS = {
     "bumps": lambda v: 0.16,
     "cognitive": lambda v: max(0.32, 0.026 * v + 0.03),  # not a CodeScene smell; charged only without ccn
 }
-ONCE_PER_FILE = {"nesting", "params", "bumps"}  # CodeScene charges these once per file, at the worst function
-DUPLICATE_COST = 0.5  # per duplicated block inside the function. Lint findings block but cost nothing, as in
-                      # CodeScene, which doesn't score style.
+ONCE_PER_FILE = {"nesting", "params", "bumps", "duplicate"}  # CodeScene charges these once per file, at the worst
+DUPLICATE_COST = 0.62  # a function holding duplicated code, however many copies. Lint findings block but cost
+                       # nothing, as in CodeScene, which doesn't score style.
 FILE_SOURCES = {"lizard", "ruff", "biome"}  # the checks that run per file, on every check
 EDIT_DUPLICATION_SECONDS = 60  # a check on edit skips the duplication scan when it takes longer than this
 CHURN_DAYS = 180  # how far back a file's commits count toward refactoring priority
@@ -234,9 +234,16 @@ def lizard_functions(ctx, files):
         file, name = rel(ctx["root"], row[6]), row[7]
         seen[(file, name)] = seen.get((file, name), 0) + 1
         symbol = name if seen[(file, name)] == 1 else f"{name}#{seen[(file, name)]}"
-        values = {"ccn": int(row[1]), "cognitive": int(row[11]), "nloc": int(row[0]), "params": int(row[3])}
+        values = {"ccn": int(row[1]), "cognitive": int(row[11]), "nloc": int(row[0]),
+                  "params": int(row[3]) - is_method(file, row[8])}
         out.append({"file": file, "symbol": symbol, "line": int(row[9]), "end": int(row[10]), "values": values})
     return add_smells(ctx, files, out)
+
+
+def is_method(file, long_name):
+    """1 when a Python function's first parameter is self or cls, which CodeScene doesn't count as an argument."""
+    first = long_name.partition("(")[2].split(",")[0].split(":")[0].strip(" )")
+    return int(file.endswith(".py") and first in ("self", "cls"))
 
 
 SMELLS = Path(__file__).with_name("qg_smells.py")
@@ -433,7 +440,7 @@ def smell_costs(limits, values, duplicates):
     if "ccn" in over:
         over.pop("cognitive", None)
     costs = {m: round(COSTS[m](v), 3) for m, v in over.items()}
-    return costs | ({"duplicate": DUPLICATE_COST * duplicates} if duplicates else {})
+    return costs | ({"duplicate": DUPLICATE_COST} if duplicates else {})
 
 
 def factor(costs):

@@ -25,7 +25,7 @@ functions, which CodeScene folds into their parent.
 |---|---|---|---|
 | py/clean | 9.8 | 10.0 | 10.0 |
 | py/primitive_obsession | 9.6 | 10.0 | 10.0 |
-| py/dry_violation | 9.0 | 8.5 | 10.0 (\*) |
+| py/dry_violation | 9.0 | 8.8 | 10.0 (\*) |
 | py/excess_arguments | 8.9 | 9.7 | 9.68 |
 | py/large_method | 8.6 | 9.6 | 9.55 |
 | py/complex_method | 7.8 | 9.6 | 9.6 |
@@ -45,7 +45,7 @@ functions, which CodeScene folds into their parent.
 | real/qg_checks.py | 9.4 | 7.6 | 8.08 |
 | real/backend_map.py | 3.0 | 1.8 | 2.09 |
 
-(\*) The CodeScene CLI doesn't score duplication; we charge 0.5 per copy.
+(\*) CodeScene's duplication check looks for similar functions within one file and doesn't fire on this fixture. jscpd finds the exact copy, and we charge it once per file (0.11.1).
 (\*\*) We don't model Primitive Obsession.
 
 ## What CodeScene charges (measured with generated samples)
@@ -59,7 +59,8 @@ File size has no effect: the same smell scores the same with 0, 10 or 40 clean f
 | Large Method | 70 LoC | 0.0052 × LoC + 0.035: 0.40 at 70, 0.56 at 100, 1.33 at 250 |
 | Complex Conditional | 2 operators | 0.15 × operators + 0.02, summed across the file |
 | Deep, Nested Complexity | depth 4 | 0.62 for depth 4-6, then about 0.26 per level |
-| Excess Function Arguments | 5 | 0.32 flat |
+| Excess Function Arguments | 5, not counting `self` / `cls` | 0.32 flat |
+| Code Duplication | functions ≥ 75% similar, 10+ LoC | 0.62 once per file, however many functions (measured on real code in 0.11.1) |
 | Bumpy Road Ahead | 2 bumps | 0.16 for 2-4 bumps. Larger counts were inconsistent (6 bumps cost 0.16 in one sample and 0.64 in another) |
 
 How repeats count in one file:
@@ -83,7 +84,8 @@ Still off: `setup` in backend_map.py (CodeScene 8, ours 2) and `scan_py_function
 
 ## Not modelled
 
-- **Code Duplication and Brain Method** are CodeScene rules, but neither `cs review` nor `cs delta` reports them, so there is nothing to compare against.
+- **Brain Method:** neither `cs review` nor `cs delta` reported it on the corpus.
+- **Code Duplication is detected differently.** CodeScene reports it on real code: functions in one file that are at least 75% similar. Our fixture of near-identical functions didn't trigger it. jscpd finds exact token copies, across files too, so the two find different things. Only the cost (0.62 once per file) matches.
 - **Primitive Obsession and String Heavy Function Arguments:** TS only in CodeScene, and only once a file has about 15 primitive-argument functions.
 - **Overall Code Complexity (file mean cc ≥ 4) and Low Cohesion:** file-level rules we don't have.
 - **Lint:** costs nothing in the score, as in CodeScene, but still blocks.
