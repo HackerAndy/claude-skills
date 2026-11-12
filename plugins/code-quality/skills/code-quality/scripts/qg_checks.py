@@ -55,6 +55,7 @@ COSTS = {
 ONCE_PER_FILE = {"nesting", "params", "bumps"}  # CodeScene charges these once per file, at the worst
 OVERALL_COST = 0.62  # CodeScene's Overall Code Complexity: mean cyclomatic complexity over 4 in a file of 7+ functions
 OVERALL_MEAN, OVERALL_MIN_FUNCTIONS = 4, 7
+MANY_ARGUMENTS_COST, ARGUMENTS_MEAN = 0.62, 4  # Excess Arguments costs this instead when 7+ functions average over 4
 SIMILAR_COST = 0.62  # CodeScene's Code Duplication: a function with a near copy in the same file, once per file
 # Lint and duplication findings block but cost nothing. CodeScene doesn't score style, and its duplication check
 # (similar functions within one file) isn't what jscpd finds (copies, mostly across files); see docs/codescene-parity.md.
@@ -240,7 +241,27 @@ def lizard_functions(ctx, files):
         values = {"ccn": int(row[1]), "cognitive": int(row[11]), "nloc": int(row[0]),
                   "params": int(row[3]) - is_method(file, row[8])}
         out.append({"file": file, "symbol": symbol, "line": int(row[9]), "end": int(row[10]), "values": values})
-    return fold_nested(add_smells(ctx, files, out))
+    functions = fold_nested(add_smells(ctx, files, out))
+    for fn in functions:  # lines as CodeScene counts them, folded functions included (qg_smells.loc)
+        if "loc" in fn:
+            fn["values"]["nloc"] = fn["loc"]
+    return name_anonymous(functions)
+
+
+def name_anonymous(functions):
+    """Give an arrow or function expression lizard calls (anonymous) the name of the variable or property it's
+    assigned to, as CodeScene does (`const Card = () => ...` is Card), keeping symbols unique per file."""
+    taken = {(fn["file"], fn["symbol"]) for fn in functions}
+    for fn in functions:
+        if "named" not in fn:
+            continue
+        symbol, n = fn["named"], 1
+        while (fn["file"], symbol) in taken:
+            n += 1
+            symbol = f"{fn['named']}#{n}"
+        taken.add((fn["file"], symbol))
+        fn["symbol"] = symbol
+    return functions
 
 
 def is_method(file, long_name):
@@ -272,8 +293,14 @@ def add_smells(ctx, files, functions):
         around = [m for m in measures.get(fn["file"], []) if m["line"] <= fn["line"] and fn["end"] <= m["end"]]
         if m := min(around, key=lambda m: m["end"] - m["line"], default=None):
             fn["values"].update({k: m[k] for k in ("nesting", "conditional", "bumps")})
-            fn["values"]["ccn"] = max(1, fn["values"]["ccn"] + m.get("ccn_fix", 0))  # count as CodeScene does
+            fn["values"]["ccn"] = m.get("ccn", fn["values"]["ccn"])  # counted as CodeScene counts it
             fn["similar"] = m.get("similar", False)
+            if "loc" in m:
+                fn["loc"] = m["loc"]
+            if "folded" in m:
+                fn["folded"] = m["folded"]
+            if fn["symbol"].startswith("(anonymous)") and m.get("name"):
+                fn["named"] = m["name"]
     return functions
 
 
@@ -294,7 +321,8 @@ def fold_nested(functions):
             parent = min((p for p in fns if p is not child and p["line"] <= child["line"] and child["end"] <= p["end"]
                           and (p["line"], p["end"]) != (child["line"], child["end"])),
                          key=lambda p: p["end"] - p["line"], default=None)
-            stays = Path(child["file"]).suffix.lower() in JS_EXT and child["values"]["nloc"] >= JS_OWN_FUNCTION_NLOC
+            stays = not child["folded"] if "folded" in child else (
+                Path(child["file"]).suffix.lower() in JS_EXT and child["values"]["nloc"] >= JS_OWN_FUNCTION_NLOC)
             if parent and not stays:
                 fold_into(parent["values"], child["values"])
                 child["folded"] = True
@@ -554,9 +582,9 @@ def mean(xs):
 
 def health(fns):
     """Code Health of one file's functions, 0-100. As in CodeScene, every function's smells count,
-    except ONCE_PER_FILE smells, which count once at their worst, and the file pays OVERALL_COST when
-    its functions are complex on average. A function from a report written before costs were stored
-    counts by its score."""
+    except ONCE_PER_FILE smells, which count once at their worst (arguments at MANY_ARGUMENTS_COST when the
+    file's functions take many on average), and the file pays file_costs. A function from a report written
+    before costs were stored counts by its score."""
     if not fns:
         return None
     out, worst = 1.0, {}
@@ -568,6 +596,9 @@ def health(fns):
             if m in ONCE_PER_FILE:
                 worst[m] = max(worst.get(m, 0), c)
         out *= factor(c for m, c in fn["costs"].items() if m not in ONCE_PER_FILE)
+    params = [fn["values"]["params"] for fn in fns if "params" in fn.get("values", {})]
+    if "params" in worst and len(params) >= OVERALL_MIN_FUNCTIONS and sum(params) / len(params) > ARGUMENTS_MEAN:
+        worst["params"] = MANY_ARGUMENTS_COST
     return round(100 * out * factor([*worst.values(), *file_costs(fns)]), 2)
 
 

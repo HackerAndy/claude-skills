@@ -55,8 +55,10 @@ def corpus():
 
 
 def tracked(root):
-    """Every source file git tracks under root, minified and generated ones left out."""
-    names = run(["git", "ls-files"], root).stdout.splitlines()
+    """Every source file git tracks under root (or, outside git, every one the gate would walk), minified and
+    generated ones left out."""
+    listed = run(["git", "ls-files"], root)
+    names = listed.stdout.splitlines() if listed.returncode == 0 else [qc.rel(root, p) for p in qc.walk_files(root)]
     return {n: root / n for n in names
             if Path(n).suffix in qc.SOURCE_EXT and (root / n).is_file() and not qc.looks_generated(root / n)}
 

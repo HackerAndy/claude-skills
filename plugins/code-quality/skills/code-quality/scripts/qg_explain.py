@@ -80,7 +80,7 @@ METRIC_HELP = {
     },
 }
 
-# What CodeScene counts toward cyclomatic complexity (qg_smells.ccn_fix), found again so the page can
+# What CodeScene counts toward cyclomatic complexity (qg_smells.ccn), found again so the page can
 # mark it. In Python a statement `if`, `elif` and `else` count, and so does `raise`; a ternary or
 # comprehension `if` and `finally` don't, and comprehension `for`s do. In JS/TS `?.`, `?:` and `throw`
 # count, `??` and default values don't. A loop's or try's `else` is marked too, though it doesn't count; it's rare.

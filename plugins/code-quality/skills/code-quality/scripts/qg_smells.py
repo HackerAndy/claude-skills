@@ -8,9 +8,10 @@ and TypeScript are scored by one definition. Modelled on CodeScene's smells of t
                nested branch or loop (or in Python, assigns a ternary) is a bump; a loop is one bump if it holds branches, or else the bumps
                inside it plus one if it also has a plain conditional path; try and with are looked inside
 
-It also gives `ccn_fix`, what turns lizard's cyclomatic count into CodeScene's: CodeScene counts each
-`raise` / `throw`, a Python `else` and a JS / TS `?.`, and not a Python ternary, comprehension `if` or
-`finally`, nor a JS / TS `??` or default parameter value, all of which lizard counts the other way.
+It also gives `ccn`, cyclomatic complexity counted as CodeScene counts it (lizard's count misses decisions
+in some JSX): each if / elif, loop, except / catch, case, `&&` / `||` (`and` / `or`), JS ternary and `?.`,
+Python comprehension `for`, `raise` / `throw`, and a Python `else`; not a JS `else` or default, a Python
+ternary, comprehension `if` or `finally`, nor `??`.
 
 And `similar`: whether the function has a near copy in the same file, standing in for CodeScene's Code
 Duplication (similar functions within one file). CodeScene doesn't publish how it compares them; this
@@ -19,7 +20,7 @@ the share of 5-token runs they have in common (Jaccard), with the threshold fitt
 project. See docs/codescene-parity.md.
 
 Runs on its own, `python qg_smells.py FILE...`, printing JSON {file: [{line, end, nesting, conditional,
-bumps, ccn_fix, similar}, ...]} with one entry per function; qg_checks.py runs it in-process when tree-sitter is
+bumps, ccn, loc, folded, similar}, ...]} with one entry per function; qg_checks.py runs it in-process when tree-sitter is
 installed and through `uvx --with tree-sitter-language-pack` otherwise. Needs tree-sitter-language-pack."""
 import json
 import sys
@@ -176,24 +177,22 @@ def bumps(block):
     return n
 
 
-def ccn_fix(fn):
-    """CodeScene's cyclomatic count less lizard's, for this function's own code (see the module docstring)."""
-    fix = 0
+DECISIONS = {"if_statement", "elif_clause", "for_statement", "for_in_statement", "while_statement", "do_statement",
+             "except_clause", "catch_clause", "switch_case", "case_clause", "ternary_expression", "optional_chain",
+             "raise_statement", "throw_statement", "for_in_clause", "boolean_operator"}
+
+
+def ccn(fn):
+    """Cyclomatic complexity of fn's own code, counted as CodeScene counts it (see the module docstring)."""
+    n = 1
     for node in own_nodes(fn):
-        if node.type == "else_clause" and node.parent is not None and node.parent.type == "if_statement" \
-                and fn.type == "function_definition":  # Python; a JS else isn't counted by either
-            fix += 1
-        elif node.type in ("optional_chain", "raise_statement", "throw_statement"):
-            fix += 1
-        elif node.type in ("conditional_expression", "if_clause", "finally_clause"):
-            fix -= 1
-        elif node.type == "binary_expression" and (op := node.child_by_field_name("operator")) and op.type == "??":
-            fix -= 1
-    params = fn.child_by_field_name("parameters")
-    if params is not None and fn.type != "function_definition":  # JS / TS default values; lizard skips Python's
-        fix -= sum(1 for p in params.named_children
-                   if p.type == "assignment_pattern" or p.child_by_field_name("value") is not None)
-    return fix
+        if node.type in DECISIONS:
+            n += 1
+        elif node.type == "else_clause" and node.parent is not None and node.parent.type == "if_statement":
+            n += fn.type == "function_definition"  # a Python else counts; a JS else doesn't
+        elif node.type == "binary_expression" and (op := node.child_by_field_name("operator")) and op.type in LOGICAL:
+            n += 1
+    return n
 
 
 def own_nodes(node):
@@ -209,7 +208,7 @@ def measure_function(fn):
     return {"line": fn.start_point[0] + 1, "end": fn.end_point[0] + 1, "nesting": nesting(fn),
             "conditional": max((operators(c) + _self(c) for c in conds), default=0),
             "bumps": bumps(body) if body is not None and body.type in {"block", "statement_block"} else 0,
-            "ccn_fix": ccn_fix(fn)}
+            "ccn": ccn(fn), "loc": loc(fn), "folded": is_folded(fn), "name": name_of(fn)}
 
 
 def _self(cond):
@@ -227,17 +226,45 @@ def functions_in(node):
 
 
 SIMILAR_MIN_LINES = 10  # CodeScene's function_duplication_min_lines_of_code_for_check
-SIMILAR_SHARE = 0.6     # fitted: CodeScene's own setting says 75%, but its measure isn't this one
+SIMILAR_SHARE = 0.5     # fitted on 1,800 files to favour stricter over missed: CodeScene says 75%, but measures differently
 SHINGLE = 5             # tokens per run compared
 OWN_FUNCTION_LINES = 25  # a nested JS / TS function this long is a function of its own for CodeScene
 
 
+DECLARING = {"variable_declarator", "assignment_expression", "pair", "public_field_definition"}
+STATEMENTS = {"expression_statement", "return_statement", "lexical_declaration", "variable_declaration",
+              "statement_block", "program", "if_statement", "for_statement", "for_in_statement", "while_statement"}
+
+
+def name_of(fn):
+    """The name CodeScene gives a function: its own, or that of the variable, property or assignment whose value
+    it is (`const rows = list.map(r => ...)` is rows). None for an inline callback."""
+    own = fn.child_by_field_name("name")
+    if own is not None:
+        return own.text.decode(errors="replace")
+    p = fn.parent
+    while p is not None and p.type not in STATEMENTS and not is_function(p):
+        if p.type in DECLARING:
+            target = p.child_by_field_name("name") or p.child_by_field_name("left") or p.child_by_field_name("key")
+            return target.text.decode(errors="replace").split(".")[-1] if target is not None else None
+        p = p.parent
+    return None
+
+
+def js_named(fn):
+    """Whether CodeScene can name a JS / TS function (see name_of). An inline callback can't."""
+    return name_of(fn) is not None
+
+
 def is_folded(fn):
-    """Whether CodeScene counts fn as part of the function around it."""
+    """Whether CodeScene counts fn as part of the function around it: always in Python; in JS / TS unless it's
+    OWN_FUNCTION_LINES lines or more and has a name (js_named)."""
     p = fn.parent
     while p is not None and not is_function(p):
         p = p.parent
-    return p is not None and (fn.type == "function_definition" or source_lines(fn) < OWN_FUNCTION_LINES)
+    if p is None:
+        return False
+    return fn.type == "function_definition" or source_lines(fn) < OWN_FUNCTION_LINES or not js_named(fn)
 
 
 def code_leaves(node, markup=False):
@@ -248,6 +275,23 @@ def code_leaves(node, markup=False):
         yield node.start_point[0], node.text
     for c in node.children:
         yield from code_leaves(c, markup)
+
+
+def loc(fn):
+    """Lines of code as CodeScene counts them: every line a non-comment token touches, so a docstring, a
+    multi-line string and each line of JSX count, and blank or comment-only lines don't. A nested function
+    that stays a function of its own (see is_folded) is left out; one folded in counts."""
+    lines = set()
+
+    def walk(n):
+        if n is not fn and is_function(n) and not is_folded(n):
+            return
+        if n.child_count == 0 and "comment" not in n.type:
+            lines.update(range(n.start_point[0], n.end_point[0] + 1))
+        for c in n.children:
+            walk(c)
+    walk(fn)
+    return len(lines)
 
 
 def source_lines(node):

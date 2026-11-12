@@ -105,30 +105,56 @@ CodeScene recommends 9.5 for code AI agents work in, so what matters most is whe
 file on the same side of 9.5. "Risky" below means the gate passes a file (9.5 or more) that CodeScene
 fails; "stricter" is the other way round.
 
-### Three projects (0.14.0)
+### Seven projects (0.15.0)
+
+Three projects of mine (A-C) and four work repositories (D-G, about 1,700 source files, half Python and
+half TypeScript / React), none of D-G seen before tuning 0.15.0's rules on them.
 
 | Project | Files scored | Same side of 9.5 | Risky | Stricter | Mean gap | Spearman |
 |---|---|---|---|---|---|---|
-| A: Python, 151 files (0.11.1-0.13.0 were fitted on it) | 139 | 135 (97%) | 1 | 3 | 0.12 | 0.97 |
-| B: Python + 93 TypeScript files, held out | 128 | 125 (98%) | 0 | 3 | 0.07 | 0.89 |
-| C: Python + JS, a separate domain, held out | 77 | 75 (97%) | 0 | 2 | 0.13 | 0.98 |
-| **All** | **344** | **335 (97.4%)** | **1** | **8** | | |
-| All, 0.13.0 | 344 | 330 (95.9%) | 1 | 13 | | |
+| A: Python (0.11.1-0.13.0 fitted on it) | 139 | 133 (96%) | 1 | 5 | 0.13 | 0.96 |
+| B: Python + TypeScript | 128 | 125 (98%) | 0 | 3 | 0.07 | 0.90 |
+| C: Python + JS | 77 | 73 (95%) | 0 | 4 | 0.14 | 0.98 |
+| D-G: work repos, Python + TS / TSX | 1,473 | 1,394 (95%) | 18 | 61 | 0.24-0.34 | 0.93-0.94 |
+| **All** | **1,817** | **1,725 (94.9%)** | **19** | **73** | | |
 
-Of the 255 files the gate scores 9.5 or more, CodeScene agrees on 254 (0.13.0: 249 of 250; an earlier
-version of this doc said 315 of 316, which was miscounted). Projects B and C have 20 and 27 files
-CodeScene scores between 8.5 and 10, so the boundary is well exercised. Files with no functions
-(`__init__.py`, config modules) are scored by neither tool and left out.
+**Of the 1,070 files the gate scores 9.5 or more, CodeScene agrees on 1,051 (98.2%).** On D-G, 0.14.0 had
+70 risky files (91.8% agreement); 0.15.0's changes, found on those repos, brought that to 18.
 
-- **The one risky file** is a test file CodeScene flags for duplication (gate 10.0, CodeScene 9.38).
-- **Where the gate is still stricter:**
-  - Two TSX files where Overall Code Complexity fires just over the line (averages 4.25 and 4.55).
-  - Two Python files with one more Complex Conditional than CodeScene.
-  - Our own cognitive-complexity rule.
-  - The duplication cases in project A.
-- **What it misses:** Overall Code Complexity where CodeScene's average is a little higher, CodeScene
-  duplication the similarity check doesn't catch, and Large Method in Python (9 functions in C). These
-  lower CodeScene's score on files already below 9.5, so they don't change a decision here.
+- **The risky files that remain** are mostly CodeScene-style duplication the similarity check misses, plus
+  one-offs from rules we don't model (Primitive Obsession, Global Conditionals, Low Cohesion).
+- **Where the gate is stricter:**
+  - Files the similarity check flags as duplicates and CodeScene doesn't.
+  - React components where CodeScene ignores the code after a long named nested function (left as is: the
+    gate scores that code).
+  - Our cognitive-complexity rule.
+
+| Smell, all seven projects | Matched | CodeScene only | Gate only |
+|---|---|---|---|
+| Complex Method | 1,368 | 47 | 158 |
+| Large Method | 420 | 8 | 68 |
+| Complex Conditional | 345 | 23 | 32 |
+| Bumpy Road | 399 | 27 | 45 |
+| Deep Nesting | 82 | 6 | 3 |
+| Excess Arguments | 681 | 2 | 1 |
+
+### What 0.15.0 changed (found on D-G)
+
+- **Lines of code** are every line a non-comment token touches: docstrings, multi-line strings and every
+  JSX line count, blank and comment-only lines don't. lizard missed docstrings and much of multi-line JSX
+  (e.g. 76 of 151 lines). Large Method misses on D-G went from 99 to 8.
+- **Cyclomatic complexity** is counted from the syntax tree with CodeScene's rules instead of lizard's
+  count plus a correction. lizard misparses some JSX: a component CodeScene counts at 18 came out as 1.
+- **Nested JS / TS functions:** a 25+ line nested function stays its own only if CodeScene can name it (a
+  declaration, or the value of a variable, property or assignment). An inline callback, like
+  `{items.map(x => { ... })}` in JSX, always folds into the component, however long.
+- **Excess Arguments costs 0.62 instead of 0.32** when a file has 7+ functions averaging more than 4
+  parameters, mirroring Overall Code Complexity. This explained every real file's argument cost.
+- **Duplication threshold 0.5** (was 0.6), chosen on all 1,817 files. Overall agreement barely changes
+  (95.0% against 95.3%), but risky files drop from 27 to 19 for 13 more stricter ones. No similarity
+  measure tried (raw tokens, names masked, node types) separates CodeScene's duplication flags well.
+- **Arrow-function components are named** after their variable (`const Card = () => ...` is `Card`), as
+  CodeScene names them, instead of lizard's `(anonymous)`.
 
 ### JSX, TSX and JS rules (0.14.0)
 
