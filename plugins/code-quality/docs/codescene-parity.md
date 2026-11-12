@@ -105,25 +105,48 @@ CodeScene recommends 9.5 for code AI agents work in, so what matters most is whe
 file on the same side of 9.5. "Risky" below means the gate passes a file (9.5 or more) that CodeScene
 fails; "stricter" is the other way round.
 
-### Three projects (0.13.0)
+### Three projects (0.14.0)
 
 | Project | Files scored | Same side of 9.5 | Risky | Stricter | Mean gap | Spearman |
 |---|---|---|---|---|---|---|
 | A: Python, 151 files (0.11.1-0.13.0 were fitted on it) | 139 | 135 (97%) | 1 | 3 | 0.12 | 0.97 |
-| B: Python + 93 TypeScript files, held out | 128 | 122 (95%) | 0 | 6 | 0.13 | 0.82 |
-| C: Python + JS, a separate domain, held out | 77 | 73 (95%) | 0 | 4 | 0.15 | 0.94 |
-| **All** | **344** | **330 (96%)** | **1** | **13** | | |
+| B: Python + 93 TypeScript files, held out | 128 | 125 (98%) | 0 | 3 | 0.07 | 0.89 |
+| C: Python + JS, a separate domain, held out | 77 | 75 (97%) | 0 | 2 | 0.13 | 0.98 |
+| **All** | **344** | **335 (97.4%)** | **1** | **8** | | |
+| All, 0.13.0 | 344 | 330 (95.9%) | 1 | 13 | | |
 
-Of 316 files the gate scores 9.5 or more, CodeScene agrees on 315. Projects B and C have 20 and 27
-files CodeScene scores between 8.5 and 10, so the boundary is well exercised. Files with no functions
+Of the 255 files the gate scores 9.5 or more, CodeScene agrees on 254 (0.13.0: 249 of 250; an earlier
+version of this doc said 315 of 316, which was miscounted). Projects B and C have 20 and 27 files
+CodeScene scores between 8.5 and 10, so the boundary is well exercised. Files with no functions
 (`__init__.py`, config modules) are scored by neither tool and left out.
 
-- **Where the gate is stricter:** mostly React components (`.tsx` / `.jsx`). It finds Large Method in
-  7 TSX functions CodeScene doesn't (CodeScene counts JSX lines differently), and more Complex Method and
-  Complex Conditional in TSX (JSX `&&` and ternaries).
-- **What it misses:** Overall Code Complexity (10 and 16 files), CodeScene-style duplication (12
-  functions in C), and Large Method in Python (9 in C). These lower CodeScene's score on files already
-  below 9.5, so they don't change a decision in these projects.
+- **The one risky file** is a test file CodeScene flags for duplication (gate 10.0, CodeScene 9.38).
+- **Where the gate is still stricter:**
+  - Two TSX files where Overall Code Complexity fires just over the line (averages 4.25 and 4.55).
+  - Two Python files with one more Complex Conditional than CodeScene.
+  - Our own cognitive-complexity rule.
+  - The duplication cases in project A.
+- **What it misses:** Overall Code Complexity where CodeScene's average is a little higher, CodeScene
+  duplication the similarity check doesn't catch, and Large Method in Python (9 functions in C). These
+  lower CodeScene's score on files already below 9.5, so they don't change a decision here.
+
+### JSX, TSX and JS rules (0.14.0)
+
+Found with samples on CodeScene 1.0.58:
+
+| Rule | CodeScene |
+|---|---|
+| Complex Method in `.jsx` / `.tsx` | warns at cc 10 (9 in `.js` / `.ts`); same cost |
+| Large Method in `.jsx` / `.tsx` | warns at 120 lines (70 in `.js` / `.ts`); same cost. The function's name doesn't matter, only the extension |
+| Other limits in `.jsx` / `.tsx` | same as `.js` / `.ts` (arguments, nesting, conditions, Overall Code Complexity) |
+| JS / TS ternary condition | never a Complex Conditional (a Python ternary's is) |
+| Unbraced `if (...) stmt` in JS / TS | its condition counts only when that statement or the next one ends in a semicolon, so semicolon-free code goes unchecked |
+| Duplication in JSX | markup doesn't count: two components alike only in their JSX aren't duplicates |
+| JSX `&&`, ternaries, attribute expressions | count toward cyclomatic complexity, as lizard counts them |
+
+Not matched: in JS / TS, when a function holds a nested function long enough to stand alone (25+ lines),
+CodeScene reports the code before it as `outer (top-level context)` and doesn't score the code after it.
+The gate still scores the whole function, so it can be stricter there.
 
 ### Project A, version by version
 
