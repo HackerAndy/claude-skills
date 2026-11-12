@@ -10,6 +10,8 @@ export type Fn = {
   why: string[]
   values: Record<string, number>
   smells: number
+  /** What each smell over its limit costs on CodeScene's 1-10 scale (reports from code-quality 0.11+). */
+  costs?: Record<string, number>
   code?: Code
 }
 export type Finding = {

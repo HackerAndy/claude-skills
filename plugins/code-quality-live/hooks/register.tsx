@@ -12,12 +12,10 @@ const view = atom({ plugin: 'code-quality-live', key: 'view' } as const, {} as V
 const project = atom({ plugin: 'code-quality-live', key: 'project' } as const, '')
 const WRITE_TOOLS = new Set(['Edit', 'Write', 'MultiEdit', 'NotebookEdit'])
 const COLOR = { green: 'success', yellow: 'warning', red: 'error' } as const
-const LINT_COST = 5
 
 const dir = (file: string) => (file.includes('/') ? file.slice(0, file.lastIndexOf('/')) : '.')
 const base = (file: string) => file.slice(file.lastIndexOf('/') + 1)
 const inFn = (f: Finding, fn: Fn) => f.line >= fn.line && f.line <= fn.end
-const metricScore = (v: number, limit: number) => (v / limit <= 1 ? 100 - (5 * v) / limit : 95 - 30 * (v / limit - 1))
 
 // Keeps what the pane draws from the report the code-quality gate writes (and each check refreshes).
 function snapshot(r: any, page: string): Snapshot {
@@ -237,8 +235,8 @@ export const register: Register = on => {
       const own = entry.findings.filter(f => f.symbol === fn.symbol)
       const lint = entry.findings.filter(f => !f.symbol && inFn(f, fn))
       const branchy = own.some(f => f.rule === 'ccn' || f.rule === 'cognitive')
-      const parts = Object.entries(fn.values).map(([m, val]) => ({ m, val, sc: metricScore(val, s.limits[m] ?? 1) }))
-      const worst = parts.reduce((a, b) => (b.sc < a.sc ? b : a), parts[0] ?? { m: 'ccn', val: 0, sc: 100 })
+      const costs = Object.entries(fn.costs ?? {})
+      const capped = fn.score === s.green - 1 && (costs.length > 0 || fn.smells > 0)
       const spans = new Map<number, Span[]>()
       const code: Code | undefined = fn.code
       if (code && branchy)
@@ -255,8 +253,12 @@ export const register: Register = on => {
             </Text>
           </Text>
           <Text dimColor wrap="wrap">
-            worst measure: {s.metrics[worst.m]?.title?.toLowerCase() ?? worst.m} {worst.val}/{s.limits[worst.m]} →{' '}
-            {Math.round(worst.sc)}%{fn.smells ? `, −${LINT_COST} × ${fn.smells} lint` : ''} = {fn.score}%
+            {!fn.costs
+              ? 'run a check to see how this score was worked out'
+              : costs.length
+                ? `costs: ${costs.map(([m, c]) => `${s.metrics[m]?.title?.toLowerCase() ?? m} −${c.toFixed(2)}`).join(', ')}`
+                : 'nothing over its limits'}
+            {capped ? ` · findings stop it at ${s.green - 1}%` : ''} = {fn.score}%
           </Text>
           <Text> </Text>
           {own.map(f => (

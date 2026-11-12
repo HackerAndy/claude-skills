@@ -67,7 +67,9 @@ class GateTest(unittest.TestCase):
             f.write(NEW_PY)
         r = self.hook("app/orders.py")
         self.assertEqual(r.returncode, 2)
-        self.assertIn("shipping (86%): cognitive complexity 17 > 15", r.stderr)
+        # its costs leave 95%, but a function with findings stops at 94%
+        self.assertIn("shipping (94%): 2 separate blocks of nested logic > 1, cyclomatic complexity 10 > 8, "
+                      "cognitive complexity 17 > 15", r.stderr)
         self.assertIn("ruff B006", r.stderr)
         self.assertNotIn("legacy_price", r.stderr)
 
@@ -78,8 +80,10 @@ class GateTest(unittest.TestCase):
     def test_functions_are_scored(self):
         r = gate(self.dir, "check", "--all", "--json")
         scores = {fn["symbol"]: fn for fn in json.loads(r.stdout)["functions"]}
-        # two bumps against a limit of 1 is the worst metric: 95 - 30 * (2/1 - 1) = 65
-        self.assertEqual(scores["legacy_price"]["score"], 65)
+        # CodeScene's costs, multiplied: cc 13 (0.368), 6 parameters (0.32), 3 bumps (0.16);
+        # cognitive isn't charged alongside cc. 100 * 0.9632 * 0.968 * 0.984 = 92 (CodeScene: 9.11 for the file)
+        self.assertEqual(scores["legacy_price"]["score"], 92)
+        self.assertEqual(scores["legacy_price"]["values"]["bumps"], 3)
         self.assertFalse(scores["legacy_price"]["approved"])
         self.assertTrue(scores["subtotal"]["approved"])
 
@@ -91,7 +95,7 @@ class GateTest(unittest.TestCase):
         r = gate(self.dir, "check", "--all", "--json")
         fn = {f["symbol"]: f for f in json.loads(r.stdout)["functions"]}["deep"]
         self.assertEqual(fn["values"]["nesting"], 4)
-        self.assertFalse(fn["approved"])  # limit 3: 95 - 30 * (4/3 - 1) = 85
+        self.assertFalse(fn["approved"])  # limit 3: CodeScene's Deep, Nested Complexity at 4
 
     def test_conditions_and_bumps_are_measured_in_python_and_typescript(self):
         py_src = ["def f(a, b, c, d):", "    if a and b or c and d:", "        pass",
@@ -107,6 +111,34 @@ class GateTest(unittest.TestCase):
         fns = {(f["file"], f["symbol"]): f["values"] for f in json.loads(r.stdout)["functions"]}
         for key in (("app/many.py", "f"), ("web/many.ts", "g")):
             self.assertEqual((fns[key]["conditional"], fns[key]["bumps"], fns[key]["nesting"]), (3, 2, 2), key)
+
+    def test_bumps_are_counted_as_codescene_counts_them(self):
+        # A loop around branches is one bump; each branch of an if chain holding nested logic is its own
+        # bump, inside a loop too; a ternary counts as nested logic. CodeScene: 1, 3 and 2 bumps.
+        src = ["def loop(xs):", "    for x in xs:", "        if x:", "            x += 1", "        if x > 2:",
+               "            x -= 1", "    return xs",
+               "", "def chain(xs, k):", "    for x in xs:", "        if k == 1:", "            if x:", "                x += 1",
+               "        elif k == 2:", "            if x:", "                x -= 1", "        else:", "            x = 0",
+               "    if k:", "        if xs:", "            k = 1", "    return k",
+               "", "def tern(xs, k):", "    if not k:", "        k = 1 if xs else 2", "    for x in xs:",
+               "        if x:", "            k += 1", "    return k"]
+        (self.dir / "app" / "bumps.py").write_text("\n".join(src) + "\n")
+        r = gate(self.dir, "check", "--all", "--json")
+        bumps = {f["symbol"]: f["values"]["bumps"] for f in json.loads(r.stdout)["functions"] if f["file"] == "app/bumps.py"}
+        self.assertEqual(bumps, {"loop": 1, "chain": 3, "tern": 2})
+
+    def test_scores_match_codescene(self):
+        # File scores CodeScene (cs 1.0.58) gives these files: one cc 15 function 9.58; two functions
+        # with 6 parameters 9.68 (charged once per file); cc 15 plus 6 parameters 9.27.
+        cc15 = "def f(code):\n" + "".join(f"    {'if' if i == 0 else 'elif'} code == {i}:\n        return {i}\n"
+                                          for i in range(14)) + "    return -1\n"
+        args6 = "\n\ndef g{n}(a, b, c, d, e, f):\n    return [a, b, c, d, e, f]\n"
+        for name, src, want in (("one.py", cc15, 9.6), ("two.py", args6.format(n=1) + args6.format(n=2), 9.7),
+                                ("both.py", cc15 + args6.format(n=1), 9.3)):
+            (self.dir / "app" / name).write_text(src)
+            r = gate(self.dir, "score", f"app/{name}", "--json")
+            self.assertEqual(json.loads(r.stdout)["scores"]["health"], want, name)
+            (self.dir / "app" / name).unlink()  # the next sample reuses this code, which would be a duplicate
 
     def test_copied_code_is_flagged_when_a_file_is_checked(self):
         src = (self.dir / "app" / "orders.py").read_text()
@@ -135,7 +167,7 @@ class GateTest(unittest.TestCase):
                        .replace("    if rush:", "    if season == 'rush':"))
         self.assertEqual(gate(self.dir, "check", "app/orders.py").returncode, 0)
         entries = json.loads((self.dir / ".quality" / "baseline.json").read_text())["entries"]
-        self.assertNotIn("app/orders.py::params::legacy_price", entries)
+        self.assertEqual(entries["app/orders.py::params::legacy_price"], 5)  # was 6; CodeScene flags 5 too
 
     def test_targets_lists_functions_below_95(self):
         r = gate(self.dir, "targets", "--json")
@@ -159,8 +191,8 @@ class GateTest(unittest.TestCase):
             f.write(NEW_PY)
         self.hook("app/orders.py")
         report = json.loads((self.dir / ".quality" / "report.json").read_text())
-        self.assertEqual(report["summary"]["new"], 2)
-        self.assertEqual(report["summary"]["bands"], {"green": 3, "yellow": 1, "red": 1})
+        self.assertEqual(report["summary"]["new"], 4)  # shipping's bumps, cc and cognitive, and ruff B006
+        self.assertEqual(report["summary"]["bands"], {"green": 3, "yellow": 2, "red": 0})
         self.assertEqual(report["folders"][0]["path"], "app")
         self.assertEqual(report["targets"][0]["symbol"], "legacy_price")
         self.assertIn("web/cart.ts", report["files"])

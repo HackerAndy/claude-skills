@@ -3,14 +3,16 @@
 # project's own ruff / biome config, plus the rules added below.
 
 [limits]
-ccn = 10          # cyclomatic complexity: independent paths through a function
-cognitive = 15    # cognitive complexity: how hard the function is to read (nesting costs more)
-nloc = 60         # lines of code per function, blank lines and comments excluded
-params = 5        # parameters per function
-nesting = 3       # deepest if / loop / try inside another one (CodeScene's Nested Complexity)
-conditional = 2   # most && / || operators in one condition (Complex Conditional)
-bumps = 1         # top-level branches that contain nested branches (Bumpy Road)
-file_nloc = 500   # lines of code per file
+# Each is the most allowed: one less than CodeScene's default threshold, since CodeScene warns at it.
+ccn = 8           # cyclomatic complexity: independent paths through a function (CodeScene's Complex Method)
+cognitive = 15    # cognitive complexity: how hard the function is to read (nesting costs more); not in CodeScene
+nloc = 69         # lines of code per function, blank lines and comments excluded (Large Method)
+params = 4        # parameters per function (Excess Number of Function Arguments)
+nesting = 3       # deepest if / loop / try inside another one (Deep, Nested Complexity)
+conditional = 1   # most && / || operators in one condition (Complex Conditional)
+bumps = 1         # chunks of nested logic in one function (Bumpy Road)
+file_nloc = 599   # lines of code per Python file (Lines of Code in a Single File)
+file_nloc_js = 999  # lines of code per JS / TS file
 
 [scope]
 # Globs relative to the project root; node_modules, .venv, dist, build etc. are always skipped.

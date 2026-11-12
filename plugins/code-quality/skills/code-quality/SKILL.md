@@ -17,9 +17,9 @@ Tools run per package (the nearest folder with `pyproject.toml`, `package.json`,
 
 Every function gets a score from 0 to 100%. **A function is approved at 95% or more**; that is the bar, per function: 9.5 on CodeScene's 1–10 Code Health scale, the level it recommends for code AI agents work in.
 
-- Each metric (cyclomatic, cognitive, nesting depth, condition operators, nested-logic blocks, lines, parameters) scores 100 at zero, **95 exactly at its limit**, and loses 30 points per 100% over it. The function's score is its *worst* metric, so one bad metric can't be averaged away. Approved therefore means "inside every limit".
-- Each ruff / biome finding inside the function costs another 5 points.
-- Code Health puts the scores on a 1–10 scale (score ÷ 10), weighted by lines of code per file and per project, with a hotspot figure (files changed in 180 days) and the worst file. `check --json` has `scores.health`, `worst_file`, `worst_file_health`; `report.json` has `health`. Never act on an average; act on the functions below 95%.
+- The limits are CodeScene's default thresholds less one (CodeScene warns *at* its threshold): cyclomatic 8, cognitive 15 (ours), 69 lines, 4 parameters, nesting 3, 1 `&&` / `||` per condition, 1 bump.
+- Each smell over a limit costs what it costs CodeScene on its 1–10 scale, and the costs multiply (`fn.costs` in `check --json`). Lint costs nothing but still blocks. **A function with any finding stops at 94%**, so approved means "inside every limit, no findings".
+- Code Health is CodeScene's model per file (nesting, parameters and bumpy road count once per file, at their worst), with files weighted by lines of code for the project, a hotspot figure (files changed in 180 days) and the worst file. `check --json` has `scores.health`, `worst_file`, `worst_file_health`; `report.json` has `health`. Never act on an average; act on the functions below 95%.
 
 `check --json` lists every checked function with `score` and `approved`, and `scores` holds the counts and averages.
 

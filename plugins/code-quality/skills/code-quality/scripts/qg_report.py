@@ -30,7 +30,7 @@ def file_entries(root, conf, run):
     out = {qc.rel(root, f): {"functions": [], "findings": []} for f in run["files"]}
     for fn in run["functions"]:
         out.setdefault(fn["file"], {"functions": [], "findings": []})["functions"].append(
-            {k: fn[k] for k in ("symbol", "line", "end", "score", "values", "smells")}
+            {k: fn[k] for k in ("symbol", "line", "end", "score", "values", "smells", "costs")}
             | {"why": qc.reasons(conf, fn)})
     for entry in out.values():
         entry["health"] = qc.health(entry["functions"])
@@ -61,8 +61,8 @@ def tally(fns):
 
 
 def code_health(root, files):
-    """CodeScene-style Code Health on a 1-10 scale. Per file: its functions' scores weighted by
-    lines of code. Overall: files weighted by lines of code; the hotspot figure counts only files
+    """CodeScene-style Code Health on a 1-10 scale. Per file: qc.health, its smells' costs
+    multiplied. Overall: files weighted by lines of code; the hotspot figure counts only files
     changed in the last CHURN_DAYS days; the worst file is the lowest single score."""
     rows = [(name, e["health"], max(e["nloc"], 1)) for name, e in files.items() if e["health"] is not None]
     commits = qc.churn(root)

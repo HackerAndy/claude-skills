@@ -47,8 +47,8 @@ CONFIG = ".quality/config.toml"
 BASELINE = ".quality/baseline.json"
 
 DEFAULTS = {
-    "limits": {"ccn": 10, "cognitive": 15, "nloc": 60, "params": 5, "nesting": 3, "conditional": 2, "bumps": 1,
-               "file_nloc": 500},
+    "limits": {"ccn": 8, "cognitive": 15, "nloc": 69, "params": 4, "nesting": 3, "conditional": 1, "bumps": 1,
+               "file_nloc": 599, "file_nloc_js": 999},
     "scope": {"exclude": []},
     "lint": {"ruff_extend_select": ["B", "SIM", "C4", "UP"], "biome": True},
     "edit": {"duplication": True},

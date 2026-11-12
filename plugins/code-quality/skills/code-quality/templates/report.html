@@ -195,6 +195,7 @@ const LABEL = { green: `${T.green}% and up`, yellow: `${T.yellow}–${T.green - 
 
 const state = { show: 'work', query: '', open: new Set(), all: new Set() }
 
+// How far over its limit a measure is, as a 0-100 figure, only to color its bar.
 const metricScore = (v, limit) => { const r = v / limit; return r <= 1 ? 100 - (100 - T.green) * r : T.green - 30 * (r - 1) }
 const tenBand = h => (h == null ? 'none' : band(h * 10))
 const ten = h => (h == null ? '–' : h.toFixed(1))
@@ -295,17 +296,19 @@ function metricBars(fn) {
   }).join('') + '</div>'
 }
 
-const LINT_COST = 5
 const inRange = (f, fn) => f.line >= fn.line && f.line <= fn.end
 // The function a lint finding counts against: the smallest one around it, as the gate scores it.
 const owner = (f, e) => e.functions.filter(fn => inRange(f, fn)).sort((a, b) => (a.end - a.line) - (b.end - b.line))[0]
 
 function scoreMath(fn) {
-  const parts = Object.entries(fn.values).map(([m, v]) => ({ m, v, s: metricScore(v, R.limits[m]) }))
-  const worst = parts.reduce((a, b) => (b.s < a.s ? b : a))
-  const base = `the worst measure, ${(R.metrics[worst.m]?.title ?? worst.m).toLowerCase()} (${worst.v} against a limit of ${R.limits[worst.m]}), gives <b>${Math.round(worst.s)}%</b>`
-  const lint = fn.smells ? `, minus ${LINT_COST} for each of its ${fn.smells} lint finding${fn.smells > 1 ? 's' : ''}` : ''
-  return `<p class="math">Score <b class="txt ${band(fn.score)}">${fn.score}%</b>: ${base}${lint}.${fn.score >= T.green ? '' : ` Approved needs ${T.green}%.`}</p>`
+  const costs = Object.entries(fn.costs ?? {})
+  const name = m => (R.metrics[m]?.title ?? m).toLowerCase()
+  const base = !fn.costs ? 'this report predates the cost breakdown; run a check to refresh it'
+    : costs.length ? `what each smell costs on CodeScene’s 1–10 scale, multiplied: ${costs.map(([m, c]) => `${name(m)} −${c.toFixed(2)}`).join(', ')}`
+    : 'nothing over its limits'
+  const capped = fn.score === T.green - 1 && (costs.length || fn.smells)
+    ? `, and a function with findings stops at ${T.green - 1}%` : ''
+  return `<p class="math">Score <b class="txt ${band(fn.score)}">${fn.score}%</b>: ${base}${capped}.${fn.score >= T.green ? '' : ` Approved needs ${T.green}%: no finding left.`}</p>`
 }
 
 function helpFor(f) {
@@ -321,7 +324,7 @@ function issueCard(f, opts = {}) {
   const metric = !!R.metrics[f.rule] && f.rule !== 'duplicate'
   const title = metric ? h.title : esc(f.message.replace(/\.$/, ''))
   const meta = metric ? `${f.message.match(/\d+/)?.[0] ?? ''} against a limit of ${R.limits[f.rule]}`
-    : `${esc(f.rule.split(':').pop())} · ${(f.end_line ?? f.line) - f.line >= WIDE ? `lines ${f.line}–${f.end_line}` : `line ${f.line}`}${opts.inFn ? ` · −${LINT_COST} points` : ''}`
+    : `${esc(f.rule.split(':').pop())} · ${(f.end_line ?? f.line) - f.line >= WIDE ? `lines ${f.line}–${f.end_line}` : `line ${f.line}`}${opts.inFn ? ` · keeps it below ${T.green}%` : ''}`
   const what = h.what && h.what.replace(/\.$/, '') !== f.message.replace(/\.$/, '') ? `<p><b>What it means.</b> ${md(h.what)}</p>` : ''
   const ex = h.bad || h.good ? `<details class="ex"><summary>Example</summary><div class="exg">
       ${h.bad ? `<div><div class="sub">Flagged</div><pre>${esc(h.bad)}</pre></div>` : ''}${h.good ? `<div><div class="sub">Instead</div><pre>${esc(h.good)}</pre></div>` : ''}</div></details>` : ''
@@ -472,11 +475,11 @@ function explorerPanel() {
 function how() {
   const l = R.limits
   return `<section class="panel"><details class="how"><summary>How scores work</summary><div>
-    Each function gets the score of its worst metric: 100 at zero, ${T.green} exactly at the limit, then 30 points lower for every 100% over it,
-    minus 5 for each lint or duplication finding inside it. A function is approved at ${T.green}% or more.
-    <b>Code Health</b> puts the same scores on CodeScene’s 1–10 scale (score ÷ 10), weighting each function by its lines of code and each file likewise; 9.5 is the level CodeScene recommends for code AI agents work in. The hotspot figure counts only files changed in the last 180 days; the worst file is the lowest single score.
+    Each smell over its limit costs what it costs in CodeScene (fitted to its CLI), and the costs multiply: a function’s score is 100 × the product of (1 − cost ÷ 10).
+    A function with any finding, lint included, stops at ${T.green - 1}%, so approved (${T.green}% or more) means inside every limit with no findings.
+    <b>Code Health</b> is the same model per file on CodeScene’s 1–10 scale (nesting, parameters and bumpy road count once per file, at their worst), and files are weighted by lines of code; 9.5 is the level CodeScene recommends for code AI agents work in. The hotspot figure counts only files changed in the last 180 days; the worst file is the lowest single score.
     Limits: branches <code>${l.ccn}</code>, cognitive complexity <code>${l.cognitive}</code>, lines <code>${l.nloc}</code>,
-    parameters <code>${l.params}</code>, nesting depth <code>${l.nesting}</code>, condition operators <code>${l.conditional}</code>, nested-logic blocks <code>${l.bumps}</code>, file length <code>${l.file_nloc}</code> lines.
+    parameters <code>${l.params}</code>, nesting depth <code>${l.nesting}</code>, condition operators <code>${l.conditional}</code>, nested-logic blocks <code>${l.bumps}</code>, file length <code>${l.file_nloc}</code> lines (JS / TS <code>${l.file_nloc_js ?? l.file_nloc}</code>).
     Colors: <span class="txt green">green</span> ${LABEL.green}, <span class="txt yellow">yellow</span> ${LABEL.yellow}, <span class="txt red">red</span> ${LABEL.red}.
     ${R.full ? '' : 'Type checking and duplication aren’t included: run <code>report --full</code> for them.'}
   </div></details></section>`

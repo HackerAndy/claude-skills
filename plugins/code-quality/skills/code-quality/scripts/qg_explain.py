@@ -52,8 +52,8 @@ METRIC_HELP = {
     },
     "bumps": {
         "title": "Bumpy road",
-        "what": "Several separate top-level branches of the function each contain more branches inside "
-                "them (CodeScene's Bumpy Road).",
+        "what": "Several separate chunks of the function hold nested logic: branches of an if / switch / "
+                "try with an if, loop or ternary inside, or loops around branches (CodeScene's Bumpy Road).",
         "why": "Each bump is a chunk of logic that deserves a name; stacked together they make the function "
                "read as several jobs, and the bumps hide behavior from tests.",
         "fix": "Extract each bump into a helper named for what it does, leaving the function as a short "
@@ -67,7 +67,8 @@ METRIC_HELP = {
     },
     "file_nloc": {
         "title": "File too long",
-        "what": "The file has more lines of code than the limit.",
+        "what": "The file has more lines of code than the limit (CodeScene allows JS / TS files more "
+                "than Python ones).",
         "why": "Big files mix concerns, so changes collide and it's hard to see what belongs together.",
         "fix": "Move a cohesive part (a component, a group of helpers) into its own module.",
     },

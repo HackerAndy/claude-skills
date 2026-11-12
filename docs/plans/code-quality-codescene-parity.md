@@ -40,19 +40,13 @@ Findings so far:
   - 13 of the 21 misses come from thresholds: CodeScene warns when a value reaches its threshold, we only above our limit.
   - `cs delta` doesn't report duplication or Brain Method either.
 
-## Step 5: turn the gaps into changes
-Likely areas, to be confirmed by the data:
-- Bumpy Road ignores bump size.
-- Complex Conditional counts operators, not clauses.
-- The score is a per-function worst-metric heuristic, where CodeScene uses a file-level model.
-- Duplication is a flat 5-point penalty.
-- Large Method and Brain Method have no direct equivalent.
-- The default thresholds may differ from CodeScene's.
-
-Then:
-- Add parity tests to `tests/test_quality_gate.py`.
-- Soften the README's claims where the data doesn't support them.
-- Bump `version` in `plugin.json`, run `claude plugin validate` and `claude plugin test`, and commit. Push only when you ask.
+## Step 5: turn the gaps into changes (done 2026-11-12, code-quality 0.11.0)
+You chose all three changes and to match CodeScene:
+- **Thresholds:** CodeScene's defaults less one, because it warns at a threshold: cc 8, 69 lines, 4 parameters, 1 operator, and 599 / 999 lines per Python / JS-TS file.
+- **Score:** each smell costs what it costs CodeScene, measured with generated samples, and the costs multiply. Nesting, parameters and bumps count once per file. Lint costs nothing. A function with findings stops at 94%, so approved still means no findings.
+- **Bumps:** branches of a top-level fork that hold nested logic, and a loop counted as one bump.
+- Result: mean file-score gap 1.96 → 0.17, rank correlation 0.42 → 0.74, smell match 71% → 87%. Details in `plugins/code-quality/docs/codescene-parity.md`.
+- The `code-quality-live` pane now shows the cost breakdown instead of "worst measure".
 
 ## Verification
 - Step 1: `git status -sb` shows no "ahead", and `ls-remote` matches local HEAD.

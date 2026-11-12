@@ -3,7 +3,9 @@ and TypeScript are scored by one definition. Modelled on CodeScene's smells of t
 
   nesting      deepest chain of if / loop / try / switch inside one another (Nested Complexity)
   conditional  most && / || (and / or) operators in any single condition (Complex Conditional)
-  bumps        top-level branches of the function that themselves contain nested branches (Bumpy Road)
+  bumps        chunks of nested logic in the function, counted the way CodeScene counts them (Bumpy Road):
+               each branch of a top-level if / switch / match / try that holds a nested branch, loop or
+               ternary is a bump; a top-level loop is one bump if it holds branches, or the bumps inside it
 
 Runs on its own, `python qg_smells.py FILE...`, printing JSON {file: [{line, end, nesting, conditional,
 bumps}, ...]} with one entry per function; qg_checks.py runs it in-process when tree-sitter is
@@ -22,6 +24,11 @@ BRANCHES = {"if_statement", "for_statement", "for_in_statement", "while_statemen
 CONDITION_OWNERS = {"if_statement", "elif_clause", "while_statement", "do_statement", "for_statement",
                     "ternary_expression"}
 LOGICAL = {"&&", "||"}
+LOOPS = {"for_statement", "for_in_statement", "while_statement", "do_statement"}
+FORKS = {"if_statement", "switch_statement", "match_statement", "try_statement"}  # code that takes one of several paths
+TERNARIES = {"conditional_expression", "ternary_expression"}
+CLAUSES = {"elif_clause", "else_clause", "except_clause", "finally_clause", "case_clause", "switch_case",
+           "switch_default", "catch_clause"}
 
 
 def parser_for(path, parsers):
@@ -74,14 +81,47 @@ def conditions(node):
     return out
 
 
+def has_logic(node):
+    """Whether node is, or holds, a branch, loop or ternary of its own function."""
+    return node.type in BRANCHES or node.type in TERNARIES or any(has_logic(c) for c in own_children(node))
+
+
+def paths(fork):
+    """The code on each path of an if / elif / else, switch / match or try (clauses keep their condition)."""
+    out = []
+    for c in fork.named_children:
+        if c == fork.child_by_field_name("condition") or c == fork.child_by_field_name("subject"):
+            continue
+        inner = [x for x in c.named_children if x.type == "if_statement"]
+        if c.type == "else_clause" and inner:  # JS `else if`: the next link of the same chain
+            out += paths(inner[0])
+        elif c.type == "switch_body" or (fork.type == "match_statement" and c.type == "block"):
+            out += [x for x in c.named_children if x.type in CLAUSES]
+        else:
+            out.append(c)
+    return out
+
+
+def bumps(block):
+    """Chunks of nested logic among block's statements (see the module docstring)."""
+    n = 0
+    for st in block.named_children:
+        body = st.child_by_field_name("body")
+        if st.type in FORKS:
+            n += sum(has_logic(p) for p in paths(st))
+        elif st.type in LOOPS and body is not None:
+            n += bumps(body) or int(has_logic(body))
+        elif st.type in ("with_statement", "statement_block"):  # no choice of path: look inside
+            n += bumps(body if body is not None else st)
+    return n
+
+
 def measure_function(fn):
     body = fn.child_by_field_name("body")
-    top = [c for c in body.named_children if c.type in BRANCHES] if body is not None and body.type in {
-        "block", "statement_block"} else []
     conds = conditions(fn)
     return {"line": fn.start_point[0] + 1, "end": fn.end_point[0] + 1, "nesting": nesting(fn),
             "conditional": max((operators(c) + _self(c) for c in conds), default=0),
-            "bumps": sum(nesting(b, 1) >= 2 for b in top)}
+            "bumps": bumps(body) if body is not None and body.type in {"block", "statement_block"} else 0}
 
 
 def _self(cond):

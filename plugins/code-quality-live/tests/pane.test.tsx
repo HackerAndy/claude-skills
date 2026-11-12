@@ -24,7 +24,7 @@ const REPORT = JSON.stringify({
   files: {
     'app/orders.py': {
       functions: [
-        fn('legacy_price', 4, 41, ['cognitive complexity 30 > 15'], { values: { ccn: 9, cognitive: 30, nloc: 9, params: 2 }, smells: 1, code: CODE }),
+        fn('legacy_price', 4, 41, ['cognitive complexity 30 > 15'], { values: { ccn: 9, cognitive: 30, nloc: 9, params: 2 }, smells: 1, costs: { cognitive: 0.81 }, code: CODE }),
         fn('shipping', 30, 81, ['1 lint finding(s)']),
         fn('subtotal', 50, 98),
       ],
@@ -90,7 +90,7 @@ test('the pane shows the share approved, what to fix first, and drills into a fo
 
     // A function: its score worked out, the issues in plain words, the lines that cause them marked.
     await ui.press({ key: 't:app/orders.py:legacy_price' })
-    expect(await ui.find({ type: 'Text', text: /worst measure: hard to follow 30\/15 → 60%, −5 × 1 lint = 41%/ })).toBeDefined()
+    expect(await ui.find({ type: 'Text', text: /costs: hard to follow −0.81 = 41%/ })).toBeDefined()
     expect(await ui.find({ type: 'Text', text: /Flatten it/ })).toBeDefined()
     expect(await ui.find({ type: 'Text', text: /mutable objects as function argument defaults/ })).toBeDefined()
     expect((await ui.find({ type: 'Text', text: /^ \+2 $/ }))?.text).toBe(' +2 ')

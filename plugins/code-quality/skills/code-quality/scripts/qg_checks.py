@@ -41,7 +41,20 @@ METRICS = {  # rule -> how the message reads
 }
 APPROVED = 95    # a function scoring at least this is approved: 9.5 on CodeScene's 1-10 Code Health scale,
                  # the level it recommends for code that AI agents will work in
-SMELL_COST = 5   # points per lint finding inside the function
+# What each smell over its limit costs on CodeScene's 1-10 scale, fitted to cs 1.0.58 (docs/codescene-parity.md).
+# Costs multiply: a score is 10 x the product of (1 - cost / 10) over the smells.
+COSTS = {
+    "ccn": lambda v: max(0.32, 0.026 * v + 0.03),
+    "nloc": lambda v: 0.0052 * v + 0.035,
+    "conditional": lambda v: 0.15 * v + 0.02,
+    "nesting": lambda v: 0.62 + 0.26 * max(0, v - 6),
+    "params": lambda v: 0.32,
+    "bumps": lambda v: 0.16,
+    "cognitive": lambda v: max(0.32, 0.026 * v + 0.03),  # not a CodeScene smell; charged only without ccn
+}
+ONCE_PER_FILE = {"nesting", "params", "bumps"}  # CodeScene charges these once per file, at the worst function
+DUPLICATE_COST = 0.5  # per duplicated block inside the function. Lint findings block but cost nothing, as in
+                      # CodeScene, which doesn't score style.
 FILE_SOURCES = {"lizard", "ruff", "biome"}  # the checks that run per file, on every check
 EDIT_DUPLICATION_SECONDS = 60  # a check on edit skips the duplication scan when it takes longer than this
 CHURN_DAYS = 180  # how far back a file's commits count toward refactoring priority
@@ -194,12 +207,17 @@ def code_lines(path):
                if ln.strip() and not ln.strip().startswith(("#", "//")))
 
 
+def file_limit(limits, path):
+    """CodeScene allows JS / TS files more lines than Python ones."""
+    return limits["file_nloc_js"] if Path(path).suffix.lower() in JS_EXT else limits["file_nloc"]
+
+
 def check_file_size(ctx, files):
-    limit = ctx["conf"]["limits"]["file_nloc"]
-    sizes = {f: code_lines(f) for f in files}
+    limits = ctx["conf"]["limits"]
+    sizes = {f: (code_lines(f), file_limit(limits, f)) for f in files}
     return [finding(rel(ctx["root"], f), 1, "file_nloc", f"file has {n} lines of code > {limit}; split the module",
                     symbol="<file>", value=n, limit=limit)
-            for f, n in sizes.items() if n > limit]
+            for f, (n, limit) in sizes.items() if n > limit]
 
 
 def lizard_functions(ctx, files):
@@ -394,12 +412,6 @@ def check_duplication(ctx, only=None, timeout=600):
 
 # ---------------------------------------------------------------- scores
 
-def metric_score(value, limit):
-    """100 at zero, APPROVED exactly at the limit, then 30 points lost per 100% over it."""
-    r = value / limit
-    return 100 - (100 - APPROVED) * r if r <= 1 else APPROVED - 30 * (r - 1)
-
-
 def innermost(functions, f):
     """The smallest function whose lines contain finding f, if any."""
     around = [fn for fn in functions if fn["file"] == f["file"] and fn["line"] <= f["line"] <= fn["end"]]
@@ -415,19 +427,40 @@ def source_of(rule):
     return rule.split(":")[0] if ":" in rule else ("jscpd" if rule == "duplicate" else "lizard")
 
 
+def smell_costs(limits, values, duplicates):
+    """{metric: cost} for each metric over its limit, and duplicated code; cognitive only counts when ccn doesn't."""
+    over = {m: v for m, v in values.items() if v > limits[m]}
+    if "ccn" in over:
+        over.pop("cognitive", None)
+    costs = {m: round(COSTS[m](v), 3) for m, v in over.items()}
+    return costs | ({"duplicate": DUPLICATE_COST * duplicates} if duplicates else {})
+
+
+def factor(costs):
+    """The share of full health left after costs: the product of (1 - cost / 10)."""
+    out = 1.0
+    for c in costs:
+        out *= 1 - c / 10
+    return out
+
+
 def score_functions(conf, functions, findings):
-    """Score each function 0-100: its worst metric against the limits, less SMELL_COST per lint
-    or duplication finding inside it. Averages over files are for reading only; approval is per function."""
-    smells = {}
+    """Score each function 0-100 the way CodeScene scores a file holding only that function: each smell
+    over its limit costs what it costs CodeScene. fn["smells"] counts the lint and duplication findings in it.
+    A function with any finding stops at APPROVED - 1, so approved still means inside every limit with no
+    findings. File and project health come from the costs, uncapped (health() and score_summary())."""
+    smells, duplicates = {}, {}
     for f in findings:
         fn = innermost(functions, f) if source_of(f["rule"]) in ("ruff", "biome", "jscpd") else None
         if fn:
             smells[id(fn)] = smells.get(id(fn), 0) + 1
-    limits = conf["limits"]
+            duplicates[id(fn)] = duplicates.get(id(fn), 0) + (f["rule"] == "duplicate")
     for fn in functions:
-        worst = min(metric_score(v, limits[m]) for m, v in fn["values"].items())
+        fn["costs"] = smell_costs(conf["limits"], fn["values"], duplicates.get(id(fn), 0))
         fn["smells"] = smells.get(id(fn), 0)
-        fn["score"] = max(0, round(worst - SMELL_COST * fn["smells"]))
+        fn["score"] = round(100 * factor(fn["costs"].values()))
+        if fn["smells"] or any(v > conf["limits"][m] for m, v in fn["values"].items()):
+            fn["score"] = min(fn["score"], APPROVED - 1)
         fn["approved"] = fn["score"] >= APPROVED
     return functions
 
@@ -453,10 +486,27 @@ def mean(xs):
 
 
 def health(fns):
-    """Code Health of a set of functions: their scores averaged, weighted by lines of code, so one
-    large bad function outweighs many small good ones (as CodeScene weights files)."""
-    weights = [max(fn["values"].get("nloc", 1), 1) for fn in fns]
-    return round(sum(w * fn["score"] for w, fn in zip(weights, fns)) / sum(weights), 1) if fns else None
+    """Code Health of one file's functions, 0-100. As in CodeScene, every function's smells count,
+    except ONCE_PER_FILE smells, which count once at their worst. A function from a report written
+    before costs were stored counts by its score."""
+    if not fns:
+        return None
+    out, worst = 1.0, {}
+    for fn in fns:
+        if "costs" not in fn:
+            out *= fn["score"] / 100
+            continue
+        for m, c in fn["costs"].items():
+            if m in ONCE_PER_FILE:
+                worst[m] = max(worst.get(m, 0), c)
+        out *= factor(c for m, c in fn["costs"].items() if m not in ONCE_PER_FILE)
+    return round(100 * out * factor(worst.values()), 1)
+
+
+def weighted_health(by_file, nloc):
+    """Files' health weighted by lines of code, as CodeScene weights a project."""
+    rows = [(h, max(nloc.get(f, 1), 1)) for f, h in by_file.items() if h is not None]
+    return sum(h * w for h, w in rows) / sum(w for _, w in rows) if rows else None
 
 
 def ten(score):
@@ -469,10 +519,11 @@ def score_summary(functions):
     for fn in functions:
         files.setdefault(fn["file"], []).append(fn)
     by_file = {file: health(fns) for file, fns in sorted(files.items())}
+    nloc = {file: sum(fn["values"].get("nloc", 0) for fn in fns) for file, fns in files.items()}
     worst = min(by_file, key=by_file.get, default=None)
     return {"approved": sum(fn["approved"] for fn in functions), "functions": len(functions),
             "average": mean([fn["score"] for fn in functions]),
-            "health": ten(health(functions)), "worst_file": worst,
+            "health": ten(weighted_health(by_file, nloc)), "worst_file": worst,
             "worst_file_health": ten(by_file[worst]) if worst else None,
             "files": {file: mean([fn["score"] for fn in fns]) for file, fns in sorted(files.items())}}
 
