@@ -15,16 +15,22 @@ Findings so far:
 3. Check with `git ls-remote origin refs/heads/main`.
 4. Switch back with `gh auth switch --user akaminski_Borgcopi` if wanted.
 
-## Step 2: get CodeScene running (blocked on you)
-- You are sorting out Podman. If it works, pull `codescene/codescene-mcp` with `CS_ACCESS_TOKEN` and `CS_MOUNT_PATH` set. That route gives MCP only.
-- The native `cs` CLI is better for scripting, because `cs review --output-format json` and `cs delta --output-format json` give per-file scores and smells.
-- A token is needed either way.
+## Step 2: get CodeScene running (done 2026-11-12)
+- Mac (arm64), so the Podman and Windows notes no longer apply.
+- MCP: the `codescene@codescene` Claude Code plugin (1.5.20, user scope, from the `codescene-oss/codescene-mcp-server` marketplace) runs `npx -y @codescene/codehealth-mcp`.
+- CLI: `cs` 1.0.58 in `~/.local/bin`, from `downloads.codescene.io/enterprise/cli/cs-macos-aarch64-latest.zip`, with the quarantine flag removed.
+- Auth: `CS_ACCESS_TOKEN` in the `env` block of `~/.claude/settings.json`, used by both. `cs auth status` confirms it.
+- CodeScene's defaults differ from ours: CC warns at 9 (ours 10), more than 4 arguments (ours 5), nesting 4 (ours 3), 70 LoC per function (ours 60), 2 bumps (ours 1), and file mean CC 4 (we have no equivalent). They are saved in `plugins/code-quality/tests/parity/results/`.
 
-## Step 3: build the comparison corpus
-- Use `plugins/code-quality/examples/demo/` (`legacy_price` is the known bad function).
-- Add 6-10 small fixtures in Python and TS, one per smell: Nested Complexity, Complex Conditional, Bumpy Road, Complex Method, Large Method, Brain Method, DRY violations, Primitive Obsession, Excess Function Arguments, and one clean control.
-- Add 2-3 real files from this repo (`qg_checks.py`, `quality_gate.py`, `backend_map.py`).
-- Keep fixtures out of the plugin's own checks, for example under `plugins/code-quality/tests/parity/`.
+## Step 3: build the comparison corpus (done 2026-11-12)
+- `plugins/code-quality/tests/parity/fixtures/{py,ts}/`: 10 Python and 7 TS fixtures, one smell each, plus a clean control. The manifest and first CodeScene results are in `tests/parity/README.md`.
+- Real files: `examples/demo/app/orders.py`, `qg_checks.py`, `quality_gate.py`, `backend_map.py`.
+- Found while building it:
+  - `cs review` scores Python and TS the same.
+  - It never reports Code Duplication or Brain Method.
+  - It skips Primitive Obsession for Python.
+  - Primitive Obsession needs about 15 primitive-argument functions in a file before it fires.
+  - Step 4 checks whether `cs delta` reports duplication and Brain Method.
 
 ## Step 4: run both and compare
 - Run `cs review` and `cs rules-config list-thresholds --language Python --format json` to get the real default thresholds.
