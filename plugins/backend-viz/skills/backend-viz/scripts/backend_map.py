@@ -731,7 +731,16 @@ def setup(root: Path) -> list:
         if n:
             did.append(f"added @traced to {n} functions/classes in {len(by_file)} files")
 
-    # monorepo convenience: subprojects' Claude skills usable from this folder
+    did += link_subfolder_skills(root)
+    try:
+        import yaml  # noqa: F401
+    except ImportError:
+        did.append("!! install PyYAML once: pip3 install pyyaml")
+    return did
+
+
+def link_subfolder_skills(root: Path) -> list:
+    """Monorepo convenience: make subprojects' Claude skills usable from this folder. Touches nothing else."""
     links = 0
     for sk in root.glob("*/.claude/skills/*/"):
         dst = root / ".claude" / "skills" / sk.name
@@ -742,13 +751,7 @@ def setup(root: Path) -> list:
                 links += 1
             except OSError:
                 pass
-    if links:
-        did.append(f"linked {links} skills from subfolders into .claude/skills")
-    try:
-        import yaml  # noqa: F401
-    except ImportError:
-        did.append("!! install PyYAML once: pip3 install pyyaml")
-    return did
+    return [f"linked {links} skills from subfolders into .claude/skills"] if links else []
 
 
 def init(root: Path, stack: str, quiet: bool = False):
@@ -806,8 +809,8 @@ def main():
         kids = [c for c in root.iterdir() if c.is_dir() and (c / "design").is_dir()] if root.is_dir() else []
         if len(kids) == 1:
             top, root = root, kids[0]
-            if "--setup" in args:  # link sub-folder skills at the top too
-                for line in [d for d in setup(top) if "linked" in d]:
+            if "--setup" in args:  # link sub-folder skills at the top too; the full setup only runs on the subproject
+                for line in link_subfolder_skills(top):
                     print("backend-viz setup: " + line)
     if "--setup" in args:
         did = setup(root)
