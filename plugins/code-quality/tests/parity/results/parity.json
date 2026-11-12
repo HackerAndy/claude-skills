@@ -2038,14 +2038,42 @@
        "Bumpy Road Ahead"
       ]
      },
+     "limits_for": {
+      "score": 100,
+      "values": {
+       "ccn": 3,
+       "cognitive": 1,
+       "nloc": 4,
+       "params": 2,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "over_limits": {
+      "score": 100,
+      "values": {
+       "ccn": 2,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
      "check_functions": {
       "score": 100,
       "values": {
        "ccn": 3,
-       "cognitive": 0,
-       "nloc": 5,
+       "cognitive": 1,
+       "nloc": 8,
        "params": 2,
-       "nesting": 0,
+       "nesting": 1,
        "conditional": 0,
        "bumps": 0
       },
@@ -2242,10 +2270,10 @@
      "smell_costs": {
       "score": 100,
       "values": {
-       "ccn": 4,
+       "ccn": 3,
        "cognitive": 1,
        "nloc": 5,
-       "params": 2,
+       "params": 1,
        "nesting": 1,
        "conditional": 0,
        "bumps": 0
@@ -2270,7 +2298,7 @@
      "score_functions": {
       "score": 94,
       "values": {
-       "ccn": 7,
+       "ccn": 6,
        "cognitive": 9,
        "nloc": 14,
        "params": 3,
@@ -2443,7 +2471,7 @@
      "check_duplication": [
       "Complex Method (cc = 9)"
      ],
-     "check_duplication:455": [
+     "check_duplication:475": [
       "Complex Conditional (2 complex conditional expressions)"
      ],
      "finding": [

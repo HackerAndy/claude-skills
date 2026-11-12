@@ -87,7 +87,8 @@ def codescene(work, name, cs):
     return {"score": out.get("score"), "functions": fns}
 
 
-def smells_over(limits, values):
+def smells_over(limits, values, file):
+    limits = qc.limits_for(limits, file)
     return sorted(SMELL[m] for m, v in values.items() if v > limits[m])
 
 
@@ -166,7 +167,7 @@ def main(argv):
             ours = ours_all.get(name, {"health": None, "functions": {}})
             theirs = codescene(work, name, cs)
             for fn in ours["functions"].values():
-                fn["smells_over_limit"] = smells_over(DEFAULTS["limits"], fn["values"])
+                fn["smells_over_limit"] = smells_over(DEFAULTS["limits"], fn["values"], name)
             rows.append({"file": name, "gate": ours, "codescene": theirs})
             print(f"{name:60} gate {ours['health']}  cs {theirs['score']}")
     result = {"source": root.name if root else "parity corpus", "summary": summary(rows), "files": rows}

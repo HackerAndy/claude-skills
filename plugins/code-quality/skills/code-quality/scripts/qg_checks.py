@@ -314,11 +314,31 @@ def fold_into(parent, child):
             parent[m] = max(parent.get(m, 0), child[m])
 
 
+REACT_EXT = {".jsx", ".tsx"}
+REACT_EXTRA = {"ccn": 1, "nloc": 50}  # CodeScene allows a JSX / TSX function cc 10 and 120 lines before it warns
+
+
+def limits_for(limits, file):
+    """The limits for a function in file: CodeScene relaxes two of them in React (JSX / TSX) files."""
+    if Path(file).suffix.lower() not in REACT_EXT:
+        return limits
+    return {**limits, **{m: limits[m] + extra for m, extra in REACT_EXTRA.items()}}
+
+
+def over_limits(conf, fn):
+    """{metric: value} of fn's measures over the limits for its file."""
+    limits = limits_for(conf["limits"], fn["file"])
+    return {m: v for m, v in fn["values"].items() if v > limits[m]}
+
+
 def check_functions(conf, functions):
-    limits = conf["limits"]
-    return [finding(fn["file"], fn["line"], metric, METRICS[metric].format(v=v, limit=limits[metric]),
-                    symbol=fn["symbol"], value=v, limit=limits[metric])
-            for fn in functions for metric, v in fn["values"].items() if v > limits[metric]]
+    out = []
+    for fn in functions:
+        limits = limits_for(conf["limits"], fn["file"])
+        out += [finding(fn["file"], fn["line"], metric, METRICS[metric].format(v=v, limit=limits[metric]),
+                        symbol=fn["symbol"], value=v, limit=limits[metric])
+                for metric, v in over_limits(conf, fn).items()]
+    return out
 
 
 def check_ruff(ctx, files):
@@ -476,9 +496,9 @@ def source_of(rule):
     return rule.split(":")[0] if ":" in rule else ("jscpd" if rule == "duplicate" else "lizard")
 
 
-def smell_costs(limits, values):
-    """{metric: cost} for each metric over its limit; cognitive only counts when ccn doesn't."""
-    over = {m: v for m, v in values.items() if v > limits[m]}
+def smell_costs(over):
+    """{metric: cost} for each metric over its limit (over: {metric: value}); cognitive only counts when ccn doesn't."""
+    over = dict(over)
     if "ccn" in over:
         over.pop("cognitive", None)
     return {m: round(COSTS[m](v), 3) for m, v in over.items()}
@@ -503,10 +523,10 @@ def score_functions(conf, functions, findings):
         if fn:
             smells[id(fn)] = smells.get(id(fn), 0) + 1
     for fn in functions:
-        fn["costs"] = smell_costs(conf["limits"], fn["values"])
+        fn["costs"] = smell_costs(over_limits(conf, fn))
         fn["smells"] = smells.get(id(fn), 0)
         fn["score"] = round(100 * factor(fn["costs"].values()))
-        if fn["smells"] or any(v > conf["limits"][m] for m, v in fn["values"].items()):
+        if fn["smells"] or over_limits(conf, fn):
             fn["score"] = min(fn["score"], APPROVED - 1)
         fn["approved"] = fn["score"] >= APPROVED
     return functions
@@ -514,8 +534,8 @@ def score_functions(conf, functions, findings):
 
 def reasons(conf, fn):
     """Why a function scores what it does: its metrics over the limits, and lint findings in it."""
-    limits = conf["limits"]
-    out = [METRICS[m].format(v=v, limit=limits[m]) for m, v in fn["values"].items() if v > limits[m]]
+    limits = limits_for(conf["limits"], fn["file"])
+    out = [METRICS[m].format(v=v, limit=limits[m]) for m, v in over_limits(conf, fn).items()]
     return [*out, f"{fn['smells']} lint finding(s)"] if fn["smells"] else out
 
 

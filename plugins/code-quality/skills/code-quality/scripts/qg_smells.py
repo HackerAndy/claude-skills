@@ -32,8 +32,8 @@ FUNCTIONS = {"function_definition", "function_declaration", "function_expression
              "generator_function_declaration", "generator_function", "method_definition", "arrow_function"}
 BRANCHES = {"if_statement", "for_statement", "for_in_statement", "while_statement", "do_statement",
             "try_statement", "switch_statement", "match_statement"}
-CONDITION_OWNERS = {"if_statement", "elif_clause", "while_statement", "do_statement", "for_statement",
-                    "ternary_expression"}
+CONDITION_OWNERS = {"if_statement", "elif_clause", "while_statement", "do_statement", "for_statement"}
+# A JS / TS ternary's condition isn't a Complex Conditional for CodeScene; a Python one is (handled in conditions)
 LOGICAL = {"&&", "||"}
 LOOPS = {"for_statement", "for_in_statement", "while_statement", "do_statement"}
 FORKS = {"if_statement", "switch_statement", "match_statement"}  # code that takes one of several paths
@@ -81,11 +81,21 @@ def operators(node):
     return n
 
 
+def unbraced_js_if(node):
+    """A JS / TS `if (...) stmt` without braces whose condition CodeScene doesn't check: it does only when that
+    statement, or the one after it, ends in a semicolon (semicolon-free code goes unchecked). Python's it does."""
+    body = node.child_by_field_name("consequence")
+    if node.type != "if_statement" or body is None or body.type in ("statement_block", "block"):
+        return False
+    after = node.next_named_sibling
+    return not body.text.rstrip().endswith(b";") and not (after is not None and after.text.rstrip().endswith(b";"))
+
+
 def conditions(node):
     """The condition expression of each branch inside the function."""
     out = []
     for c in own_children(node):
-        cond = c.child_by_field_name("condition") if c.type in CONDITION_OWNERS else None
+        cond = c.child_by_field_name("condition") if c.type in CONDITION_OWNERS and not unbraced_js_if(c) else None
         if c.type == "conditional_expression" and len(c.named_children) == 3:  # python ternary
             cond = c.named_children[1]
         if cond is not None:
@@ -227,21 +237,21 @@ def is_folded(fn):
     p = fn.parent
     while p is not None and not is_function(p):
         p = p.parent
-    return p is not None and (fn.type == "function_definition" or code_lines(fn) < OWN_FUNCTION_LINES)
+    return p is not None and (fn.type == "function_definition" or source_lines(fn) < OWN_FUNCTION_LINES)
 
 
-def tokens(node, out):
-    """The source text of each leaf below node, comments left out."""
-    if node.child_count == 0:
-        if "comment" not in node.type:
-            out.append(node.text)
+def code_leaves(node, markup=False):
+    """(line, text) of each leaf below node that is code: comments and JSX left out. CodeScene doesn't count
+    two components as duplicates for alike markup, nor a function of mostly markup as long enough to check."""
+    markup = markup or node.type.startswith("jsx_")
+    if node.child_count == 0 and not markup and "comment" not in node.type:
+        yield node.start_point[0], node.text
     for c in node.children:
-        tokens(c, out)
-    return out
+        yield from code_leaves(c, markup)
 
 
-def code_lines(node):
-    """Lines of node that hold code."""
+def source_lines(node):
+    """Lines of node that hold anything but comments, JSX included: lizard's count."""
     lines = set()
 
     def walk(n):
@@ -257,13 +267,16 @@ def similar(fns):
     """The indexes of functions with a near copy among fns (see the module docstring)."""
     runs = {}
     for i, fn in enumerate(fns):
-        if not is_folded(fn) and code_lines(fn) >= SIMILAR_MIN_LINES:
-            t = tokens(fn, [])
+        leaves = list(code_leaves(fn))
+        if not is_folded(fn) and len({line for line, _ in leaves}) >= SIMILAR_MIN_LINES:
+            t = [text for _, text in leaves]
             runs[i] = {tuple(t[k:k + SHINGLE]) for k in range(max(1, len(t) - SHINGLE + 1))}
     out = set()
     keys = sorted(runs)
     for a, i in enumerate(keys):
         for j in keys[a + 1:]:
+            if fns[i].start_byte <= fns[j].start_byte and fns[j].end_byte <= fns[i].end_byte:
+                continue  # j is nested in i, not a copy of it
             if len(runs[i] & runs[j]) >= SIMILAR_SHARE * len(runs[i] | runs[j]):
                 out |= {i, j}
     return out
