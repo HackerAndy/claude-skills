@@ -32,3 +32,7 @@ Design rules:
 - The analyzer has no dependencies but PyYAML; the dashboard is one self-contained HTML file.
 - The tracer (`templates/trace/`) is copied into each project by `--init-tracing` because it is imported by app code; keep it dependency-free.
 - Never log secrets: vault modules and secret-looking args are redacted.
+
+## statusline
+
+`statusline/statusline.sh` is the status line `~/.claude/settings.json` runs (`statusLine.command` points here, so edits apply at once). Not a plugin: plugins can't set the status line.
