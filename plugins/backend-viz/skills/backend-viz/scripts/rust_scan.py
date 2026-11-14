@@ -31,6 +31,8 @@ USE_TREE = re.compile(r"\buse\s+([^;]+);")
 INLINE_PATH = re.compile(r"(?<![\w:])((?:[A-Za-z_]\w*)(?:::[A-Za-z_]\w*)+)")
 TOKEN = re.compile(r"#!?\[|->|=>|::|[{};<>]|\w+|[^\s\w]")
 TRACED_ATTR = re.compile(r"^\s*(?:[\w:]*::)?{name}\b")
+TEST_MODULE = re.compile(r"#\[\s*cfg\s*\(\s*test\s*\)\s*\](?:\s*#\[[^\]]*\])*\s*(?:pub(?:\([^)]*\))?\s+)?mod\s+\w+\s*\{")
+CONSTRUCTORS = {"new"}  # like Python's __init__: not required to be traced
 
 
 # ---------------------------------------------------------------- lexing
@@ -84,6 +86,24 @@ def blank(src: str):
             i = end
         else:
             i += 1
+    return "".join(code), "".join(shape)
+
+
+def without_test_modules(code: str, shape: str):
+    """Blank `#[cfg(test)] mod … { … }` bodies: tests aren't part of the map, and `super::` inside an inline
+    module can't be resolved from the file alone."""
+    code, shape = list(code), list(shape)
+    text = "".join(shape)
+    for m in TEST_MODULE.finditer(text):
+        depth, k = 0, m.end() - 1
+        while k < len(text):
+            depth += {"{": 1, "}": -1}.get(text[k], 0)
+            if depth == 0:
+                break
+            k += 1
+        for i in range(m.start(), min(k + 1, len(text))):
+            if text[i] != "\n":
+                code[i] = shape[i] = " "
     return "".join(code), "".join(shape)
 
 
@@ -231,7 +251,7 @@ def scan_routes(f_rel: str, stem: str, code: str):
 
 def scan_rust(root: Path, f: Path, src: str, crates: dict):
     """(routes, imported project files, router mounts) for one .rs file."""
-    code, shape = blank(src)
+    code, shape = without_test_modules(*blank(src))
     f_rel = f.relative_to(root).as_posix()
     routes, includes = scan_routes(f_rel, router_stem(f), code)
     here = crate_of(crates, f.resolve())
@@ -327,7 +347,7 @@ def open_context(parent, item, shape, traced_attr, out, f_rel):
         if parent["kind"] == "impl" and parent.get("trait") in COMMON_TRAITS:
             skip = True
         is_test = any(re.match(r"\s*(?:[\w:]*::)?test\b", a) for a in attrs)
-        if not skip and is_public and not is_test and "const" not in before:
+        if not skip and is_public and not is_test and "const" not in before and name not in CONSTRUCTORS:
             func = f"{parent['type']}.{name}" if parent["kind"] == "impl" and parent.get("type") else name
             out.append({"file": f_rel, "func": func, "line": line_at(shape, at[fn_at]),
                         "traced": is_traced or parent.get("traced", False)})

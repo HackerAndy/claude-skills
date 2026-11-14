@@ -1,6 +1,6 @@
 //! `#[traced]`: each call of a function, or of every method in an `impl` block, becomes a backend-viz span.
 //!
-//! `#[traced]` on a function or an inherent `impl` (its `pub` methods), or a trait `impl` (all its methods).
+//! `#[traced]` on a function or an inherent `impl` (its `pub` methods but `new`), or a trait `impl` (all its methods).
 //! Options: `#[traced(name = "label")]`, `#[traced(redact)]` (no args or results recorded).
 
 use proc_macro::TokenStream;
@@ -51,7 +51,8 @@ fn trace_impl(mut block: ItemImpl, options: &Options) -> ItemImpl {
         let ImplItem::Fn(method) = item else { continue };
         let is_public = !matches!(method.vis, Visibility::Inherited);
         let is_already_traced = method.attrs.iter().any(|attr| attr.path().is_ident("traced"));
-        if (is_trait_impl || is_public) && !is_already_traced && method.sig.constness.is_none() {
+        let is_constructor = method.sig.ident == "new"; // like Python's __init__: not traced
+        if (is_trait_impl || is_public) && !is_already_traced && !is_constructor && method.sig.constness.is_none() {
             method.block = traced_block(&method.sig, &method.block, options);
         }
     }
