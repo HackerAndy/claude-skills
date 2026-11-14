@@ -16,3 +16,7 @@ axum = { version = "0.8", optional = true }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["rt", "macros"] }
+
+# Keeps its own lints inside a workspace that sets [workspace.lints].
+[lints.cargo]
+missing_lints_inheritance = "allow"
