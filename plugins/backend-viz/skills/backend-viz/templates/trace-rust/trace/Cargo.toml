@@ -1,0 +1,18 @@
+# backend-viz runtime tracing for Rust. Installed by backend-viz into crates/trace: change it in claude-skills, not here.
+[package]
+name = "trace"
+version = "0.1.0"
+edition = "2024"
+publish = false
+description = "backend-viz runtime tracing: #[traced], data, link, span. Writes .backend-viz/traces/spans.jsonl"
+
+[features]
+# trace::axum::trace_request, one trace per HTTP request
+axum = ["dep:axum"]
+
+[dependencies]
+trace-macros = { path = "../trace-macros" }
+axum = { version = "0.8", optional = true }
+
+[dev-dependencies]
+tokio = { version = "1", features = ["rt", "macros"] }

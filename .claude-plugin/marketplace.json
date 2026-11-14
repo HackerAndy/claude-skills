@@ -18,7 +18,7 @@
     {
       "name": "backend-viz",
       "source": "./plugins/backend-viz",
-      "description": "Contract-first backend workflow for FastAPI and Node: API contract vs built routes, layer rules, drift feedback after every edit, runtime tracing and a visual dashboard"
+      "description": "Contract-first backend workflow for FastAPI, Node and Rust (axum): API contract vs built routes, layer rules, drift feedback after every edit, runtime tracing and a visual dashboard"
     },
     {
       "name": "backend-viz-live",

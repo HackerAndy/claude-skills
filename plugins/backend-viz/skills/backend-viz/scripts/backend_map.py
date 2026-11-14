@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """
 backend-viz: compare what you DESIGNED (API contract + layer rules) against what
-was BUILT (FastAPI / Node routes + import graph), then render a visual dashboard.
+was BUILT (FastAPI / Node / Rust routes + import graph), then render a visual dashboard.
 
 Usage:
   backend_map.py [--root DIR]            analyze, write .backend-viz/report.json + dashboard.html
   backend_map.py --open                  ...and open the dashboard in a browser
-  backend_map.py --init [fastapi|node]   scaffold design/ (contract + architecture rules)
+  backend_map.py --init [fastapi|node|rust]   scaffold design/ (contract + architecture rules)
   backend_map.py --hook                  Claude Code PostToolUse mode (reads hook JSON on stdin;
                                          exit 2 + stderr feedback when drift is found)
   backend_map.py --summary               print a one-line JSON summary (used by the live pane)
   backend_map.py --traces [n]            print the last n traces as trees (what actually ran)
   backend_map.py --serve [port]          live dashboard on http://localhost:8765, updates as requests run
-  backend_map.py --init-tracing          copy the tracer into app/trace/
+  backend_map.py --init-tracing          copy the tracer into app/trace/ (Rust: crates/trace + crates/trace-macros)
   backend_map.py --clear-traces          delete recorded spans
 
 Static, best-effort analysis. No dependencies except PyYAML for .yaml files.
@@ -28,14 +28,17 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+import rust_scan  # noqa: E402
 TEMPLATES = HERE.parent / "templates"
 
 SKIP_DIRS = {"node_modules", ".git", "venv", ".venv", "env", "__pycache__", "dist", "build",
-             ".backend-viz", ".next", "coverage", "site-packages", ".pytest_cache", ".mypy_cache"}
+             ".backend-viz", ".next", "coverage", "site-packages", ".pytest_cache", ".mypy_cache", "target"}
 HTTP_METHODS = {"get", "post", "put", "patch", "delete", "head", "options"}
 PY_EXT = {".py"}
 JS_EXT = {".js", ".ts", ".mjs", ".cjs", ".jsx", ".tsx"}
-WATCH_EXT = PY_EXT | JS_EXT | {".yaml", ".yml", ".json"}
+RS_EXT = {".rs"}
+WATCH_EXT = PY_EXT | JS_EXT | RS_EXT | {".yaml", ".yml", ".json"}
 
 
 # ---------------------------------------------------------------- helpers
@@ -77,7 +80,7 @@ def iter_source_files(root: Path):
         dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS and not d.startswith(".")]
         for f in filenames:
             p = Path(dirpath) / f
-            if p.suffix in PY_EXT or (p.suffix in JS_EXT and not f.endswith(".d.ts")):
+            if p.suffix in PY_EXT or p.suffix in RS_EXT or (p.suffix in JS_EXT and not f.endswith(".d.ts")):
                 yield p
 
 
@@ -396,6 +399,7 @@ def analyze(root: Path):
     design = load_design(root)
     ignore = design["ignore"]
     files, edges, all_routes, all_includes, funcs = [], [], [], [], []
+    crates = rust_scan.rust_crates(root) if (root / "Cargo.toml").exists() else {}
     for f in iter_source_files(root):
         r = rel(root, f)
         if any(fnmatch.fnmatch(r, g) for g in ignore):
@@ -407,7 +411,11 @@ def analyze(root: Path):
         if f.name == "__init__.py" and not src.strip():
             continue  # empty package markers are noise on the map
         files.append(r)
-        routes, imps, incs = (scan_python if f.suffix in PY_EXT else scan_js)(root, f, src)
+        if f.suffix in RS_EXT:
+            routes, imps, incs = rust_scan.scan_rust(root, f, src, crates)
+            funcs += rust_scan.scan_rs_functions(r, src, design["tracing"]["decorator"])
+        else:
+            routes, imps, incs = (scan_python if f.suffix in PY_EXT else scan_js)(root, f, src)
         if f.suffix in PY_EXT:
             funcs += scan_py_functions(r, src, design["tracing"]["decorator"])
         all_routes += routes
@@ -435,7 +443,7 @@ def analyze(root: Path):
 
     built = []
     for rt in all_routes:
-        full = join_paths(mount_prefix(rt["router"]), rt["local_path"])
+        full = rt["local_path"] if rt.get("absolute") else join_paths(mount_prefix(rt["router"]), rt["local_path"])
         built.append({"method": rt["method"], "path": full, "key": f"{rt['method']} {norm_path(full)}",
                       "file": rt["file"], "line": rt["line"], "handler": rt["handler"]})
 
@@ -481,7 +489,7 @@ def analyze(root: Path):
     # tracing: static coverage + runtime calls
     required = set(design["tracing"]["required_in"] or [])
     rt = load_traces(root, layer_of)
-    funcs = [fn for fn in funcs if "/trace/" not in f"/{fn['file']}"]  # the tracer itself
+    funcs = [fn for fn in funcs if "/trace/" not in f"/{fn['file']}" and "/trace-macros/" not in f"/{fn['file']}"]  # the tracer itself
     for fn in funcs:
         fn["layer"] = file_layer.get(fn["file"])
         fn["required"] = fn["layer"] in required
@@ -559,8 +567,11 @@ def feedback(report: dict) -> str:
     unt = report.get("untraced") or []
     if unt:
         dec = report["tracing"]["decorator"]
+        how = (f"add #[{dec}] (from the trace crate) to the fn, or to its whole impl block"
+               if any(fn["file"].endswith(".rs") for fn in unt)
+               else f"decorate with @{dec} from app.trace, or the whole class")
         lines.append(f"Functions without tracing in {', '.join(report['tracing']['required_in'])} "
-                     f"(decorate with @{dec} from app.trace, or the whole class, so calls show up on the map):")
+                     f"({how}, so calls show up on the map):")
         for fn in unt[:12]:
             lines.append(f"  - {fn['file']}:{fn['line']} {fn['func']}")
         if len(unt) > 12:
@@ -629,6 +640,8 @@ def serve(root: Path, port: int):
 
 
 def detect_stack(root: Path) -> str:
+    if (root / "Cargo.toml").exists():
+        return "rust"
     if list(root.glob("requirements*.txt")) or (root / "pyproject.toml").exists() or list(root.glob("*/main.py")) or (root / "main.py").exists():
         return "fastapi"
     return "node" if (root / "package.json").exists() else "fastapi"
@@ -653,6 +666,8 @@ def setup(root: Path) -> list:
     if not (root / "design").is_dir():
         init(root, stack, quiet=True)
         did.append(f"created design/ ({stack}): openapi.yaml + architecture.yaml")
+    if stack == "rust":
+        did += setup_rust(root)
     if stack == "fastapi":
         main_py = find_fastapi_main(root)
         pkg = main_py.parent if main_py else root / "app"
@@ -739,6 +754,42 @@ def setup(root: Path) -> list:
     return did
 
 
+def install_rust_tracer(root: Path) -> list:
+    """Copy the Rust tracer into crates/trace and crates/trace-macros, where missing. Returns what it made."""
+    made = []
+    for name in ("trace", "trace-macros"):
+        dst = root / "crates" / name
+        if not (dst / "Cargo.toml").exists():
+            shutil.copytree(TEMPLATES / "trace-rust" / name, dst, dirs_exist_ok=True)
+            made.append(f"crates/{name}")
+    return made
+
+
+def setup_rust(root: Path) -> list:
+    """Rust: install the tracer, add its layer and the tracing section. Wiring it into the app is left to the
+    project (one dependency and one layer), since editing Rust code by regex would be fragile."""
+    did = [f"added tracer: {m}/" for m in install_rust_tracer(root)]
+    arch = first_existing(root / "design", ["architecture.yaml", "architecture.yml"])
+    if arch:
+        a = arch.read_text(encoding="utf-8")
+        if not re.search(r"^\s*-\s*name:\s*trace\s*$", a, re.M):
+            a = a.replace("layers:\n", "layers:\n  - name: trace\n    description: backend-viz runtime tracing "
+                          "(#[traced], data, link). Everyone may use it.\n    paths: [\"crates/trace/*\", "
+                          "\"crates/trace-macros/*\"]\n    may_depend_on: []\n", 1)
+            did.append("added the trace layer to design/architecture.yaml")
+        if not re.search(r"^tracing:", a, re.M):
+            a = a.rstrip() + "\n\n# every public function in these layers must be #[traced]\ntracing:\n" \
+                "  required_in: [services, repositories]\n  decorator: traced\n"
+            did.append("tracing required in: services, repositories")
+        arch.write_text(a, encoding="utf-8")
+    src = "\n".join(p.read_text(encoding="utf-8", errors="ignore") for p in root.rglob("*.rs")
+                    if not SKIP_DIRS & set(p.relative_to(root).parts))
+    if "trace_request" not in src:
+        did.append("!! wire it: add `trace = { path = \"crates/trace\", features = [\"axum\"] }` to the app's "
+                   "dependencies and `.layer(axum::middleware::from_fn(trace::axum::trace_request))` to its Router")
+    return did
+
+
 def link_subfolder_skills(root: Path) -> list:
     """Monorepo convenience: make subprojects' Claude skills usable from this folder. Touches nothing else."""
     links = 0
@@ -757,6 +808,8 @@ def link_subfolder_skills(root: Path) -> list:
 def init(root: Path, stack: str, quiet: bool = False):
     d = root / "design"
     d.mkdir(exist_ok=True)
+    if not stack and (root / "Cargo.toml").exists():
+        stack = "rust"
     if not stack:
         stack = "node" if (root / "package.json").exists() and not list(root.glob("**/*.py"))[:1] else "fastapi"
     created = []
@@ -825,6 +878,9 @@ def main():
         for p in (root / ".backend-viz" / "traces").glob("spans.jsonl*"):
             p.unlink()
         print("backend-viz: traces cleared")
+        return 0
+    if "--init-tracing" in args and detect_stack(root) == "rust":
+        print(json.dumps({"created": install_rust_tracer(root)}))
         return 0
     if "--init-tracing" in args:
         dst = root / "app" / "trace"

@@ -1,6 +1,6 @@
 ---
 name: backend-viz
-description: Contract-first, visual backend development for FastAPI and Node (Express/Fastify). Use when the user wants to design, build, review or visualize a backend or API; asks to "init backend-viz", "show the backend map", "mock the API", "check drift", "trace requests"; or when working in a project that has a design/ folder with openapi.yaml + architecture.yaml. Also use whenever adding, changing or removing an API endpoint in such a project.
+description: Contract-first, visual backend development for FastAPI, Node (Express/Fastify) and Rust (axum). Use when the user wants to design, build, review or visualize a backend or API; asks to "init backend-viz", "show the backend map", "mock the API", "check drift", "trace requests"; or when working in a project that has a design/ folder with openapi.yaml + architecture.yaml. Also use whenever adding, changing or removing an API endpoint in such a project.
 ---
 
 # backend-viz
@@ -30,7 +30,7 @@ The user should only ever need two things: `/backend-viz` here and `backend-viz 
 2. **Respect layers.** Each file belongs to the first layer in `design/architecture.yaml` whose glob matches. A layer may import only itself + its `may_depend_on`. Put new files in the folder of the right layer; create the folder if missing.
 3. **Drift feedback.** A PostToolUse hook runs `$BV --hook` after every Write/Edit. If it reports layer violations or off-contract endpoints, fix them before moving on (move logic down a layer, or update the contract after confirming with the user). Never weaken `architecture.yaml` rules to silence the hook without the user's OK.
 4. **Build in vertical slices.** One endpoint at a time: contract → schema → repository → service → route → test. After each slice, run `$BV` and report the new coverage in one line.
-5. Keep schemas (Pydantic / zod) mirroring the contract's components.
+5. Keep schemas (Pydantic / zod / serde) mirroring the contract's components.
 
 ## Runtime tracing (built in)
 
@@ -49,7 +49,24 @@ data("payment:p1")                       # tag the current call with a data id (
 link("payment:p1", "row:r1", "tidied")   # lineage: this became that (use at every tier boundary)
 ```
 
-- One trace per HTTP request (`TraceMiddleware`); background jobs/event handlers open one with `with span("job name"):`.
+Rust (the tracer is two crates, `crates/trace` and `crates/trace-macros`, installed by setup; the runtime has no dependencies):
+
+```rust
+use trace::{traced, data, link, Role};
+
+#[traced]                                   // one span per call; args ending in _id/_ids are tagged as data
+pub fn organize(source_id: &str) { .. }
+
+#[traced]
+impl OrganizeService { .. }                 // every pub method; on a trait impl, every method
+
+data(["payment:p1"], Role::Touch);
+link("payment:p1", "row:r1", "tidied");
+```
+
+Wire it once: `trace = { path = "crates/trace", features = ["axum"] }` and `.layer(axum::middleware::from_fn(trace::axum::trace_request))` on the Router. Methods are named `Type.method` on the map; a returned `Err` marks the call failed. Off in release builds unless `BACKEND_VIZ_TRACE=1`; `trace::set_output(path)` writes elsewhere (a desktop app's data folder). A non-HTTP entry point (a Tauri command, a job) opens its root span with `trace::request_span(RequestInfo { .. })` + `trace::span_async`, or `trace::span("job", |s| ..)`.
+
+- One trace per HTTP request (`TraceMiddleware`, or `trace_request` in Rust); background jobs/event handlers open one with `with span("job name"):`.
 - Spans go to `.backend-viz/traces/spans.jsonl`. Vault modules and secret-looking args are redacted automatically. `BACKEND_VIZ_TRACE=0` turns it off.
 - Dashboard: one view. **User actions** (one per trace; named by the `X-User-Action` request header when the frontend sends it, else the endpoint summary) and a **map** of every file by layer where the selected action lights up the files it ran with numbered arrows; **Step by step** below gives timing, args, result and errors per call; **Things to fix** lists rule breaks, failed actions and untraced functions.
 - To tie UI events to backend work, have the frontend send `X-User-Action` (and optionally one `X-Trace-Id` for every request one click makes, so they show as one action).
@@ -68,4 +85,4 @@ Only needed for production-style tracing; the built-in tracer covers development
 
 ## Limits
 
-Runtime tracing is Python only for now (Node would need a matching tracer writing the same spans.jsonl). Static analysis, best effort: FastAPI `APIRouter`/`include_router` prefixes and Express/Fastify `Router()` + `app.use('/prefix', router)` mounts are resolved one or two levels deep. Dynamic route registration isn't seen. Tell the user when an endpoint they expect is missing from the map rather than guessing.
+Runtime tracing is Python and Rust (Node would need a matching tracer writing the same spans.jsonl). Static analysis, best effort: FastAPI `APIRouter`/`include_router` prefixes, Express/Fastify `Router()` + `app.use('/prefix', router)` mounts, and axum `.route(..)` with `.nest("/prefix", module::router())` / `.merge(..)` are resolved one or two levels deep. Rust route tables written `route!(POST "/path" => Variant)` are read as absolute paths. Rust edges come from `use` lines and inline paths into project files (other workspace crates included); `mod x;` lines don't count. Dynamic route registration isn't seen. Tell the user when an endpoint they expect is missing from the map rather than guessing.

@@ -17,11 +17,12 @@ After changing a mod:
 
 ## backend-viz
 
-`plugins/backend-viz/` (skill, analyzer `skills/backend-viz/scripts/backend_map.py`, dashboard template, tracer templates in `templates/trace/`, PostToolUse drift hook, CLI in `bin/backend-viz`, demos in `examples/`) and its mod `plugins/backend-viz-live/` (the "Backend map" pane, which reads the `.backend-viz/report.json` the analyzer writes). This repo is their one source; projects install the plugins, they don't copy them. Both are loaded from here through `CLAUDE_CODE_PLUGIN_DIRS`.
+`plugins/backend-viz/` (skill, analyzer `skills/backend-viz/scripts/backend_map.py` with its Rust scanner `rust_scan.py`, dashboard template, tracer templates in `templates/trace/` and `templates/trace-rust/`, PostToolUse drift hook, CLI in `bin/backend-viz`, demos in `examples/`) and its mod `plugins/backend-viz-live/` (the "Backend map" pane, which reads the `.backend-viz/report.json` the analyzer writes). This repo is their one source; projects install the plugins, they don't copy them. Both are loaded from here through `CLAUDE_CODE_PLUGIN_DIRS`.
 
 Test changes on the demos (from `plugins/backend-viz/`):
 
 - `bin/backend-viz --root examples/fastapi-demo` (expect 1 undocumented endpoint, 2 untraced functions)
+- `bin/backend-viz --root examples/axum-demo` (same expectations); the Rust tracer: `cargo test --all-features` in a scratch workspace holding `templates/trace-rust/*`, and `cargo build` + curl in `examples/axum-demo` then `--traces 3` (copy template changes into its `crates/` first)
 - hook: `echo '{"cwd":"<demo>","tool_input":{"file_path":"<demo>/app/routers/orders.py"}}' | python3 skills/backend-viz/scripts/backend_map.py --hook` (exit 2 + feedback)
 - mod: `claude plugin validate ../backend-viz-live && claude plugin test ../backend-viz-live`
 - dashboard: open `examples/fastapi-demo/.backend-viz/dashboard.html` in light and dark; no console errors
@@ -30,7 +31,7 @@ Design rules:
 
 - Opt-in per project: nothing happens unless a `design/` folder exists (found by walking up from the edited file, so monorepos work).
 - The analyzer has no dependencies but PyYAML; the dashboard is one self-contained HTML file.
-- The tracer (`templates/trace/`) is copied into each project by `--init-tracing` because it is imported by app code; keep it dependency-free.
+- The tracer (`templates/trace/`) is copied into each project by `--init-tracing` because it is imported by app code; keep it dependency-free. The Rust tracer (`templates/trace-rust/`) is copied the same way into `crates/`: its runtime crate has no dependencies (axum only behind its `axum` feature); the macro crate needs `syn`/`quote`.
 - Never log secrets: vault modules and secret-looking args are redacted.
 
 ## statusline

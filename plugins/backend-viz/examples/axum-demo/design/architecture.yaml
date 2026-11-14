@@ -1,0 +1,38 @@
+# backend-viz architecture rules (Rust / axum)
+# Each file is assigned to the FIRST layer whose glob matches its path.
+# may_depend_on = which OTHER layers this layer is allowed to use. Same-layer use is always fine.
+layers:
+  - name: trace
+    description: backend-viz runtime tracing (#[traced], data, link). Everyone may use it.
+    paths: ["crates/trace/*", "crates/trace-macros/*"]
+    may_depend_on: []
+  - name: routes
+    description: HTTP edge. Parse the request, call a service, shape the response. No storage.
+    paths: ["src/main.rs", "src/routes/*"]
+    may_depend_on: [services, schemas, core, trace]
+  - name: services
+    description: Business logic. No axum types.
+    paths: ["src/services/*"]
+    may_depend_on: [repositories, schemas, core, trace]
+  - name: repositories
+    description: Data access only.
+    paths: ["src/repositories/*"]
+    may_depend_on: [schemas, core, trace]
+  - name: schemas
+    description: serde request/response types (mirror the contract).
+    paths: ["src/schemas/*"]
+    may_depend_on: []
+  - name: core
+    description: Config.
+    paths: ["src/core/*"]
+    may_depend_on: []
+
+tracing:
+  required_in: [services, repositories]
+  decorator: traced
+
+enforce:
+  layer_violations: true
+  undocumented_endpoints: true
+
+ignore: ["tests/*", "target/*"]

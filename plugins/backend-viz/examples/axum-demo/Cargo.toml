@@ -1,0 +1,15 @@
+[package]
+name = "orders-api"
+version = "0.1.0"
+edition = "2024"
+publish = false
+
+[workspace]
+resolver = "3"
+members = [".", "crates/*"]
+
+[dependencies]
+axum = "0.8"
+serde = { version = "1", features = ["derive"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "net"] }
+trace = { path = "crates/trace", features = ["axum"] }
