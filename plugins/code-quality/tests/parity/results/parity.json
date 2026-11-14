@@ -1540,7 +1540,7 @@
        "params": 3,
        "nesting": 6,
        "conditional": 3,
-       "bumps": 5
+       "bumps": 6
       },
       "smells": 0,
       "smells_over_limit": [
@@ -1748,7 +1748,7 @@
        "params": 1,
        "nesting": 4,
        "conditional": 1,
-       "bumps": 2
+       "bumps": 5
       },
       "smells": 8,
       "smells_over_limit": [

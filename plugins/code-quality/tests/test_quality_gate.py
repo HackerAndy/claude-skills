@@ -115,18 +115,21 @@ class GateTest(unittest.TestCase):
 
     def test_bumps_are_counted_as_codescene_counts_them(self):
         # A loop around branches is one bump; each branch of an if chain holding nested logic is its own
-        # bump, inside a loop too; a ternary counts as nested logic. CodeScene: 1, 3 and 2 bumps.
+        # bump, inside a loop too; a ternary counts as nested logic; an if-path holding two bumps of its own counts
+        # them. CodeScene: 1, 3, 2 and 2 bumps.
         src = ["def loop(xs):", "    for x in xs:", "        if x:", "            x += 1", "        if x > 2:",
                "            x -= 1", "    return xs",
                "", "def chain(xs, k):", "    for x in xs:", "        if k == 1:", "            if x:", "                x += 1",
                "        elif k == 2:", "            if x:", "                x -= 1", "        else:", "            x = 0",
                "    if k:", "        if xs:", "            k = 1", "    return k",
                "", "def tern(xs, k):", "    if not k:", "        k = 1 if xs else 2", "    for x in xs:",
-               "        if x:", "            k += 1", "    return k"]
+               "        if x:", "            k += 1", "    return k",
+               "", "def twice(a):", "    if a > 0:", "        if a > 1:", "            if a > 2:", "                a = 1",
+               "        if a > 3:", "            if a > 4:", "                a = 2", "    return a"]
         (self.dir / "app" / "bumps.py").write_text("\n".join(src) + "\n")
         r = gate(self.dir, "check", "--all", "--json")
         bumps = {f["symbol"]: f["values"]["bumps"] for f in json.loads(r.stdout)["functions"] if f["file"] == "app/bumps.py"}
-        self.assertEqual(bumps, {"loop": 1, "chain": 3, "tern": 2})
+        self.assertEqual(bumps, {"loop": 1, "chain": 3, "tern": 2, "twice": 2})
 
     def test_nested_functions_fold_into_their_parent(self):
         # CodeScene (cs 1.0.58) reports only outer: cc 15 (8 + 8 - 1) and 2 bumps (1 + 1); inner's 6 parameters don't count.

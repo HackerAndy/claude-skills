@@ -6,7 +6,8 @@ TypeScript and Rust are scored by one definition. Modelled on CodeScene's smells
   bumps        chunks of nested logic in the function, counted the way CodeScene counts them (Bumpy Road),
                fitted to its flags on 2,391 functions: each path of an if / switch / match that holds a
                nested branch or loop (or in Python, assigns a ternary; in Rust, has a match guard) is a bump, and
-               in Rust a path holding bumps of its own counts those instead (`else { if }` is `else if`), and
+               in Python and Rust an if-path holding bumps of its own counts those instead (in Rust `else { if }`
+               is `else if`), and
                a match is one bump unless its arms hold bumps of their own; a loop is one bump if it holds branches, or else the bumps
                inside it plus one if it also has a plain conditional path; try and with are looked inside
 
@@ -124,8 +125,14 @@ def lone_if(else_clause):
     return body if len(body) == 1 and body[0].type == "if_expression" else []
 
 
+def is_python_if(node):
+    """Whether an if_statement is Python's (its body a `block`; JS's is a `statement_block` or one statement)."""
+    body = node.child_by_field_name("consequence")
+    return body is not None and body.type == "block"
+
+
 def path_block(path):
-    """The block a Rust path runs: an if's or else's block, or a match arm's when it has one."""
+    """The block a path runs: an if's, elif's or else's block, or a Rust match arm's when it has one."""
     if path.type == "block":
         return path
     body = path.child_by_field_name("value") if path.type == "match_arm" else next(
@@ -134,7 +141,7 @@ def path_block(path):
 
 
 def path_bumps(path):
-    """A Rust path's bumps: the bumps inside it if it has any, else one if it holds logic at all."""
+    """A Python or Rust if-path's bumps: the bumps inside it if it has any, else one if it holds logic at all."""
     block = path_block(path)
     inner = bumps(block) if block is not None else 0
     return inner or int(has_logic(path))
@@ -237,7 +244,7 @@ def bumps(block):
     n = 0
     for st in statements(block):
         body = st.child_by_field_name("body")
-        if st.type == "if_expression":
+        if st.type == "if_expression" or (st.type == "if_statement" and is_python_if(st)):
             n += sum(path_bumps(p) for p in paths(st))
         elif st.type == "match_expression":  # one bump for the whole match, unless its arms hold bumps of their own
             arms = paths(st)

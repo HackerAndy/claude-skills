@@ -214,8 +214,8 @@ four public projects:
 
 - **Nested functions:** a closure is part of the function it's written in, and so is a nested `fn`, whatever
   its length. lizard doesn't list closures; a nested `fn` folds as in Python.
-- **Bumps** follow the Python / TS rule, with four Rust differences: a match guard makes its arm a bump;
-  a path that holds bumps of its own counts those instead of one; a whole `match` is one bump unless its
+- **Bumps** follow the Python rule (an if-path holding bumps of its own counts those), with three Rust differences: a
+  match guard makes its arm a bump; a whole `match` is one bump unless its
   arms hold bumps of their own; and an `if` or `match` used as a value (`let x = if ...`, `x = match ...`,
   `return if ...`) or written in a closure counts as if it were a statement.
 - **Duplication:** the same near-copy measure, but over functions of 9+ code lines rather than 10. On the
@@ -264,6 +264,10 @@ the same 0.16 for 2-4 bumps, so the yes/no decision (2 or more) matters most.
 
 - Each path of an if / elif / else, switch or match that holds a nested branch or loop is a bump. In
   Python, so is a path that assigns a ternary (`x = a if c else b`); a ternary elsewhere isn't.
+- In Python (0.16.1, found while fitting Rust), an if / elif / else path that holds bumps of its own counts
+  those instead of one: an `if` whose body has two separate nested ifs is 2 bumps. On 12,396 Python functions
+  of the seven projects this fixed 2 of 36 wrong decisions, added none, and made 9 more counts exact (322 of
+  386). The same rule changed nothing on JS / TS, so it's Python and Rust only.
 - A loop holding branches is one bump. If the branches inside it make bumps of their own, it's those,
   plus one if the loop also has a plain conditional path (an `if` / `elif` / `case` with nothing nested).
 - `try` and `with` are looked inside, not counted as paths.
@@ -273,6 +277,7 @@ the same 0.16 for 2-4 bumps, so the yes/no decision (2 or more) matters most.
 |---|---|---|
 | 0.11.0 / 0.12.0 rule | 41 | 26 |
 | 0.13.0 | 4 | 49 |
+| 0.16.1, seven projects (12,396 Python functions, 386 flagged) | 34 | 322 |
 
 ## Code Duplication (0.13.0)
 
