@@ -3,7 +3,8 @@ Rust support for backend_map.py: routes, dependency edges between project files,
 
 Static and best effort, like the Python and Node scanners, with no dependencies:
   - routes: axum `.route("/path", get(h).post(h))` with `.nest("/prefix", module::router())` /
-    `.merge(module::router())` one or two levels deep, and route tables written `route!(POST "/path" => Variant)`.
+    `.merge(module::router())` one or two levels deep, and route tables written `route!(POST "/path" => Variant)`
+    or `route!(EVENTS "/path")` (a GET streaming state).
   - edges: `use` trees and inline paths (`crate::`, `super::`, `self::`, a child module, or another crate in
     the same workspace), resolved to the file that declares the module. `mod x;` lines are structure, not edges.
   - functions: `pub fn`s, `pub` methods of inherent impls and every method of a trait impl (except common std
@@ -23,7 +24,7 @@ COMMON_TRAITS = {
 
 CHAR_LITERAL = re.compile(r"'(?:\\(?:x[0-9a-fA-F]{2}|u\{[0-9a-fA-F]{1,6}\}|.)|[^\\'\n])'")
 RAW_STRING = re.compile(r'b?r(#*)"')
-ROUTE_TABLE = re.compile(r'\broute!\s*\(\s*(GET|POST|PUT|PATCH|DELETE)\s+"(/[^"]*)"\s*=>\s*(\w+)')
+ROUTE_TABLE = re.compile(r'\broute!\s*\(\s*(GET|POST|PUT|PATCH|DELETE|EVENTS)\s+"(/[^"]*)"(?:\s*=>\s*(\w+))?')
 AXUM_ROUTE = re.compile(r'\.route\(\s*"(/[^"]*)"\s*,')
 AXUM_METHOD = re.compile(r"\b(?:routing::)?(get|post|put|patch|delete)\s*\(\s*([\w:]*)")
 AXUM_MOUNT = re.compile(r'\.(nest|merge)\(\s*(?:"(/[^"]*)"\s*,\s*)?([A-Za-z_][\w:]*)\s*\(')
@@ -235,8 +236,9 @@ def closing(text: str, open_at: int) -> int:
 def scan_routes(f_rel: str, stem: str, code: str):
     routes, includes = [], []
     for m in ROUTE_TABLE.finditer(code):
-        routes.append({"method": m.group(1), "local_path": m.group(2), "router": (stem, None), "file": f_rel,
-                       "line": line_at(code, m.start()), "handler": m.group(3), "absolute": True})
+        is_events = m.group(1) == "EVENTS"  # a state stream: GET, served as Server-Sent Events
+        routes.append({"method": "GET" if is_events else m.group(1), "local_path": m.group(2), "router": (stem, None),
+                       "file": f_rel, "line": line_at(code, m.start()), "handler": m.group(3) or "Events", "absolute": True})
     for m in AXUM_ROUTE.finditer(code):
         call = code[m.end(): closing(code, m.end() - len(m.group(0)) + len(".route"))]
         for mm in AXUM_METHOD.finditer(call):

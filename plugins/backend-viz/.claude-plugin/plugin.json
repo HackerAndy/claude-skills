@@ -1,6 +1,6 @@
 {
   "name": "backend-viz",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Contract-first backend design with a visual map: API contract vs built routes, layer rules, drift feedback to Claude on every edit (FastAPI, Node, Rust/axum)",
   "author": {
     "name": "Andy Kaminski"
