@@ -1,39 +1,39 @@
 {
  "source": "parity corpus",
  "summary": {
-  "files": 21,
-  "scored": 21,
-  "mean_abs_gap": 0.09,
-  "within_0_5": 19,
-  "spearman": 0.79,
+  "files": 29,
+  "scored": 29,
+  "mean_abs_gap": 0.07,
+  "within_0_5": 27,
+  "spearman": 0.81,
   "smells": {
    "Bumpy Road Ahead": {
-    "hit": 21,
+    "hit": 22,
     "miss": 0,
     "extra": 1
    },
    "Complex Conditional": {
-    "hit": 13,
+    "hit": 14,
     "miss": 0,
     "extra": 0
    },
    "Complex Method": {
-    "hit": 23,
+    "hit": 26,
     "miss": 0,
     "extra": 0
    },
    "Deep, Nested Complexity": {
-    "hit": 8,
+    "hit": 9,
     "miss": 0,
     "extra": 0
    },
    "Excess Number of Function Arguments": {
-    "hit": 5,
+    "hit": 8,
     "miss": 0,
     "extra": 0
    },
    "Large Method": {
-    "hit": 6,
+    "hit": 7,
     "miss": 0,
     "extra": 0
    },
@@ -72,12 +72,12 @@
     "gap": -0.3
    },
    {
-    "file": "real/qg_checks.py",
+    "file": "real/backend_map.py",
     "gap": -0.15
    },
    {
-    "file": "real/backend_map.py",
-    "gap": -0.06
+    "file": "real/qg_checks.py",
+    "gap": -0.15
    },
    {
     "file": "fixtures/py/brain_method.py",
@@ -85,6 +85,10 @@
    },
    {
     "file": "fixtures/py/complex_method.py",
+    "gap": 0.01
+   },
+   {
+    "file": "fixtures/rs/complex_method.rs",
     "gap": 0.01
    },
    {
@@ -113,10 +117,6 @@
    },
    {
     "file": "fixtures/py/large_method.py",
-    "gap": 0.0
-   },
-   {
-    "file": "fixtures/py/nested_complexity.py",
     "gap": 0.0
    }
   ]
@@ -684,6 +684,284 @@
    }
   },
   {
+   "file": "fixtures/rs/bumpy_road.rs",
+   "gate": {
+    "health": 9.84,
+    "functions": {
+     "normalise": {
+      "score": 94,
+      "values": {
+       "ccn": 7,
+       "cognitive": 9,
+       "nloc": 20,
+       "params": 1,
+       "nesting": 2,
+       "conditional": 0,
+       "bumps": 3
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Bumpy Road Ahead"
+      ]
+     }
+    }
+   },
+   "codescene": {
+    "score": 9.84,
+    "functions": {
+     "normalise": [
+      "Bumpy Road Ahead (bumps = 3)"
+     ]
+    }
+   }
+  },
+  {
+   "file": "fixtures/rs/clean.rs",
+   "gate": {
+    "health": 10.0,
+    "functions": {
+     "rate": {
+      "score": 100,
+      "values": {
+       "ccn": 2,
+       "cognitive": 1,
+       "nloc": 3,
+       "params": 1,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "line_price": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "order_total": {
+      "score": 100,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     }
+    }
+   },
+   "codescene": {
+    "score": 10.0,
+    "functions": {}
+   }
+  },
+  {
+   "file": "fixtures/rs/complex_conditional.rs",
+   "gate": {
+    "health": 9.53,
+    "functions": {
+     "can_ship": {
+      "score": 94,
+      "values": {
+       "ccn": 5,
+       "cognitive": 3,
+       "nloc": 6,
+       "params": 1,
+       "nesting": 1,
+       "conditional": 3,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Complex Conditional"
+      ]
+     }
+    }
+   },
+   "codescene": {
+    "score": 9.53,
+    "functions": {
+     "can_ship:5": [
+      "Complex Conditional (3 complex conditional expressions)"
+     ]
+    }
+   }
+  },
+  {
+   "file": "fixtures/rs/complex_method.rs",
+   "gate": {
+    "health": 9.61,
+    "functions": {
+     "status_label": {
+      "score": 94,
+      "values": {
+       "ccn": 14,
+       "cognitive": 13,
+       "nloc": 30,
+       "params": 1,
+       "nesting": 1,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Complex Method"
+      ]
+     }
+    }
+   },
+   "codescene": {
+    "score": 9.6,
+    "functions": {
+     "status_label": [
+      "Complex Method (cc = 14)"
+     ]
+    }
+   }
+  },
+  {
+   "file": "fixtures/rs/excess_arguments.rs",
+   "gate": {
+    "health": 9.68,
+    "functions": {
+     "create_user": {
+      "score": 94,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 6,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Excess Number of Function Arguments"
+      ]
+     }
+    }
+   },
+   "codescene": {
+    "score": 9.68,
+    "functions": {
+     "create_user": [
+      "Excess Number of Function Arguments (Arguments = 6)"
+     ]
+    }
+   }
+  },
+  {
+   "file": "fixtures/rs/excess_arguments_method.rs",
+   "gate": {
+    "health": 9.68,
+    "functions": {
+     "send": {
+      "score": 94,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 3,
+       "params": 5,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Excess Number of Function Arguments"
+      ]
+     }
+    }
+   },
+   "codescene": {
+    "score": 9.68,
+    "functions": {
+     "Mailer.send": [
+      "Excess Number of Function Arguments (Arguments = 5)"
+     ]
+    }
+   }
+  },
+  {
+   "file": "fixtures/rs/large_method.rs",
+   "gate": {
+    "health": 9.55,
+    "functions": {
+     "build_report": {
+      "score": 94,
+      "values": {
+       "ccn": 1,
+       "cognitive": 0,
+       "nloc": 80,
+       "params": 1,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Large Method"
+      ]
+     }
+    }
+   },
+   "codescene": {
+    "score": 9.55,
+    "functions": {
+     "build_report": [
+      "Large Method (LoC = 80 lines)"
+     ]
+    }
+   }
+  },
+  {
+   "file": "fixtures/rs/nested_complexity.rs",
+   "gate": {
+    "health": 9.38,
+    "functions": {
+     "find_overdue": {
+      "score": 94,
+      "values": {
+       "ccn": 6,
+       "cognitive": 15,
+       "nloc": 15,
+       "params": 2,
+       "nesting": 5,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Deep, Nested Complexity"
+      ]
+     }
+    }
+   },
+   "codescene": {
+    "score": 9.38,
+    "functions": {
+     "find_overdue": [
+      "Deep, Nested Complexity (Nesting depth = 5 conditionals)"
+     ]
+    }
+   }
+  },
+  {
    "file": "fixtures/ts/bumpyRoad.ts",
    "gate": {
     "health": 9.84,
@@ -1113,7 +1391,7 @@
   {
    "file": "real/backend_map.py",
    "gate": {
-    "health": 2.03,
+    "health": 1.89,
     "functions": {
      "load_struct": {
       "score": 94,
@@ -1172,19 +1450,20 @@
       "smells_over_limit": []
      },
      "iter_source_files": {
-      "score": 94,
+      "score": 92,
       "values": {
-       "ccn": 8,
+       "ccn": 9,
        "cognitive": 9,
        "nloc": 7,
        "params": 1,
        "nesting": 3,
-       "conditional": 2,
+       "conditional": 3,
        "bumps": 1
       },
       "smells": 0,
       "smells_over_limit": [
-       "Complex Conditional"
+       "Complex Conditional",
+       "Complex Method"
       ]
      },
      "rel": {
@@ -1347,15 +1626,15 @@
       ]
      },
      "analyze": {
-      "score": 77,
+      "score": 76,
       "values": {
-       "ccn": 52,
-       "cognitive": 73,
-       "nloc": 122,
+       "ccn": 55,
+       "cognitive": 81,
+       "nloc": 127,
        "params": 1,
        "nesting": 3,
        "conditional": 2,
-       "bumps": 8
+       "bumps": 9
       },
       "smells": 0,
       "smells_over_limit": [
@@ -1383,9 +1662,9 @@
      "feedback": {
       "score": 91,
       "values": {
-       "ccn": 14,
-       "cognitive": 15,
-       "nloc": 26,
+       "ccn": 15,
+       "cognitive": 17,
+       "nloc": 29,
        "params": 1,
        "nesting": 2,
        "conditional": 2,
@@ -1393,6 +1672,7 @@
       },
       "smells": 0,
       "smells_over_limit": [
+       "(cognitive)",
        "Bumpy Road Ahead",
        "Complex Conditional",
        "Complex Method"
@@ -1432,9 +1712,9 @@
      "detect_stack": {
       "score": 94,
       "values": {
-       "ccn": 5,
-       "cognitive": 3,
-       "nloc": 4,
+       "ccn": 6,
+       "cognitive": 4,
+       "nloc": 6,
        "params": 1,
        "nesting": 1,
        "conditional": 3,
@@ -1462,9 +1742,9 @@
      "setup": {
       "score": 80,
       "values": {
-       "ccn": 33,
-       "cognitive": 88,
-       "nloc": 88,
+       "ccn": 34,
+       "cognitive": 89,
+       "nloc": 90,
        "params": 1,
        "nesting": 4,
        "conditional": 1,
@@ -1478,6 +1758,34 @@
        "Deep, Nested Complexity",
        "Large Method"
       ]
+     },
+     "install_rust_tracer": {
+      "score": 100,
+      "values": {
+       "ccn": 3,
+       "cognitive": 3,
+       "nloc": 9,
+       "params": 1,
+       "nesting": 2,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "setup_rust": {
+      "score": 94,
+      "values": {
+       "ccn": 7,
+       "cognitive": 6,
+       "nloc": 23,
+       "params": 1,
+       "nesting": 2,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 2,
+      "smells_over_limit": []
      },
      "link_subfolder_skills": {
       "score": 94,
@@ -1498,9 +1806,9 @@
      "init": {
       "score": 94,
       "values": {
-       "ccn": 6,
-       "cognitive": 8,
-       "nloc": 12,
+       "ccn": 8,
+       "cognitive": 10,
+       "nloc": 14,
        "params": 3,
        "nesting": 2,
        "conditional": 1,
@@ -1512,11 +1820,11 @@
       ]
      },
      "main": {
-      "score": 77,
+      "score": 76,
       "values": {
-       "ccn": 44,
-       "cognitive": 72,
-       "nloc": 98,
+       "ccn": 46,
+       "cognitive": 74,
+       "nloc": 101,
        "params": 0,
        "nesting": 4,
        "conditional": 1,
@@ -1534,7 +1842,7 @@
     }
    },
    "codescene": {
-    "score": 2.09,
+    "score": 2.04,
     "functions": {
      "(file)": [
       "Lines of Code in a Single File",
@@ -1543,19 +1851,19 @@
      "main": [
       "Bumpy Road Ahead (bumps = 11)",
       "Deep, Nested Complexity (Nesting depth = 4 conditionals)",
-      "Complex Method (cc = 44)",
-      "Large Method (LoC = 98 lines)"
+      "Complex Method (cc = 46)",
+      "Large Method (LoC = 101 lines)"
      ],
      "analyze": [
-      "Bumpy Road Ahead (bumps = 8)",
-      "Complex Method (cc = 51)",
-      "Large Method (LoC = 122 lines)"
+      "Bumpy Road Ahead (bumps = 9)",
+      "Complex Method (cc = 54)",
+      "Large Method (LoC = 127 lines)"
      ],
      "setup": [
       "Bumpy Road Ahead (bumps = 8)",
       "Deep, Nested Complexity (Nesting depth = 5 conditionals)",
-      "Complex Method (cc = 33)",
-      "Large Method (LoC = 88 lines)"
+      "Complex Method (cc = 34)",
+      "Large Method (LoC = 90 lines)"
      ],
      "scan_python": [
       "Bumpy Road Ahead (bumps = 7)",
@@ -1583,7 +1891,7 @@
      ],
      "feedback": [
       "Bumpy Road Ahead (bumps = 3)",
-      "Complex Method (cc = 14)"
+      "Complex Method (cc = 15)"
      ],
      "resolve_js": [
       "Bumpy Road Ahead (bumps = 2)"
@@ -1598,40 +1906,43 @@
      "traces_text": [
       "Complex Method (cc = 13)"
      ],
-     "scan_python:197": [
+     "iter_source_files": [
+      "Complex Method (cc = 9)"
+     ],
+     "iter_source_files:83": [
       "Complex Conditional (3 complex conditional expressions)"
      ],
-     "scan_py_functions:240": [
+     "scan_python:200": [
       "Complex Conditional (3 complex conditional expressions)"
      ],
-     "scan_py_functions:248": [
+     "scan_py_functions:243": [
       "Complex Conditional (3 complex conditional expressions)"
      ],
-     "detect_stack:632": [
+     "scan_py_functions:251": [
       "Complex Conditional (3 complex conditional expressions)"
      ],
-     "iter_source_files:80": [
+     "detect_stack:645": [
+      "Complex Conditional (3 complex conditional expressions)"
+     ],
+     "scan_python:173": [
       "Complex Conditional (2 complex conditional expressions)"
      ],
-     "scan_python:170": [
+     "scan_python:208": [
       "Complex Conditional (2 complex conditional expressions)"
      ],
-     "scan_python:205": [
+     "scan_py_functions:259": [
       "Complex Conditional (2 complex conditional expressions)"
      ],
-     "scan_py_functions:256": [
+     "load_traces:302": [
       "Complex Conditional (2 complex conditional expressions)"
      ],
-     "load_traces:299": [
+     "analyze:440": [
       "Complex Conditional (2 complex conditional expressions)"
      ],
-     "analyze:432": [
+     "feedback:562": [
       "Complex Conditional (2 complex conditional expressions)"
      ],
-     "feedback:554": [
-      "Complex Conditional (2 complex conditional expressions)"
-     ],
-     "link_subfolder_skills:747": [
+     "link_subfolder_skills:798": [
       "Complex Conditional (2 complex conditional expressions)"
      ]
     }
@@ -1691,7 +2002,7 @@
   {
    "file": "real/qg_checks.py",
    "gate": {
-    "health": 6.87,
+    "health": 6.57,
     "functions": {
      "rel": {
       "score": 100,
@@ -1836,9 +2147,9 @@
      "locate": {
       "score": 94,
       "values": {
-       "ccn": 11,
-       "cognitive": 14,
-       "nloc": 19,
+       "ccn": 14,
+       "cognitive": 18,
+       "nloc": 23,
        "params": 4,
        "nesting": 2,
        "conditional": 1,
@@ -1846,6 +2157,7 @@
       },
       "smells": 0,
       "smells_over_limit": [
+       "(cognitive)",
        "Bumpy Road Ahead",
        "Complex Method"
       ]
@@ -1912,8 +2224,8 @@
       "score": 100,
       "values": {
        "ccn": 3,
-       "cognitive": 1,
-       "nloc": 3,
+       "cognitive": 2,
+       "nloc": 4,
        "params": 1,
        "nesting": 0,
        "conditional": 0,
@@ -2154,6 +2466,52 @@
       "smells": 0,
       "smells_over_limit": []
      },
+     "cargo_messages": {
+      "score": 94,
+      "values": {
+       "ccn": 6,
+       "cognitive": 8,
+       "nloc": 15,
+       "params": 5,
+       "nesting": 2,
+       "conditional": 1,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Excess Number of Function Arguments"
+      ]
+     },
+     "cargo_finding": {
+      "score": 100,
+      "values": {
+       "ccn": 6,
+       "cognitive": 5,
+       "nloc": 9,
+       "params": 4,
+       "nesting": 1,
+       "conditional": 1,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
+     "check_clippy": {
+      "score": 94,
+      "values": {
+       "ccn": 13,
+       "cognitive": 8,
+       "nloc": 21,
+       "params": 3,
+       "nesting": 2,
+       "conditional": 0,
+       "bumps": 1
+      },
+      "smells": 0,
+      "smells_over_limit": [
+       "Complex Method"
+      ]
+     },
      "uses_mypy": {
       "score": 100,
       "values": {
@@ -2210,16 +2568,30 @@
       "smells": 0,
       "smells_over_limit": []
      },
+     "check_cargo": {
+      "score": 100,
+      "values": {
+       "ccn": 4,
+       "cognitive": 1,
+       "nloc": 5,
+       "params": 2,
+       "nesting": 0,
+       "conditional": 0,
+       "bumps": 0
+      },
+      "smells": 0,
+      "smells_over_limit": []
+     },
      "check_types": {
       "score": 94,
       "values": {
-       "ccn": 3,
-       "cognitive": 6,
-       "nloc": 9,
+       "ccn": 5,
+       "cognitive": 12,
+       "nloc": 13,
        "params": 2,
-       "nesting": 1,
+       "nesting": 2,
        "conditional": 0,
-       "bumps": 2
+       "bumps": 3
       },
       "smells": 0,
       "smells_over_limit": [
@@ -2451,8 +2823,8 @@
       "score": 100,
       "values": {
        "ccn": 5,
-       "cognitive": 7,
-       "nloc": 13,
+       "cognitive": 8,
+       "nloc": 14,
        "params": 3,
        "nesting": 1,
        "conditional": 1,
@@ -2464,11 +2836,11 @@
     }
    },
    "codescene": {
-    "score": 7.02,
+    "score": 6.72,
     "functions": {
      "locate": [
       "Bumpy Road Ahead (bumps = 2)",
-      "Complex Method (cc = 11)"
+      "Complex Method (cc = 14)"
      ],
      "lizard_functions": [
       "Bumpy Road Ahead (bumps = 2)"
@@ -2486,6 +2858,9 @@
      "(file)": [
       "Overall Code Complexity"
      ],
+     "check_clippy": [
+      "Complex Method (cc = 13)"
+     ],
      "fold_nested": [
       "Complex Method (cc = 12)"
      ],
@@ -2498,13 +2873,16 @@
      "check_duplication": [
       "Complex Method (cc = 9)"
      ],
-     "check_duplication:503": [
+     "check_duplication:575": [
       "Complex Conditional (2 complex conditional expressions)"
      ],
-     "health:600": [
+     "health:672": [
       "Complex Conditional (2 complex conditional expressions)"
      ],
      "finding": [
+      "Excess Number of Function Arguments (Arguments = 5)"
+     ],
+     "cargo_messages": [
       "Excess Number of Function Arguments (Arguments = 5)"
      ]
     }
@@ -2761,7 +3139,7 @@
       "values": {
        "ccn": 7,
        "cognitive": 8,
-       "nloc": 13,
+       "nloc": 14,
        "params": 2,
        "nesting": 2,
        "conditional": 0,
@@ -2928,7 +3306,7 @@
      "cmd_hook": [
       "Complex Method (cc = 9)"
      ],
-     "cmd_hook:356": [
+     "cmd_hook:357": [
       "Complex Conditional (2 complex conditional expressions)"
      ]
     }

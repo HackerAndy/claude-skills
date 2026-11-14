@@ -3,8 +3,8 @@ The checks behind quality_gate.py: which files count, which tools run them, and 
 
 A check run carries a context dict, `ctx`: {root, conf, cache (tool lookups), ran (tools that ran),
 missing (tools that were needed but not found)}. Tools run per package, the nearest folder with the
-package's own config (pyproject.toml, package.json, biome.json, tsconfig.json ...), so a monorepo's
-backend and frontend each use their own settings, .venv and node_modules.
+package's own config (pyproject.toml, package.json, biome.json, tsconfig.json, Cargo.toml ...), so a
+monorepo's backend and frontend each use their own settings, .venv, node_modules and Rust toolchain.
 """
 import csv
 import fnmatch
@@ -21,13 +21,15 @@ from pathlib import Path
 
 SKIP_DIRS = {"node_modules", ".git", "venv", ".venv", "env", "__pycache__", "dist", "build", ".next",
              "coverage", "site-packages", ".pytest_cache", ".mypy_cache", ".ruff_cache", ".quality",
-             ".tox", ".turbo", "out"}
+             ".tox", ".turbo", "out", "target"}
 PY_EXT = {".py"}
 JS_EXT = {".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".mts", ".cts"}
-SOURCE_EXT = PY_EXT | JS_EXT
+RS_EXT = {".rs"}
+SOURCE_EXT = PY_EXT | JS_EXT | RS_EXT
 # Config files only: a setup.py can just as well be an ordinary module.
 PY_MARKERS = ("pyproject.toml", "setup.cfg", "ruff.toml", ".ruff.toml", "mypy.ini", "pyrightconfig.json")
 JS_MARKERS = ("package.json", "biome.json", "biome.jsonc", "tsconfig.json")
+RS_MARKERS = ("Cargo.toml",)
 MINIFIED_LINE = 1000  # a file with a line this long is generated or minified, not written by hand
 
 METRICS = {  # rule -> how the message reads
@@ -59,8 +61,10 @@ MANY_ARGUMENTS_COST, ARGUMENTS_MEAN = 0.62, 4  # Excess Arguments costs this ins
 SIMILAR_COST = 0.62  # CodeScene's Code Duplication: a function with a near copy in the same file, once per file
 # Lint and duplication findings block but cost nothing. CodeScene doesn't score style, and its duplication check
 # (similar functions within one file) isn't what jscpd finds (copies, mostly across files); see docs/codescene-parity.md.
-FILE_SOURCES = {"lizard", "ruff", "biome"}  # the checks that run per file, on every check
+FILE_SOURCES = {"lizard", "ruff", "biome", "clippy", "rustc"}  # the checks that run per file, on every check
+LINT_SOURCES = {"ruff", "biome", "clippy", "rustc", "jscpd"}  # findings that count against the function they're in
 EDIT_DUPLICATION_SECONDS = 60  # a check on edit skips the duplication scan when it takes longer than this
+EDIT_CLIPPY_SECONDS = 60  # and clippy, which builds the crate, when it takes longer than this
 CHURN_DAYS = 180  # how far back a file's commits count toward refactoring priority
 
 
@@ -146,7 +150,7 @@ DOWNLOAD = {  # how to run a tool that isn't installed, at its pinned version
     "biome": lambda v: ["npx", "--yes", f"@biomejs/biome@{v}"],
     "pyright": lambda v: ["npx", "--yes", f"pyright@{v}"],
     "jscpd": lambda v: ["npx", "--yes", f"jscpd@{v}"],
-}  # tsc and mypy are never downloaded: type checking must use the project's own version
+}  # tsc, mypy and cargo are never downloaded: type checking must use the project's own version
 
 
 def installed(name, pkg, root):
@@ -166,6 +170,10 @@ def locate(name, pkg, root, conf):
         pin = conf["tools"]["pins"]["tree-sitter"]
         return (["uvx", "--with", f"tree-sitter-language-pack=={pin}", "python", str(SMELLS)]
                 if conf["tools"]["download"] and shutil.which("uvx") else None)
+    if name == "cargo":  # rustup puts it in ~/.cargo/bin, which a hook's PATH may not have
+        found = shutil.which("cargo") or next((str(p) for p in [Path.home() / ".cargo" / "bin" / "cargo"]
+                                               if p.is_file()), None)
+        return [found] if found else None
     if shutil.which(name):
         return [name]
     if name == "lizard" and run([sys.executable, "-c", "import lizard"], root).returncode == 0:
@@ -207,13 +215,14 @@ def finding(file, line, rule, message, **metric):
 # ---------------------------------------------------------------- per-file checks
 
 def code_lines(path):
+    comment = ("#", "//") if path.suffix.lower() in PY_EXT else ("//",)  # a Rust #[attribute] is code
     return sum(1 for ln in path.read_text(errors="replace").splitlines()
-               if ln.strip() and not ln.strip().startswith(("#", "//")))
+               if ln.strip() and not ln.strip().startswith(comment))
 
 
 def file_limit(limits, path):
-    """CodeScene allows JS / TS files more lines than Python ones."""
-    return limits["file_nloc_js"] if Path(path).suffix.lower() in JS_EXT else limits["file_nloc"]
+    """CodeScene allows JS / TS and Rust files more lines than Python ones."""
+    return limits["file_nloc_js"] if Path(path).suffix.lower() in JS_EXT | RS_EXT else limits["file_nloc"]
 
 
 def check_file_size(ctx, files):
@@ -413,6 +422,58 @@ def check_biome(ctx, files):
     return out
 
 
+def cargo_messages(ctx, pkg, args, timeout, lints=()):
+    """The compiler messages of `cargo <args> --message-format=json [-- <lints>]` in a crate."""
+    cmd = tool(ctx, "cargo", pkg)
+    if not cmd:
+        return []
+    r = run([*cmd, *args, "--message-format=json", "--quiet", *(["--", *lints] if lints else [])], pkg, timeout)
+    out = []
+    for line in r.stdout.splitlines():
+        try:
+            d = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if d.get("reason") == "compiler-message" and d.get("message"):
+            out.append(d["message"])
+    return out
+
+
+def cargo_finding(root, pkg, m, tool_name):
+    """A finding from a compiler message: clippy:<lint> for a clippy lint, else <tool_name>:<code>."""
+    span = next((s for s in m.get("spans", []) if s.get("is_primary")), None)
+    if span is None or m.get("level") not in ("error", "warning"):
+        return None
+    code = (m.get("code") or {}).get("code") or m["level"]
+    rule = f"clippy:{code.removeprefix('clippy::')}" if code.startswith("clippy::") else f"{tool_name}:{code}"
+    return finding(rel(root, pkg / span["file_name"]), span["line_start"], rule, m["message"],
+                   col=span["column_start"], end_line=span["line_end"], end_col=span["column_end"])
+
+
+def check_clippy(ctx, files, timeout=None):
+    """Clippy's lints, and the compiler's errors and warnings, in files. It builds each crate, so a check on
+    edit gives up after timeout seconds and says clippy timed out, which keeps the baseline from ratcheting."""
+    conf = ctx["conf"]["lint"]
+    if not conf["clippy"]:
+        return []
+    wanted = {rel(ctx["root"], f) for f in files}
+    lints = [a for lint in conf["clippy_warn"] for a in ("-W", lint)]
+    out = []
+    for pkg in by_package(ctx["root"], files, RS_EXT, RS_MARKERS):
+        try:
+            messages = cargo_messages(ctx, pkg, ["clippy", "--all-targets"], timeout or 600, lints)
+        except subprocess.TimeoutExpired:
+            ctx["ran"].difference_update({"cargo", "clippy", "rustc"})
+            ctx["missing"].add("clippy (timed out)")
+            return out
+        if tool(ctx, "cargo", pkg):
+            ctx["ran"].update({"clippy", "rustc"})  # the sources of its findings, for the baseline
+        found = (cargo_finding(ctx["root"], pkg, m, "rustc") for m in messages)
+        out += [f for f in found if f and f["file"] in wanted]
+    # --all-targets builds a file once for the library and again for its tests: the same message twice
+    return list({(f["file"], f["line"], f["col"], f["rule"]): f for f in out}.values())
+
+
 # ---------------------------------------------------------------- project-wide checks (--full)
 
 def uses_mypy(pkg):
@@ -466,14 +527,25 @@ def check_tsc(ctx, pkg):
             for m in matches if m and in_scope(ctx["root"], ctx["conf"], pkg / m[1])]
 
 
+def check_cargo(ctx, pkg):
+    """The compiler's errors in a crate (`cargo check`); its warnings are left to clippy on each check."""
+    messages = cargo_messages(ctx, pkg, ["check", "--all-targets"], 600)
+    found = (cargo_finding(ctx["root"], pkg, m, "rustc") for m in messages if m.get("level") == "error")
+    return [f for f in found if f and in_scope(ctx["root"], ctx["conf"], ctx["root"] / f["file"])]
+
+
 def check_types(ctx, files):
-    """Each Python package with mypy configured runs mypy, others pyright; each tsconfig.json runs tsc."""
+    """Each Python package with mypy configured runs mypy, others pyright; each tsconfig.json runs tsc;
+    each Cargo.toml runs cargo check."""
     root = ctx["root"]
     out = []
     for pkg in by_package(root, files, PY_EXT, PY_MARKERS):
         out += check_mypy(ctx, pkg) if uses_mypy(pkg) else check_pyright(ctx, pkg)
     for pkg in by_package(root, files, JS_EXT, ("tsconfig.json",)):
         out += check_tsc(ctx, pkg) if (pkg / "tsconfig.json").is_file() else []
+    if not ctx["conf"]["lint"]["clippy"]:  # clippy builds the crate and reports its errors already
+        for pkg in by_package(root, files, RS_EXT, RS_MARKERS):
+            out += check_cargo(ctx, pkg) if (pkg / "Cargo.toml").is_file() else []
     return out
 
 
@@ -489,7 +561,7 @@ def check_duplication(ctx, only=None, timeout=600):
         try:
             run([*cmd, "--reporters", "json", "--output", tmp, "--silent", "--min-tokens",
                  str(conf["full"]["min_tokens"]), "--ignore", ignore,
-                 "--format", "python,javascript,typescript,jsx,tsx", "."], root, timeout)
+                 "--format", "python,javascript,typescript,jsx,tsx,rust", "."], root, timeout)
         except subprocess.TimeoutExpired:  # too slow for an edit: skip it, and don't let the baseline ratchet on it
             ctx["ran"].discard("jscpd")
             ctx["missing"].add("jscpd (timed out)")
@@ -547,7 +619,7 @@ def score_functions(conf, functions, findings):
     findings. File and project health come from the costs, uncapped (health() and score_summary())."""
     smells = {}
     for f in findings:
-        fn = innermost(functions, f) if source_of(f["rule"]) in ("ruff", "biome", "jscpd") else None
+        fn = innermost(functions, f) if source_of(f["rule"]) in LINT_SOURCES else None
         if fn:
             smells[id(fn)] = smells.get(id(fn), 0) + 1
     for fn in functions:
@@ -640,7 +712,8 @@ def analyze(ctx, files, full):
     """All findings and the scored functions for files; --full adds the project-wide checks."""
     functions = lizard_functions(ctx, files)
     findings = (check_file_size(ctx, files) + check_functions(ctx["conf"], functions)
-                + check_ruff(ctx, files) + check_biome(ctx, files))
+                + check_ruff(ctx, files) + check_biome(ctx, files)
+                + check_clippy(ctx, files, None if full else EDIT_CLIPPY_SECONDS))
     if full:
         everything = all_files(ctx["root"], ctx["conf"])
         findings += check_types(ctx, everything) if ctx["conf"]["full"]["types"] else []

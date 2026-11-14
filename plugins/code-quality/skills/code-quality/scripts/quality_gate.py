@@ -50,7 +50,7 @@ DEFAULTS = {
     "limits": {"ccn": 8, "cognitive": 15, "nloc": 69, "params": 4, "nesting": 3, "conditional": 1, "bumps": 1,
                "file_nloc": 599, "file_nloc_js": 999},
     "scope": {"exclude": []},
-    "lint": {"ruff_extend_select": ["B", "SIM", "C4", "UP"], "biome": True},
+    "lint": {"ruff_extend_select": ["B", "SIM", "C4", "UP"], "biome": True, "clippy": True, "clippy_warn": []},
     "edit": {"duplication": True},
     "full": {"types": True, "duplication": True, "min_tokens": 70},
     "tools": {"download": True, "pins": {"lizard": "1.25.1", "ruff": "0.17.4", "biome": "2.6.6",
@@ -59,7 +59,7 @@ DEFAULTS = {
 }
 FIX_HINT = ("Fix the code: extract helpers, return early, replace branch chains with lookup tables, "
             "group parameters into an object, move code into its own module. Don't silence findings "
-            "with noqa / biome-ignore or by editing .quality/.")
+            "with noqa / biome-ignore / #[allow(...)] or by editing .quality/.")
 
 
 # ---------------------------------------------------------------- config
@@ -259,7 +259,8 @@ def cmd_doctor(root, _opts):
         return 0
     ctx = new_context(root, load_config(root))
     files = qc.all_files(root, ctx["conf"])
-    kinds = ((qc.PY_EXT, qc.PY_MARKERS, ("ruff", "mypy", "pyright")), (qc.JS_EXT, qc.JS_MARKERS, ("biome", "tsc")))
+    kinds = ((qc.PY_EXT, qc.PY_MARKERS, ("ruff", "mypy", "pyright")), (qc.JS_EXT, qc.JS_MARKERS, ("biome", "tsc")),
+             (qc.RS_EXT, qc.RS_MARKERS, ("cargo",)))
     for exts, markers, names in kinds:
         for pkg, group in qc.by_package(root, files, exts, markers).items():
             print(f"{qc.rel(root, pkg) if pkg != root else '.'}/  ({len(group)} files)")

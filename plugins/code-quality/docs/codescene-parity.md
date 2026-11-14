@@ -1,7 +1,7 @@
 # code-quality vs CodeScene: parity results
 
 How the gate compares with CodeScene's Code Health (CLI 1.0.58, default rules). The corpus is in
-`tests/parity/`: 10 Python and 7 TS fixtures, one smell each, plus 4 real files. Re-run it with
+`tests/parity/`: 10 Python, 7 TS and 8 Rust fixtures, one smell each, plus 4 real files. Re-run it with
 `python3 tests/parity/run_parity.py`; the raw output is in `tests/parity/results/parity.json`.
 
 ## Summary
@@ -196,6 +196,67 @@ the gate counts as duplicates and CodeScene doesn't. Low Cohesion, Number of Fun
 Module and Brain Method appear only in files CodeScene scores 7.55 or lower, so they don't change any
 9.5 decision here.
 
+## Rust (0.16.0)
+
+CodeScene's Rust thresholds are its TypeScript ones (`results/codescene-thresholds-rust.json`): the same
+function limits, and files warn at 1,000 lines, so the gate uses `file_nloc_js` (999) for `.rs` files. The
+costs are the same for every language. All 8 Rust fixtures score within 0.01 of CodeScene.
+
+**How CodeScene counts Rust**, found with one-construct probe files and then checked on every function of
+four public projects:
+
+| | Counts | Doesn't count |
+|---|---|---|
+| Cyclomatic complexity, +1 each | `if`, `if let`, `let ... else`, `for`, `while`, `loop`, a `match` (once, whatever its arm count), a match guard, `&&` / `\|\|` | `else`, `?`, a match arm, `panic!` and other macros |
+| Nesting levels | `if`, `for`, `while`, `loop`, `match`; `else if` and `else { if }` are the level of their `if` | an `else` block: what's in it is at the level of its `if`, not inside it |
+| Complex Conditional | the condition of an `if` or `while` | a `let` value, a return value, a match guard |
+| Arguments | every parameter, `self` / `&self` included (unlike Python's `self`) | |
+
+- **Nested functions:** a closure is part of the function it's written in, and so is a nested `fn`, whatever
+  its length. lizard doesn't list closures; a nested `fn` folds as in Python.
+- **Bumps** follow the Python / TS rule, with four Rust differences: a match guard makes its arm a bump;
+  a path that holds bumps of its own counts those instead of one; a whole `match` is one bump unless its
+  arms hold bumps of their own; and an `if` or `match` used as a value (`let x = if ...`, `x = match ...`,
+  `return if ...`) or written in a closure counts as if it were a statement.
+- **Duplication:** the same near-copy measure, but over functions of 9+ code lines rather than 10. On the
+  402 files below, 9 lines gets fewer files wrong both ways (4 missed, 15 extra, against 7 and 14).
+- **Lint:** clippy, with the compiler's own warnings, on every check. It builds the crate, so a check on edit
+  gives up after 60 seconds and says clippy timed out. With clippy on, the compiler's errors come from it
+  too, so `--full` doesn't run `cargo check` again. Like tsc and mypy, cargo is never downloaded: it's the
+  project's own toolchain (rustup).
+
+**Every function, yes or no** (5,885 functions in the four projects; a smell is "yes" over its limit):
+
+| Smell | Agree | Both flag | Gate only | CodeScene only |
+|---|---|---|---|---|
+| Large Method | 5,885 | 88 | 0 | 0 |
+| Complex Method | 5,875 | 89 | 6 | 4 |
+| Complex Conditional | 5,880 | 33 | 1 | 4 |
+| Deep Nesting | 5,872 | 35 | 10 | 3 |
+| Bumpy Road | 5,846 | 88 | 23 | 16 |
+
+**The 9.5 decision**, per file (shallow clones of each project's default branch, Rust files only):
+
+| Project (commit) | Files scored | Same side of 9.5 | Risky | Stricter | Mean gap | Spearman |
+|---|---|---|---|---|---|---|
+| ripgrep (178cc02) | 84 | 77 (92%) | 2 | 5 | 0.33 | 0.92 |
+| fd (6cf3302) | 23 | 21 (91%) | 1 | 1 | 0.16 | 0.96 |
+| bat (8cf33bd) | 54 | 50 (93%) | 2 | 2 | 0.23 | 0.87 |
+| serde (aa7913a) | 188 | 185 (98%) | 2 | 1 | 0.23 | 0.95 |
+| **All** | **349** | **333 (95.4%)** | **7** | **9** | | |
+
+**Of the 262 Rust files the gate scores 9.5 or more, CodeScene agrees on 255 (97.3%).** The 7 risky files:
+3 CodeScene-style duplicates the similarity check misses, 2 the match-guard quirk below, one Large Assertion
+Blocks (a test smell we don't model) and one Primitive Obsession. 5 of the 9 stricter files are near copies
+CodeScene doesn't flag; serde's 4,000-line `de/mod.rs` scores 10.0 in CodeScene with nothing reported.
+
+**Two CodeScene quirks, left as they are** (the gate measures the code as written, as with JS nested functions):
+
+- A match arm whose pattern is a struct pattern (`E::Text { .. } =>`) loses its nesting in CodeScene, which
+  reports a bump instead. 2 of the 10 gate-only Deep Nesting flags are this; the other 8 aren't explained yet.
+- A match guard (`Some(x) if x > 0 =>`) makes every later arm one level deeper in CodeScene. It explains the
+  3 CodeScene-only Deep Nesting flags and 2 risky files.
+
 ## Bump counting (0.13.0)
 
 Fitted to CodeScene's flags on 2,391 functions (58 flagged) of the held-out project. CodeScene charges
@@ -227,10 +288,9 @@ more, for functions of 10+ code lines with nested functions folded in. It costs 
 
 ## Not modelled
 
-## Not modelled
-
 - **Brain Method:** neither `cs review` nor `cs delta` reported it on the corpus.
-- **Primitive Obsession and String Heavy Function Arguments:** TS only in CodeScene, and only once a file has about 15 primitive-argument functions.
+- **Primitive Obsession and String Heavy Function Arguments:** TS and Rust in CodeScene (not Python), and only once a file has about 15 primitive-argument functions.
+- **Large Assertion Blocks and Duplicated Assertion Blocks:** CodeScene's test smells (seen in Rust tests). One risky Rust file comes from them.
 - **Low Cohesion and Number of Functions in a Single Module:** file-level rules we don't have. On the held-out project they only appear in files scored 7.55 or lower.
 - **Python `match`:** CodeScene's count for `case` is unclear, so lizard's stands.
 - **Lint:** costs nothing in the score, as in CodeScene, but still blocks.

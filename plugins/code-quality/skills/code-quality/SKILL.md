@@ -1,6 +1,6 @@
 ---
 name: code-quality
-description: Deterministic code complexity and code-smell gate for Python, JavaScript and TypeScript (cyclomatic and cognitive complexity, function and file size, parameters, lint, types, duplication) with a baseline so existing code doesn't block work. Use when the user asks to "check code quality", "measure complexity", find code smells, set up a quality gate or CI check, "init code-quality", or when a code-quality hook reports findings after an edit. Also use when writing or changing code in a project that has a .quality/ folder.
+description: Deterministic code complexity and code-smell gate for Python, JavaScript, TypeScript and Rust (cyclomatic and cognitive complexity, function and file size, parameters, lint, types, duplication) with a baseline so existing code doesn't block work. Use when the user asks to "check code quality", "measure complexity", find code smells, set up a quality gate or CI check, "init code-quality", or when a code-quality hook reports findings after an edit. Also use when writing or changing code in a project that has a .quality/ folder.
 ---
 
 # code-quality
@@ -11,7 +11,7 @@ New code must stay inside the limits; existing code is recorded in a baseline an
 Script: `scripts/quality_gate.py` in this skill's base directory (call it `$QG` below). Run it with `python3` (3.11+).
 The checks live in `scripts/qg_checks.py` next to it.
 
-Tools run per package (the nearest folder with `pyproject.toml`, `package.json`, `biome.json`, `tsconfig.json` ...), with that package's own config and its own `.venv` / `node_modules`, so a monorepo's backend and frontend each keep their settings. Python type checking uses mypy where the package configures it, else pyright. A tool that isn't installed runs through `uvx` / `npx` at a pinned version (never tsc or mypy, which must be the project's own). Files git ignores, and minified or generated files, are skipped.
+Tools run per package (the nearest folder with `pyproject.toml`, `package.json`, `biome.json`, `tsconfig.json`, `Cargo.toml` ...), with that package's own config and its own `.venv` / `node_modules`, so a monorepo's backend and frontend each keep their settings. Python type checking uses mypy where the package configures it, else pyright. Rust is linted by the project's `cargo clippy` on every check (skipped on edit if the build takes over 60 s). A tool that isn't installed runs through `uvx` / `npx` at a pinned version (never tsc, mypy or cargo, which must be the project's own). Files git ignores, and minified or generated files, are skipped.
 
 ## Scores
 
@@ -54,7 +54,7 @@ Fix them until each function you wrote or changed is at 95% or more:
 
 Rules:
 
-1. Fix the code; don't game the metric. No `# noqa`, `biome-ignore`, `type: ignore`, or splitting a function into meaningless pieces just to pass. A suppression is acceptable only with a comment saying why, and the user should know about it.
+1. Fix the code; don't game the metric. No `# noqa`, `biome-ignore`, `type: ignore`, `#[allow(...)]`, or splitting a function into meaningless pieces just to pass. A suppression is acceptable only with a comment saying why, and the user should know about it.
 2. Never edit `.quality/baseline.json` or raise limits in `.quality/config.toml` to pass. If a limit seems wrong for this project, tell the user and let them decide.
 3. Keep behavior identical when restructuring; run the project's tests after.
 4. The baseline lowers itself as code improves. If you touch a baselined function anyway, leaving it better is welcome but not required; don't start unrelated refactors.

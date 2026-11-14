@@ -50,7 +50,7 @@ def copy(sources, work):
 
 
 def corpus():
-    fixtures = {str(p.relative_to(HERE)): p for p in (HERE / "fixtures").rglob("*") if p.suffix in (".py", ".ts")}
+    fixtures = {str(p.relative_to(HERE)): p for p in (HERE / "fixtures").rglob("*") if p.suffix in (".py", ".ts", ".rs")}
     return fixtures | REAL
 
 

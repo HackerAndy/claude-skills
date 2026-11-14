@@ -17,4 +17,10 @@ jobs:
           node-version: "22"
       - if: hashFiles('package-lock.json') != ''
         run: npm ci
+      - if: hashFiles('**/Cargo.toml') != ''
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - if: hashFiles('**/Cargo.toml') != ''
+        uses: Swatinem/rust-cache@v2
       - run: python3 .quality/quality_gate.py check --full --base origin/${{ github.base_ref }}

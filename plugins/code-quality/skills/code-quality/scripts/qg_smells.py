@@ -1,21 +1,25 @@
-"""Structure smells that lizard doesn't measure, read from tree-sitter syntax trees so Python, JavaScript
-and TypeScript are scored by one definition. Modelled on CodeScene's smells of the same names:
+"""Structure smells that lizard doesn't measure, read from tree-sitter syntax trees so Python, JavaScript,
+TypeScript and Rust are scored by one definition. Modelled on CodeScene's smells of the same names:
 
   nesting      deepest chain of if / loop / switch inside one another; try and with don't count (Nested Complexity)
   conditional  most && / || (and / or) operators in any single condition (Complex Conditional)
   bumps        chunks of nested logic in the function, counted the way CodeScene counts them (Bumpy Road),
                fitted to its flags on 2,391 functions: each path of an if / switch / match that holds a
-               nested branch or loop (or in Python, assigns a ternary) is a bump; a loop is one bump if it holds branches, or else the bumps
+               nested branch or loop (or in Python, assigns a ternary; in Rust, has a match guard) is a bump, and
+               in Rust a path holding bumps of its own counts those instead (`else { if }` is `else if`), and
+               a match is one bump unless its arms hold bumps of their own; a loop is one bump if it holds branches, or else the bumps
                inside it plus one if it also has a plain conditional path; try and with are looked inside
 
 It also gives `ccn`, cyclomatic complexity counted as CodeScene counts it (lizard's count misses decisions
 in some JSX): each if / elif, loop, except / catch, case, `&&` / `||` (`and` / `or`), JS ternary and `?.`,
 Python comprehension `for`, `raise` / `throw`, and a Python `else`; not a JS `else` or default, a Python
-ternary, comprehension `if` or `finally`, nor `??`.
+ternary, comprehension `if` or `finally`, nor `??`. In Rust: each if / if let / let-else, for / while / loop,
+match (once, whatever its arms) and match guard, and `&&` / `||`; not an `else`, `?` or a panicking macro.
+A Rust closure is code of the function it's written in (lizard doesn't list closures), and a nested `fn` folds.
 
 And `similar`: whether the function has a near copy in the same file, standing in for CodeScene's Code
 Duplication (similar functions within one file). CodeScene doesn't publish how it compares them; this
-compares functions of SIMILAR_MIN_LINES lines or more (nested ones folded in, as CodeScene folds them) by
+compares functions of SIMILAR_MIN_LINES lines or more (SIMILAR_MIN_LINES_RUST in Rust; nested ones folded in, as CodeScene folds them) by
 the share of 5-token runs they have in common (Jaccard), with the threshold fitted to its flags on one
 project. See docs/codescene-parity.md.
 
@@ -28,19 +32,23 @@ from pathlib import Path
 
 LANGUAGES = {".py": "python", ".js": "javascript", ".jsx": "javascript", ".mjs": "javascript",
              ".cjs": "javascript", ".ts": "typescript", ".mts": "typescript", ".cts": "typescript",
-             ".tsx": "tsx"}
+             ".tsx": "tsx", ".rs": "rust"}
 FUNCTIONS = {"function_definition", "function_declaration", "function_expression", "function",
-             "generator_function_declaration", "generator_function", "method_definition", "arrow_function"}
+             "generator_function_declaration", "generator_function", "method_definition", "arrow_function",
+             "function_item"}
+RUST_LOOPS = {"for_expression", "while_expression", "loop_expression"}
 BRANCHES = {"if_statement", "for_statement", "for_in_statement", "while_statement", "do_statement",
-            "try_statement", "switch_statement", "match_statement"}
-CONDITION_OWNERS = {"if_statement", "elif_clause", "while_statement", "do_statement", "for_statement"}
+            "try_statement", "switch_statement", "match_statement", "if_expression", "match_expression", *RUST_LOOPS}
+CONDITION_OWNERS = {"if_statement", "elif_clause", "while_statement", "do_statement", "for_statement",
+                    "if_expression", "while_expression"}  # a Rust match guard isn't a Complex Conditional for CodeScene
+IFS = {"if_statement", "if_expression"}
 # A JS / TS ternary's condition isn't a Complex Conditional for CodeScene; a Python one is (handled in conditions)
 LOGICAL = {"&&", "||"}
-LOOPS = {"for_statement", "for_in_statement", "while_statement", "do_statement"}
-FORKS = {"if_statement", "switch_statement", "match_statement"}  # code that takes one of several paths
-CONDITIONED = {"elif_clause", "case_clause", "switch_case"}  # a path with a condition of its own
+LOOPS = {"for_statement", "for_in_statement", "while_statement", "do_statement", *RUST_LOOPS}
+FORKS = {"if_statement", "switch_statement", "match_statement", "if_expression", "match_expression"}  # code that takes one of several paths
+CONDITIONED = {"elif_clause", "case_clause", "switch_case"}  # a path with a condition of its own (a Rust match arm isn't, for CodeScene)
 CLAUSES = {"elif_clause", "else_clause", "except_clause", "finally_clause", "case_clause", "switch_case",
-           "switch_default", "catch_clause"}
+           "switch_default", "catch_clause", "match_arm"}
 
 
 def parser_for(path, parsers):
@@ -62,9 +70,13 @@ def own_children(node):
 
 def nesting(node, depth=0):
     """Deepest chain of branches below node, counting `else if` as the same level as its `if`. As in
-    CodeScene, a try is not a level: it doesn't choose a path."""
+    CodeScene, a try is not a level: it doesn't choose a path. In Rust, CodeScene doesn't count an `else`
+    block as inside its `if`: what's in it is at the if's own level."""
     best = depth
     for child in own_children(node):
+        if child.type == "else_clause" and node.type == "if_expression":
+            best = max(best, nesting(child, depth - 1))
+            continue
         level = depth + (child.type in BRANCHES and child.type != "try_statement"
                          and not (child.type == "if_statement" and node.type == "else_clause"))
         best = max(best, nesting(child, level))
@@ -105,10 +117,39 @@ def conditions(node):
     return out
 
 
+def lone_if(else_clause):
+    """[the if] when a Rust else's block holds nothing but an if, which CodeScene reads as `else if`."""
+    block = next((x for x in else_clause.named_children if x.type == "block"), None)
+    body = statements(block) if block is not None else []
+    return body if len(body) == 1 and body[0].type == "if_expression" else []
+
+
+def path_block(path):
+    """The block a Rust path runs: an if's or else's block, or a match arm's when it has one."""
+    if path.type == "block":
+        return path
+    body = path.child_by_field_name("value") if path.type == "match_arm" else next(
+        (x for x in path.named_children if x.type == "block"), None)
+    return body if body is not None and body.type == "block" else None
+
+
+def path_bumps(path):
+    """A Rust path's bumps: the bumps inside it if it has any, else one if it holds logic at all."""
+    block = path_block(path)
+    inner = bumps(block) if block is not None else 0
+    return inner or int(has_logic(path))
+
+
 def has_logic(node):
     """Whether node is, or holds, a branch or loop of its own function. A ternary isn't one for CodeScene,
-    except in Python where a statement assigns it straight to a name."""
-    return node.type in BRANCHES or assigns_ternary(node) or any(has_logic(c) for c in own_children(node))
+    except in Python where a statement assigns it straight to a name; a Rust match guard is one."""
+    return (node.type in BRANCHES or assigns_ternary(node) or is_guard(node)
+            or any(has_logic(c) for c in own_children(node)))
+
+
+def is_guard(node):
+    """Whether node is a Rust match arm's pattern with an `if` guard."""
+    return node.type == "match_pattern" and node.child_by_field_name("condition") is not None
 
 
 def assigns_ternary(node):
@@ -127,21 +168,50 @@ def paths(fork):
     """The code on each path of an if / elif / else, switch / match or try (clauses keep their condition)."""
     out = []
     for c in fork.named_children:
-        if c == fork.child_by_field_name("condition") or c == fork.child_by_field_name("subject"):
+        if c in (fork.child_by_field_name("condition"), fork.child_by_field_name("subject"),
+                 fork.child_by_field_name("value")):
             continue
-        inner = [x for x in c.named_children if x.type == "if_statement"]
-        if c.type == "else_clause" and inner:  # JS `else if`: the next link of the same chain
+        inner = [x for x in c.named_children if x.type in IFS] or lone_if(c)
+        if c.type == "else_clause" and inner:  # `else if`, and in Rust `else { if ... }`: the next link of the chain
             out += paths(inner[0])
-        elif c.type == "switch_body" or (fork.type == "match_statement" and c.type == "block"):
+        elif c.type in ("switch_body", "match_block") or (fork.type == "match_statement" and c.type == "block"):
             out += [x for x in c.named_children if x.type in CLAUSES]
         else:
             out.append(c)
     return out
 
 
+RUST_VALUE = {"let_declaration": "value", "assignment_expression": "right", "compound_assignment_expr": "right",
+              "return_expression": None}
+
+
+def statements(block):
+    """block's statements, each Rust statement read as the expression it holds: `x;`, and the value of
+    `let x = ...`, `x = ...` and `return ...`, so `let x = if ... { ... }` is the if."""
+    out = []
+    for st in block.named_children:
+        if st.type == "expression_statement" and st.named_children:
+            st = st.named_children[0]
+        if st.type in RUST_VALUE:
+            field = RUST_VALUE[st.type]
+            value = st.child_by_field_name(field) if field else (st.named_children or [None])[0]
+            st = value if value is not None else st
+        out.append(st)
+    return out
+
+
+def closures_in(node):
+    """The Rust closures written in node, outermost only."""
+    for c in node.named_children:
+        if c.type == "closure_expression":
+            yield c
+        else:
+            yield from closures_in(c)
+
+
 def plain_path(block):
     """Whether block has an if / elif / case path with a condition and no nested logic in it."""
-    for st in block.named_children:
+    for st in statements(block):
         if st.type in FORKS:
             for p in paths(st):
                 if (p.type in CONDITIONED or p == st.child_by_field_name("consequence")) and not has_logic(p):
@@ -151,7 +221,7 @@ def plain_path(block):
 
 def blocks_of(st):
     """The blocks of a try (body, except / catch, else, finally), a with, or a bare block."""
-    if st.type == "statement_block":
+    if st.type in ("statement_block", "block"):
         return [st]
     out = []
     for c in st.named_children:
@@ -165,21 +235,30 @@ def blocks_of(st):
 def bumps(block):
     """Chunks of nested logic among block's statements (see the module docstring)."""
     n = 0
-    for st in block.named_children:
+    for st in statements(block):
         body = st.child_by_field_name("body")
-        if st.type in FORKS:
+        if st.type == "if_expression":
+            n += sum(path_bumps(p) for p in paths(st))
+        elif st.type == "match_expression":  # one bump for the whole match, unless its arms hold bumps of their own
+            arms = paths(st)
+            n += sum(bumps(b) for p in arms if (b := path_block(p)) is not None) or int(any(map(has_logic, arms)))
+        elif st.type in FORKS:
             n += sum(has_logic(p) for p in paths(st))
         elif st.type in LOOPS and body is not None:
             inner = bumps(body)
             n += inner + plain_path(body) if inner else int(has_logic(body))
-        elif st.type in ("try_statement", "with_statement", "statement_block"):  # no choice of path: look inside
+        elif st.type in ("try_statement", "with_statement", "statement_block", "block", "unsafe_block"):  # no choice of path: look inside
             n += sum(bumps(b) for b in blocks_of(st))
+        else:  # a Rust closure's body counts as code of the function, as a nested function's would
+            n += sum(bumps(body) for c in closures_in(st)
+                     if (body := c.child_by_field_name("body")) is not None and body.type == "block")
     return n
 
 
 DECISIONS = {"if_statement", "elif_clause", "for_statement", "for_in_statement", "while_statement", "do_statement",
              "except_clause", "catch_clause", "switch_case", "case_clause", "ternary_expression", "optional_chain",
-             "raise_statement", "throw_statement", "for_in_clause", "boolean_operator"}
+             "raise_statement", "throw_statement", "for_in_clause", "boolean_operator",
+             "if_expression", "match_expression", *RUST_LOOPS}
 
 
 def ccn(fn):
@@ -192,6 +271,8 @@ def ccn(fn):
             n += fn.type == "function_definition"  # a Python else counts; a JS else doesn't
         elif node.type == "binary_expression" and (op := node.child_by_field_name("operator")) and op.type in LOGICAL:
             n += 1
+        elif is_guard(node) or (node.type == "let_declaration" and node.child_by_field_name("alternative")):
+            n += 1  # a Rust match guard, or let-else
     return n
 
 
@@ -226,6 +307,7 @@ def functions_in(node):
 
 
 SIMILAR_MIN_LINES = 10  # CodeScene's function_duplication_min_lines_of_code_for_check
+SIMILAR_MIN_LINES_RUST = 9  # fitted on 402 Rust files: fewer missed and fewer extra flags than 10
 SIMILAR_SHARE = 0.5     # fitted on 1,800 files to favour stricter over missed: CodeScene says 75%, but measures differently
 SHINGLE = 5             # tokens per run compared
 OWN_FUNCTION_LINES = 25  # a nested JS / TS function this long is a function of its own for CodeScene
@@ -257,21 +339,23 @@ def js_named(fn):
 
 
 def is_folded(fn):
-    """Whether CodeScene counts fn as part of the function around it: always in Python; in JS / TS unless it's
+    """Whether CodeScene counts fn as part of the function around it: always in Python and Rust; in JS / TS unless it's
     OWN_FUNCTION_LINES lines or more and has a name (js_named)."""
     p = fn.parent
     while p is not None and not is_function(p):
         p = p.parent
     if p is None:
         return False
-    return fn.type == "function_definition" or source_lines(fn) < OWN_FUNCTION_LINES or not js_named(fn)
+    return fn.type in ("function_definition", "function_item") or source_lines(fn) < OWN_FUNCTION_LINES or not js_named(fn)
 
 
 def code_leaves(node, markup=False):
     """(line, text) of each leaf below node that is code: comments and JSX left out. CodeScene doesn't count
     two components as duplicates for alike markup, nor a function of mostly markup as long enough to check."""
+    if "comment" in node.type:
+        return
     markup = markup or node.type.startswith("jsx_")
-    if node.child_count == 0 and not markup and "comment" not in node.type:
+    if node.child_count == 0 and not markup:
         yield node.start_point[0], node.text
     for c in node.children:
         yield from code_leaves(c, markup)
@@ -284,9 +368,9 @@ def loc(fn):
     lines = set()
 
     def walk(n):
-        if n is not fn and is_function(n) and not is_folded(n):
+        if (n is not fn and is_function(n) and not is_folded(n)) or "comment" in n.type:
             return
-        if n.child_count == 0 and "comment" not in n.type:
+        if n.child_count == 0:
             lines.update(range(n.start_point[0], n.end_point[0] + 1))
         for c in n.children:
             walk(c)
@@ -299,7 +383,9 @@ def source_lines(node):
     lines = set()
 
     def walk(n):
-        if n.child_count == 0 and "comment" not in n.type:
+        if "comment" in n.type:
+            return
+        if n.child_count == 0:
             lines.add(n.start_point[0])
         for c in n.children:
             walk(c)
@@ -307,12 +393,12 @@ def source_lines(node):
     return len(lines)
 
 
-def similar(fns):
+def similar(fns, min_lines=SIMILAR_MIN_LINES):
     """The indexes of functions with a near copy among fns (see the module docstring)."""
     runs = {}
     for i, fn in enumerate(fns):
         leaves = list(code_leaves(fn))
-        if not is_folded(fn) and len({line for line, _ in leaves}) >= SIMILAR_MIN_LINES:
+        if not is_folded(fn) and len({line for line, _ in leaves}) >= min_lines:
             t = [text for _, text in leaves]
             runs[i] = {tuple(t[k:k + SHINGLE]) for k in range(max(1, len(t) - SHINGLE + 1))}
     out = set()
@@ -334,7 +420,7 @@ def measure(paths):
         if parser:
             tree = parser.parse(Path(path).read_bytes())
             fns = list(functions_in(tree.root_node))
-            near = similar(fns)
+            near = similar(fns, SIMILAR_MIN_LINES_RUST if Path(path).suffix.lower() == ".rs" else SIMILAR_MIN_LINES)
             out[str(path)] = [measure_function(fn) | {"similar": i in near} for i, fn in enumerate(fns)]
     return out
 

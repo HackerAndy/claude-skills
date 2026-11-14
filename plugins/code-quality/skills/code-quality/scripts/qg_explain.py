@@ -84,7 +84,10 @@ METRIC_HELP = {
 # mark it. In Python a statement `if`, `elif` and `else` count, and so does `raise`; a ternary or
 # comprehension `if` and `finally` don't, and comprehension `for`s do. In JS/TS `?.`, `?:` and `throw`
 # count, `??` and default values don't. A loop's or try's `else` is marked too, though it doesn't count; it's rare.
+# In Rust `if` (and `if let`, a match guard), `for`, `while`, `loop`, `match`, `&&` and `||` count; a let-else
+# counts too but isn't marked.
 BRANCHES = {
+    "rs": re.compile(r"\b(?:if|for|while|loop|match)\b|&&|\|\|"),
     "py": re.compile(r"^\s*(?:if|elif|else)\b|\b(?:for|while|except|and|or|case|raise)\b"),
     "js": re.compile(r"(?<!\.)\b(?:if|for|while|case|catch|throw)\b|&&|\|\||\?\.(?!\d)|(?<![?.])\?(?![.?:])"),
 }
@@ -92,7 +95,7 @@ QUOTED = re.compile(r"""(["'])(?:\\.|(?!\1).)*\1""")
 TRIPLE = re.compile(r'("""|\'\'\')[\s\S]*?\1')
 FSTRING = re.compile(r"""\b[fF][rR]?(["'])(?:\\.|(?!\1).)*\1""")
 TEMPLATE = re.compile(r"`(?:\\.|[^`])*`")
-COMMENT = {"py": re.compile(r"#.*"), "js": re.compile(r"//.*")}
+COMMENT = {"py": re.compile(r"#.*"), "js": re.compile(r"//.*"), "rs": re.compile(r"//.*")}
 BLOCK_COMMENT = re.compile(r"/\*[\s\S]*?\*/")
 
 
@@ -112,7 +115,9 @@ def keep_expressions(m):
 def code_only(lines, lang):
     """The lines with string text and comments blanked, columns and line breaks kept."""
     text = "\n".join(lines)
-    if lang == "js":
+    if lang == "rs":
+        text = BLOCK_COMMENT.sub(blank, text)
+    elif lang == "js":
         text = TEMPLATE.sub(keep_expressions, BLOCK_COMMENT.sub(blank, text))
     else:
         text = FSTRING.sub(keep_expressions, TRIPLE.sub(blank, text))
@@ -149,7 +154,7 @@ def branch_spans(lines, lang, nested=()):
 
 
 def lang_of(name):
-    return "py" if name.endswith(".py") else "js"
+    return "py" if name.endswith(".py") else "rs" if name.endswith(".rs") else "js"
 
 
 def function_code(fn, functions, lines, lang):
@@ -182,12 +187,12 @@ def add_code(root, name, entry, approved):
 
 # ---------------------------------------------------------------- rule docs, from the tools
 
-def sections(markdown):
-    """{heading: text} of a markdown document's ## sections."""
+def sections(markdown, level="## "):
+    """{heading: text} of a markdown document's ## sections (or another level's)."""
     out, head = {}, None
     for line in markdown.splitlines():
-        if line.startswith("## "):
-            head = line[3:].strip()
+        if line.startswith(level):
+            head = line[len(level):].strip()
             out[head] = ""
         elif head:
             out[head] += line + "\n"
@@ -243,6 +248,20 @@ def biome_help(ctx, name, pkg):
             "url": f"https://biomejs.dev/linter/rules/{kebab}/"}
 
 
+def clippy_help(ctx, name, pkg):
+    cmd = qc.tool(ctx, "cargo", pkg)
+    text = qc.run([*cmd, "clippy", "--explain", name], pkg).stdout if cmd else ""
+    s = sections(text, "### ")
+    if not s.get("What it does"):
+        return None
+    blocks = FENCE.findall(s.get("Example", ""))
+    return {"title": paragraph(s["What it does"]).rstrip("."), "name": name, "what": paragraph(s["What it does"]),
+            "why": paragraph(s.get("Why is this bad?", ""), 2),
+            "bad": first_block(f"```\n{blocks[0]}```") if blocks else None,
+            "good": first_block(f"```\n{blocks[1]}```") if len(blocks) > 1 else None,
+            "url": f"https://rust-lang.github.io/rust-clippy/master/index.html#{name}"}
+
+
 def rule_help(ctx, rule, file):
     tool_name, _, code = rule.partition(":")
     try:
@@ -250,6 +269,8 @@ def rule_help(ctx, rule, file):
             return ruff_help(ctx, code, qc.package_of(ctx["root"], ctx["root"] / file, qc.PY_MARKERS))
         if tool_name == "biome":
             return biome_help(ctx, code.split("/")[-1], qc.package_of(ctx["root"], ctx["root"] / file, qc.JS_MARKERS))
+        if tool_name == "clippy":
+            return clippy_help(ctx, code, qc.package_of(ctx["root"], ctx["root"] / file, qc.RS_MARKERS))
     except (OSError, json.JSONDecodeError, ValueError):
         return None
     return None
@@ -261,7 +282,7 @@ def rules(ctx, files, known):
     for name, entry in files.items():
         for f in entry["findings"]:
             r = f["rule"]
-            if r in out or qc.source_of(r) not in ("ruff", "biome"):
+            if r in out or qc.source_of(r) not in ("ruff", "biome", "clippy"):
                 continue
             out[r] = known.get(r) or rule_help(ctx, r, name)
     return {r: h for r, h in out.items() if h}

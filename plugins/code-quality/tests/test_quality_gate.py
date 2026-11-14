@@ -165,6 +165,63 @@ class GateTest(unittest.TestCase):
             self.assertAlmostEqual(json.loads(r.stdout)["scores"]["health"], want, delta=0.015, msg=name)
             (self.dir / "app" / name).unlink()  # the next sample reuses this code, which would be a duplicate
 
+    def test_rust_is_scored_as_codescene_scores_it(self):
+        # CodeScene (cs 1.0.58) on engine/src/lib.rs: legacy_rate cc 11 and 4 bumps (a match guard makes its arm
+        # one), 9.53 for the file; subtotal_cents' closure is part of it.
+        r = gate(self.dir, "score", "engine/src/lib.rs", "--json")
+        out = json.loads(r.stdout)
+        fns = {fn["symbol"]: fn for fn in out["functions"]}
+        self.assertEqual(list(fns), ["subtotal_cents", "legacy_rate"])
+        self.assertEqual((fns["legacy_rate"]["values"]["ccn"], fns["legacy_rate"]["values"]["bumps"]), (11, 4))
+        self.assertTrue(fns["subtotal_cents"]["approved"])
+        self.assertAlmostEqual(out["scores"]["health"], 9.53, delta=0.015)
+
+    def test_rust_constructs_count_as_codescene_counts_them(self):
+        # Each value is what cs 1.0.58 reports for the same function. A match counts once whatever its arms, `?`
+        # not at all; a nested fn folds into its parent; `&self` is an argument; `else { if }` is `else if`.
+        src = ["struct S;", "impl S {",
+               "    fn send(&self, a: i32, b: i32, c: i32, d: i32) -> i32 { a + b + c + d }", "}",
+               "fn pick(o: Option<i32>) -> Result<i32, String> {",
+               "    let v = o.ok_or(\"none\")?;",
+               "    Ok(match v { 1 => 10, 2 => 20, 3 => 30, _ => 0 })", "}",
+               "fn outer(a: i32) -> i32 {", "    fn inner(a: i32) -> i32 {",
+               *[f"        if a > {i} {{ return {i}; }}" for i in range(9)], "        0", "    }", "    inner(a)", "}",
+               "fn chain(a: i32) -> i32 {",
+               "    if a > 0 { if a > 1 { return 1; } } else { if a < -1 { return 2; } }", "    0", "}",
+               "fn deep(a: i32, xs: &[i32]) -> i32 {",
+               "    for x in xs { match a { 1 => { while a > *x { if a > 2 { return 1; } } } _ => {} } }", "    0", "}",
+               "fn elsewise(a: i32, xs: &[i32]) -> i32 {",
+               "    if a > 0 { return 0; } else { for x in xs { while a > *x { if a > 2 { return 1; } } } }", "    2", "}"]
+        (self.dir / "engine" / "src" / "shapes.rs").write_text("\n".join(src) + "\n")
+        r = gate(self.dir, "check", "--all", "--json")
+        fns = {f["symbol"]: f["values"] for f in json.loads(r.stdout)["functions"] if f["file"] == "engine/src/shapes.rs"}
+        self.assertNotIn("inner", fns)
+        self.assertEqual(fns["send"]["params"], 5)
+        self.assertEqual(fns["pick"]["ccn"], 2)
+        self.assertEqual(fns["outer"]["ccn"], 10)
+        self.assertEqual((fns["chain"]["bumps"], fns["chain"]["nesting"]), (1, 2))
+        self.assertEqual(fns["deep"]["nesting"], 4)
+        self.assertEqual(fns["elsewise"]["nesting"], 3)  # an else block is at its if's level in Rust
+
+    def test_rust_files_get_the_longer_file_limit(self):
+        # CodeScene warns at 1000 lines in a Rust file, as in JS / TS, and at 600 in Python.
+        consts = "".join(f"pub const C{i}: i32 = {i};\n" for i in range(700))
+        (self.dir / "engine" / "src" / "consts.rs").write_text(consts)
+        (self.dir / "app" / "consts.py").write_text("".join(f"C{i} = {i}\n" for i in range(700)))
+        r = gate(self.dir, "check", "--all", "--json")
+        files = {f["file"] for f in json.loads(r.stdout)["new"] if f["rule"] == "file_nloc"}
+        self.assertEqual(files, {"app/consts.py"})
+
+    @unittest.skipUnless(shutil.which("cargo") or (Path.home() / ".cargo" / "bin" / "cargo").is_file(), "needs cargo")
+    def test_clippy_findings_block_and_cap_the_function(self):
+        with open(self.dir / "engine" / "src" / "lib.rs", "a") as f:
+            f.write("\npub fn double(x: u64) -> u64 {\n    return x * 2;\n}\n")
+        r = gate(self.dir, "check", "engine/src/lib.rs", "--json")
+        out = json.loads(r.stdout)
+        self.assertIn(("engine/src/lib.rs", "clippy:needless_return"), [(f["file"], f["rule"]) for f in out["new"]])
+        self.assertEqual({fn["symbol"]: fn["score"] for fn in out["functions"]}["double"], 94)
+        self.assertEqual(self.hook("engine/src/lib.rs").returncode, 2)
+
     def test_copied_code_is_flagged_when_a_file_is_checked(self):
         src = (self.dir / "app" / "orders.py").read_text()
         (self.dir / "app" / "orders_copy.py").write_text(src)
@@ -197,7 +254,7 @@ class GateTest(unittest.TestCase):
     def test_targets_lists_functions_below_95(self):
         r = gate(self.dir, "targets", "--json")
         rows = json.loads(r.stdout)
-        self.assertEqual([row["symbol"] for row in rows], ["legacy_price"])
+        self.assertEqual([row["symbol"] for row in rows], ["legacy_price", "legacy_rate"])
         self.assertIn("cognitive complexity 21 > 15", rows[0]["why"])
         self.assertEqual(json.loads(gate(self.dir, "targets", "web", "--json").stdout), [])
 
@@ -217,8 +274,8 @@ class GateTest(unittest.TestCase):
         self.hook("app/orders.py")
         report = json.loads((self.dir / ".quality" / "report.json").read_text())
         self.assertEqual(report["summary"]["new"], 4)  # shipping's bumps, cc and cognitive, and ruff B006
-        # cart.ts's reduce callback is folded into cartTotal, so 4 functions, not 5
-        self.assertEqual(report["summary"]["bands"], {"green": 2, "yellow": 2, "red": 0})
+        # cart.ts's reduce callback is folded into cartTotal, and lib.rs's closure into subtotal_cents
+        self.assertEqual(report["summary"]["bands"], {"green": 3, "yellow": 3, "red": 0})
         self.assertEqual(report["folders"][0]["path"], "app")
         self.assertEqual(report["targets"][0]["symbol"], "legacy_price")
         self.assertIn("web/cart.ts", report["files"])
