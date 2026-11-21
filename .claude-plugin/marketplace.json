@@ -39,6 +39,11 @@
       "name": "ux-usability-review",
       "source": "./plugins/ux-usability-review",
       "description": "First-time-user usability review of a web page or flow: drafts flows from your code, records clicks, scores wording, complexity, next-step clarity and flow coherence"
+    },
+    {
+      "name": "plain-talk",
+      "source": "./plugins/plain-talk",
+      "description": "Makes Claude explain itself plainly: always-on rules for clear replies, and a skill that re-explains on request (what did you mean, simplify, bigger picture, assume I know nothing, walk me through the flow)."
     }
   ]
 }

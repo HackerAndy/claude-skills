@@ -1,0 +1,8 @@
+{
+  "name": "plain-talk",
+  "version": "0.1.0",
+  "description": "Makes Claude explain itself plainly: always-on rules for clear replies, and a skill that re-explains on request (what did you mean, simplify, bigger picture, assume I know nothing, walk me through the flow).",
+  "author": { "name": "Andy Kaminski" },
+  "keywords": ["communication", "explain", "plain-language", "clarity"],
+  "license": "MIT"
+}
